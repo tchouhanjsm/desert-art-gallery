@@ -27,7 +27,7 @@ type CollectionRow = {
 
 export async function getStorefrontProducts(): Promise<Product[]> {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return previewProducts;
+  if (!supabase) return process.env.NODE_ENV === "development" ? previewProducts : [];
 
   const { data, error } = await supabase
     .from("products")
@@ -73,7 +73,7 @@ export async function getStorefrontProducts(): Promise<Product[]> {
 
 export async function getStorefrontCollections() {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return previewCollections;
+  if (!supabase) return process.env.NODE_ENV === "development" ? previewCollections : [];
 
   const { data, error } = await supabase
     .from("collections")

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img" aria-labelledby="title desc">
+  <title id="title">Textile-inspired placeholder</title>
+  <desc id="desc">An abstract woven pattern used until merchant-authorized product photography is supplied.</desc>
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9dfd0"/>
+      <stop offset="1" stop-color="#cdb99f"/>
+    </linearGradient>
+    <pattern id="weave" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M0 8H72M0 26H72M0 44H72M0 62H72" stroke="#76604c" stroke-opacity=".22" stroke-width="3"/>
+      <path d="M8 0V72M26 0V72M44 0V72M62 0V72" stroke="#f7f1e7" stroke-opacity=".72" stroke-width="5"/>
+      <path d="M0 0L72 72M72 0L0 72" stroke="#a45f48" stroke-opacity=".12" stroke-width="2"/>
+    </pattern>
+    <pattern id="motif" width="240" height="240" patternUnits="userSpaceOnUse">
+      <path d="M120 16L224 120 120 224 16 120Z" fill="none" stroke="#9b654d" stroke-width="5" stroke-opacity=".45"/>
+      <path d="M120 58L182 120 120 182 58 120Z" fill="none" stroke="#5b5146" stroke-width="4" stroke-opacity=".4"/>
+      <circle cx="120" cy="120" r="15" fill="#b58b54" fill-opacity=".65"/>
+      <circle cx="120" cy="16" r="5" fill="#6e5847"/>
+      <circle cx="224" cy="120" r="5" fill="#6e5847"/>
+      <circle cx="120" cy="224" r="5" fill="#6e5847"/>
+      <circle cx="16" cy="120" r="5" fill="#6e5847"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="1500" fill="url(#ground)"/>
+  <rect width="1200" height="1500" fill="url(#weave)" opacity=".7"/>
+  <rect x="72" y="72" width="1056" height="1356" fill="url(#motif)" opacity=".62"/>
+  <rect x="96" y="96" width="1008" height="1308" fill="none" stroke="#f7f1e7" stroke-width="8" opacity=".8"/>
+  <path d="M0 0H1200V1500H0Z" fill="none" stroke="#5b5146" stroke-opacity=".22" stroke-width="18"/>
+</svg>

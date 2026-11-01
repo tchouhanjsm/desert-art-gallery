@@ -6,12 +6,15 @@ This register separates code present in the repository from integrations that ha
 
 ## Implemented in code
 
-### Storefront and discovery
-- Next.js App Router storefront with responsive editorial home, shop, collection, product, story, artisans, journal, contact and client-care routes.
-- Search/category browsing and product detail routes; seed catalogue remains inquiry-only and must not be treated as verified sale inventory.
-- Metadata defaults, sitemap and robots routes.
-- Guest cart and wishlist state persist locally. Authenticated cart and wishlist state synchronizes to Supabase after server-side catalogue/status/quantity validation.
-- Cart preview refreshes current active catalogue prices, availability and rights-confirmed image references; it is not an inventory reservation or checkout quote.
+### Storefront routes and discovery foundations
+- Next.js App Router route scaffolding exists for home, shop, collection, product, story, artisans, journal, contact and client-care pages.
+- Search/category browsing and product detail routes are present. Seed product records are inquiry-only and are now returned only in development when Supabase is not configured.
+- Production builds without Supabase no longer publish the seed product/collection catalogue. Production product and collection routes remain dynamic and depend on published Supabase records.
+- Unverified merchant-domain and Unsplash image hotlinks were removed from the preview catalogue, homepage and story page. Development preview records and editorial placeholders use an original local textile-inspired SVG until merchant-authorized originals are uploaded.
+- Supabase product cards require an active record and a rights-confirmed image in owned private storage. Collection hero images are signed only when their rights flag is confirmed.
+- Metadata defaults, sitemap and robots routes exist.
+
+**Visual readiness limitation:** the current global stylesheet contains cart/account/import component styles but does not yet provide the complete base design system for the editorial storefront (design tokens, page layout, navigation, hero, product/collection grids, typography and responsive breakpoints). The route scaffolding is not yet a verified luxury-ready or accessibility-reviewed customer experience. A full responsive design-system and route-by-route QA phase remains outstanding.
 
 ### Supabase foundation and data controls
 - Commerce migrations define profiles, catalogue, media, inventory movements, addresses, orders/order items, saved cart/wishlist, discounts, shipping, editorial content, reviews, newsletter, audit and webhook-event tables.
@@ -42,15 +45,16 @@ This register separates code present in the repository from integrations that ha
 
 - [ ] Connect the merchant-approved Supabase project and apply/verify both migrations in that project. No live database migration was run in this delivery.
 - [ ] Verify RLS, storage access, import/adjustment RPC permissions, transaction rollback and auth callbacks with real Supabase anon/authenticated/service-role sessions.
+- [ ] Build the complete luxury editorial design system and responsive route layouts; verify mobile overflow, keyboard navigation, focus, contrast, touch targets, reduced motion and assistive-technology behavior.
+- [ ] Replace the local textile placeholder with merchant-authorized original photography in owned storage after rights review; confirm rights for every product, collection, editorial and artisan image.
 - [ ] Add customer registration/email verification and approved staff/owner provisioning.
-- [ ] Replace all seed/research product records and image references with verified catalogue data and merchant-authorized original assets in owned storage.
 - [ ] Import the merchant-approved catalogue and complete image association, media optimization and rights evidence review.
 - [ ] Add a verified product-variant model and server-side inventory reservation/atomic stock decrement for checkout.
 - [ ] Complete product, customer, order, promotion, editorial and reporting CRUD, including explicit admin audit review UI.
 - [ ] Implement order creation, checkout, idempotency, payment-provider sandbox integration, signed webhook processing and reconciliation.
 - [ ] Configure Razorpay for eligible Indian transactions and an approved international payment provider. Never collect or store raw card data.
 - [ ] Configure merchant-approved shipping zones/rates, taxes/duties disclosures, carrier tracking and transactional email.
-- [ ] Implement newsletter double opt-in/unsubscribe endpoints and consent-aware analytics.
+- [ ] Implement newsletter double opt-in/unsubscribe endpoints and consent-aware analytics; current mailto fallback is not a subscription system.
 - [ ] Add accessible browser E2E coverage, security testing, dependency remediation, image transformation/CDN delivery and Core Web Vitals monitoring.
 - [ ] Approve legal seller identity, privacy/terms/returns/shipping policies, domain/hosting and production deployment runbooks.
 - [ ] Import genuine reviews only with documented permission; do not imply purchase verification unless independently implemented and proven.
@@ -61,12 +65,15 @@ Production activation requires merchant-authorized catalogue data and original p
 
 ## Dated handoff
 
-### 2026-11-02 — catalogue ingestion and inventory integrity
-- Verified starting PR head: dfb5dc0b4cad469761a551ad9726f25a9f7f692f on feat/luxury-storefront-foundation, targeting main.
+### 2026-11-02 — catalogue ingestion, inventory integrity and asset-rights fallback
+- Starting PR head for the catalogue phase: dfb5dc0b4cad469761a551ad9726f25a9f7f692f on feat/luxury-storefront-foundation, targeting main.
 - Added strict CSV parsing and row-level validation, a separate preview/commit flow, exact-file SHA-256 binding, duplicate/category checks and a draft-only atomic import RPC.
 - Added import batch history and initial inventory movement records.
 - Added a database guard against direct stock edits and an atomic row-locked inventory adjustment RPC; removed stock editing from ordinary product detail updates.
-- Added parser and migration-contract regression tests. The exact final head SHA and CI outcome are maintained in PR #1 after the commit is created.
+- Fixed currency minor-unit parsing for the repository TypeScript target without changing compiler strictness; chunked catalogue duplicate queries to avoid oversized PostgREST URLs.
+- Corrected a Next.js Link lint failure. Final exact-head CI is recorded in PR #1.
+- Added a production-safe catalogue fallback: unverified preview records are development-only, seed images are local placeholders, and unverified external merchant/Unsplash image hotlinks were removed from the homepage, story and preview catalogue.
+- Next engineering increment: complete the core responsive design system and editorial storefront presentation, then perform route-by-route visual/accessibility QA.
 - Not verified: execution of the new migration against the merchant's Supabase project, real RPC/RLS behavior, customer auth/storage integration, payment/shipping/email or production deployment.
 
 ## Release status

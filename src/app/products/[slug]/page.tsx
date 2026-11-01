@@ -9,7 +9,7 @@ import { AddToBagButton } from "@/components/AddToBagButton";
 import { WishlistToggle } from "@/components/WishlistToggle";
 
 export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+  return process.env.NODE_ENV === "development" ? products.map((product) => ({ slug: product.slug })) : [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

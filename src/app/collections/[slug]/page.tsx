@@ -5,7 +5,7 @@ import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue
 import { collections } from "@/lib/products";
 
 export function generateStaticParams() {
-  return collections.map((collection) => ({ slug: collection.slug }));
+  return process.env.NODE_ENV === "development" ? collections.map((collection) => ({ slug: collection.slug })) : [];
 }
 
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
