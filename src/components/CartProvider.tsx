@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { mergeCartLine, normalizeCartLines, setCartLineQuantity, type CartLine } from "@/lib/cart";
 
@@ -63,6 +63,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => { if (hydrated) void refresh(lines); }, [hydrated, lines, refresh]);
+
+  const syncSequence = useRef(0);
+  useEffect(() => {
+    if (!hydrated) return;
+    const sequence = ++syncSequence.current;
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch("/api/cart/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lines }),
+        });
+        if (!response.ok) return;
+        const result = await response.json();
+        if (sequence !== syncSequence.current || !result.authenticated || !Array.isArray(result.lines)) return;
+        const merged = normalizeCartLines(result.lines);
+        if (JSON.stringify(merged) !== JSON.stringify(lines)) setLines(merged);
+      } catch {
+        // Keep the guest bag intact when an account sync is unavailable.
+      }
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [hydrated, lines]);
 
   const addItem = useCallback((slug: string, maximum: number) => {
     if (maximum < 1) { setError("This piece is currently unavailable."); return; }

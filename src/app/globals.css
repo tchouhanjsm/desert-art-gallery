@@ -45,3 +45,23 @@
 .wishlist-placeholder{aspect-ratio:3/4;background:var(--sand);margin-bottom:14px}
 .wishlist-remove{border:0;background:transparent;border-bottom:1px solid var(--gold);padding:0 0 5px;font-size:8px;letter-spacing:.13em}
 @media(max-width:700px){.wishlist-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Customer account and order history */
+.account-section{margin:48px 0;padding-top:30px;border-top:1px solid var(--line)}
+.account-section h2,.order-item-list h2{font-family:var(--font-display),Georgia,serif;font-size:37px;font-weight:400;margin:8px 0 22px}
+.account-profile-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:760px}
+.account-profile-form label{display:grid;gap:8px;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#665c52}
+.account-profile-form input{min-height:43px;padding:10px 12px;border:1px solid var(--line);background:#fbf9f5;color:var(--ink)}
+.account-profile-form input[readonly]{color:#877d73;background:#f1ece4}
+.account-profile-form button{grid-column:1/-1;justify-self:start}
+.account-address-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.account-address{padding:20px;background:#f0e9df;border:1px solid var(--line)}
+.account-address strong{display:block;margin:12px 0 8px;font-family:var(--font-display),Georgia,serif;font-size:22px;font-weight:500}
+.account-address p{font-size:11px;line-height:1.7;color:#6d6359}
+.order-detail-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(270px,.75fr);gap:6%;align-items:start}
+.order-item{display:flex;justify-content:space-between;gap:18px;padding:20px 0;border-bottom:1px solid var(--line);font-size:12px}
+.order-item strong{display:block;font-weight:500}
+.order-item small{display:block;margin-top:5px;color:#887e74}
+.order-item p{font-size:10px;color:#786e64}
+@media(max-width:800px){.account-address-grid{grid-template-columns:1fr 1fr}.order-detail-layout{grid-template-columns:1fr}.order-detail-layout .cart-summary{order:-1}}
+@media(max-width:600px){.account-profile-form,.account-address-grid{grid-template-columns:1fr}}
