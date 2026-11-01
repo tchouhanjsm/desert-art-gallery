@@ -23,4 +23,4 @@ describe("getSafeRedirectPath", () => {
   it("uses the supplied fallback for empty values", () => {
     expect(getSafeRedirectPath(null, origin, "/shop")).toBe("/shop");
   });
-}
+});
