@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights } from "../actions";
+import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights, adjustProductInventory } from "../actions";
 
 export const metadata = { title: "Edit product" };
 
@@ -14,6 +14,7 @@ type ProductRow = {
   condition_notes: string; provenance: string; craft_story: string; seo_title: string | null; seo_description: string | null;
 };
 type ImageRow = { id: string; storage_path: string; alt_text: string; rights_confirmed: boolean; rights_evidence: string; sort_order: number };
+type MovementRow = { id: string; quantity_delta: number; reason: string; reference: string | null; created_at: string };
 
 function displayMoneyInput(value: number | null, currency: string) {
   if (value === null) return "";
@@ -28,15 +29,17 @@ export default async function EditAdminProductPage({ params }: { params: Promise
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><div className="page-heading"><h1>Edit product</h1><p>Connect Supabase to manage the catalogue.</p></div></div>;
 
-  const [productResult, categoryResult, imageResult] = await Promise.all([
+  const [productResult, categoryResult, imageResult, movementResult] = await Promise.all([
     supabase.from("products").select("*").eq("id", id).maybeSingle(),
     supabase.from("categories").select("id,name").order("sort_order", { ascending: true }),
     supabase.from("product_images").select("id,storage_path,alt_text,rights_confirmed,rights_evidence,sort_order").eq("product_id", id).order("sort_order", { ascending: true }),
+    supabase.from("inventory_movements").select("id,quantity_delta,reason,reference,created_at").eq("product_id", id).order("created_at", { ascending: false }).limit(25),
   ]);
   if (productResult.error || !productResult.data) notFound();
   if (categoryResult.error || imageResult.error) throw new Error("Unable to load product editor data.");
   const product = productResult.data as ProductRow;
   const imageRows = (imageResult.data ?? []) as ImageRow[];
+  const movements = (movementResult.data ?? []) as MovementRow[];
   const images = await Promise.all(imageRows.map(async (image) => {
     const { data } = await supabase.storage.from("product-media").createSignedUrl(image.storage_path, 900);
     return { ...image, url: data?.signedUrl ?? null };
@@ -44,7 +47,7 @@ export default async function EditAdminProductPage({ params }: { params: Promise
 
   return <div className="page-shell admin-editor">
     <div className="breadcrumb"><Link href="/admin/products">PRODUCT CATALOGUE</Link> / EDIT PRODUCT</div>
-    <div className="admin-page-heading"><div><div className="section-kicker">CATALOGUE MANAGEMENT</div><h1>{product.title}</h1><p>Update verified details, stock and editorial information.</p></div><span className={"admin-status status-" + product.status}>{product.status}</span></div>
+    <div className="admin-page-heading"><div><div className="section-kicker">CATALOGUE MANAGEMENT</div><h1>{product.title}</h1><p>Update verified details and editorial information. Stock is managed through the inventory ledger below.</p></div><span className={"admin-status status-" + product.status}>{product.status}</span></div>
 
     <form action={updateProduct} className="admin-form">
       <input type="hidden" name="id" value={product.id} />
@@ -56,7 +59,6 @@ export default async function EditAdminProductPage({ params }: { params: Promise
         <label>Currency<input name="currency" defaultValue={product.currency} pattern="[A-Za-z]{3}" maxLength={3} required /></label>
         <label>Price<input name="price" inputMode="decimal" defaultValue={displayMoneyInput(product.price_minor, product.currency)} /></label>
         <label>Compare-at price<input name="compare_at_price" inputMode="decimal" defaultValue={displayMoneyInput(product.compare_at_price_minor, product.currency)} /></label>
-        <label>Stock quantity<input name="quantity_on_hand" type="number" min="0" step="1" defaultValue={product.quantity_on_hand} required /></label>
         <label className="admin-form-wide">Short description<input name="short_description" defaultValue={product.short_description} maxLength={240} /></label>
         <label className="admin-form-wide">Full description<textarea name="description" rows={5} defaultValue={product.description} maxLength={12000} /></label>
         <label>Materials (comma separated)<input name="materials" defaultValue={product.materials.join(", ")} /></label>
@@ -70,6 +72,35 @@ export default async function EditAdminProductPage({ params }: { params: Promise
       </div>
       <div className="admin-form-actions"><button className="button-primary dark-button" type="submit">SAVE PRODUCT</button><Link href="/admin/products" className="text-link">BACK TO CATALOGUE</Link></div>
     </form>
+
+    <section className="admin-media-section">
+      <div className="section-kicker">INVENTORY CONTROL</div>
+      <h2>Stock ledger</h2>
+      <p>Current on-hand quantity: <strong>{product.quantity_on_hand}</strong>. Every adjustment is written atomically to the inventory movement ledger. Product detail edits cannot silently overwrite stock.</p>
+      <form action={adjustProductInventory} className="shipment-form">
+        <input type="hidden" name="product_id" value={product.id} />
+        <label>Quantity change<input name="quantity_delta" type="number" step="1" required placeholder="Positive to add, negative to remove" /></label>
+        <label>Reason<select name="reason" required defaultValue="correction"><option value="restock">Restock</option><option value="correction">Stock correction</option><option value="damage">Damage / write-off</option><option value="return">Customer return</option><option value="other">Other</option></select></label>
+        <label>Reference (optional)<input name="reference" maxLength={120} placeholder="Supplier or stocktake reference" /></label>
+        <button className="button-outline" type="submit">RECORD INVENTORY MOVEMENT</button>
+      </form>
+      <h3>Recent stock movements</h3>
+      {movementResult.error ? <p className="catalogue-import-note">Movement history is unavailable. Verify the catalogue inventory migration.</p> : movements.length ? (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead><tr><th>DATE</th><th>REASON</th><th>CHANGE</th><th>REFERENCE</th></tr></thead>
+            <tbody>{movements.map((movement) => (
+              <tr key={movement.id}>
+                <td>{new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(movement.created_at))}</td>
+                <td>{movement.reason.replace(/_/g, " ")}</td>
+                <td>{movement.quantity_delta > 0 ? "+" : ""}{movement.quantity_delta}</td>
+                <td>{movement.reference || "—"}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      ) : <p className="empty-note">No stock movements have been recorded for this product.</p>}
+    </section>
 
     <section className="admin-media-section">
       <div className="section-kicker">PRODUCT PHOTOGRAPHY</div><h2>Images & usage rights</h2>

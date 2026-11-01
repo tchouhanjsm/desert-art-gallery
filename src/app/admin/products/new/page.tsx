@@ -14,7 +14,7 @@ export default async function NewAdminProductPage() {
 
   return <div className="page-shell admin-editor">
     <div className="breadcrumb"><Link href="/admin/products">PRODUCT CATALOGUE</Link> / NEW PRODUCT</div>
-    <div className="page-heading"><div className="section-kicker">CATALOGUE MANAGEMENT</div><h1>Create a product</h1><p>New records are saved as drafts and cannot appear in the public shop until verified and published.</p></div>
+    <div className="page-heading"><div className="section-kicker">CATALOGUE MANAGEMENT</div><h1>Create a product</h1><p>New records are saved as drafts and cannot appear in the public shop until verified and published. Opening stock is recorded separately in the inventory ledger.</p></div>
     <form action={createDraftProduct} className="admin-form">
       <div className="admin-form-grid">
         <label>Product title<input name="title" required minLength={3} maxLength={180} /></label>
@@ -24,7 +24,6 @@ export default async function NewAdminProductPage() {
         <label>Currency<input name="currency" defaultValue="USD" pattern="[A-Za-z]{3}" maxLength={3} required /></label>
         <label>Price<input name="price" inputMode="decimal" placeholder="Leave blank until verified" /></label>
         <label>Compare-at price<input name="compare_at_price" inputMode="decimal" /></label>
-        <label>Stock quantity<input name="quantity_on_hand" type="number" min="0" step="1" defaultValue="0" required /></label>
         <label className="admin-form-wide">Short description<input name="short_description" maxLength={240} /></label>
         <label className="admin-form-wide">Full description<textarea name="description" rows={5} maxLength={12000} /></label>
         <label>Materials (comma separated)<input name="materials" /></label>

@@ -17,7 +17,10 @@ export default async function AdminProductsPage() {
   const products = (data ?? []) as ProductRow[];
 
   return <div className="page-shell">
-    <div className="admin-page-heading"><div><div className="section-kicker">PRIVATE WORKSPACE</div><h1>Product catalogue</h1><p>Manage drafts, verified product details and stock.</p></div><Link className="button-primary dark-button" href="/admin/products/new">CREATE PRODUCT</Link></div>
+    <div className="admin-page-heading">
+      <div><div className="section-kicker">PRIVATE WORKSPACE</div><h1>Product catalogue</h1><p>Manage verified details, drafts and auditable stock movements.</p></div>
+      <div className="admin-form-actions"><Link className="button-outline" href="/admin/products/import">IMPORT CSV</Link><Link className="button-primary dark-button" href="/admin/products/new">CREATE PRODUCT</Link></div>
+    </div>
     <div className="admin-table-wrap">
       <table className="admin-table">
         <thead><tr><th>PRODUCT</th><th>SKU</th><th>STATUS</th><th>PRICE</th><th>STOCK</th><th></th></tr></thead>

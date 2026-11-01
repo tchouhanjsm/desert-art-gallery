@@ -78,3 +78,33 @@
 .shipment-form{max-width:760px;margin:0;padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:15px}
 .shipment-form button{grid-column:1/-1;justify-self:start}
 @media(max-width:600px){.address-form,.shipment-form{grid-template-columns:1fr}.address-form button,.shipment-form button{grid-column:auto}}
+
+
+/* Catalogue import and inventory controls */
+.catalogue-import{display:grid;gap:20px;max-width:1120px}
+.catalogue-import-file{display:grid;gap:9px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#665c52}
+.catalogue-import-file input{max-width:100%;min-height:44px;padding:10px;border:1px solid var(--line);background:#fbf9f5;color:var(--ink);font:inherit;letter-spacing:normal;text-transform:none}
+.catalogue-import-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:8px}
+.catalogue-import-note{max-width:850px;font-size:11px;line-height:1.7;color:#766c62}
+.catalogue-import-error{padding:13px 15px;border-left:2px solid #a64d3f;background:#f8eeea;color:#813c31;font-size:12px;line-height:1.6}
+.catalogue-import-preview{display:grid;gap:16px;margin-top:12px}
+.catalogue-import-summary{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:17px 0;border-bottom:1px solid var(--line)}
+.catalogue-import-summary strong{font-family:var(--font-display),Georgia,serif;font-size:26px;font-weight:500}
+.catalogue-import-summary span{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#766c62}
+.catalogue-import-errors{margin:0;padding:14px 18px;background:#f8eeea;color:#813c31;font-size:11px;line-height:1.7}
+.catalogue-import-confirm{display:grid;gap:16px;max-width:800px;padding:18px;background:#f0e9df}
+.catalogue-import-confirm label{display:flex;align-items:flex-start;gap:10px;font-size:11px;line-height:1.65;color:#554b42}
+.catalogue-import-confirm input{margin-top:3px;min-width:16px;min-height:16px}
+.catalogue-import-confirm button{justify-self:start}
+.catalogue-import-success{display:grid;gap:7px;padding:18px;border:1px solid #9aab8e;background:#f1f5ed;color:#34452e;font-size:12px;line-height:1.6}
+.catalogue-import-success p{margin:0}
+.catalogue-import-success small{overflow-wrap:anywhere;color:#56684f}
+.catalogue-import-success a{width:max-content;margin-top:5px;border-bottom:1px solid currentColor;font-size:9px;letter-spacing:.12em}
+.catalogue-import-preview .admin-table-wrap{overflow-x:auto}
+.catalogue-import-preview .admin-table{min-width:760px}
+.catalogue-import-preview .admin-table td small{display:block;max-width:360px;margin-top:5px;overflow-wrap:anywhere;color:#82786e;font-size:10px;line-height:1.5}
+@media(max-width:600px){
+  .catalogue-import-actions{align-items:flex-start;flex-direction:column}
+  .catalogue-import-summary{align-items:flex-start;flex-direction:column}
+  .catalogue-import-confirm button{width:100%}
+}
