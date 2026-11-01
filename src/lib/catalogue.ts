@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { formatMoneyFromMinor } from "./money";
 import { collections as previewCollections, products as previewProducts, type Product } from "@/lib/products";
 
 type ProductImageRow = { storage_path: string; alt_text: string; sort_order: number; rights_confirmed: boolean };
@@ -100,15 +101,4 @@ export async function getStorefrontCollections() {
 export async function getStorefrontProduct(slug: string) {
   const products = await getStorefrontProducts();
   return products.find((product) => product.slug === slug) ?? null;
-}
-
-export function formatMoneyFromMinor(amountMinor: number, currency: string) {
-  try {
-    const formatter = new Intl.NumberFormat("en", { style: "currency", currency });
-    const fractionDigits = formatter.resolvedOptions().maximumFractionDigits ?? 2;
-    return formatter.format(amountMinor / (10 ** fractionDigits));
-  } catch {
-    // A malformed ISO currency must not crash the product page; admin validation blocks publication.
-    return `${currency.toUpperCase()} ${(amountMinor / 100).toFixed(2)}`;
-  }
 }
