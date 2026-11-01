@@ -140,7 +140,7 @@ function slugify(value: string): string {
 function currencyFractionDigits(currency: string): number {
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error("Currency must be a three-letter ISO currency code.");
   try {
-    return new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits;
+    return new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits ?? 2;
   } catch {
     throw new Error("Currency is not supported: " + currency + ".");
   }
@@ -156,11 +156,13 @@ function parseMinorUnits(raw: string, currency: string): number | null {
   if (!match) {
     throw new Error("Enter a plain decimal amount with no more than " + digits + " fractional digits for " + currency + ".");
   }
-  const whole = BigInt(match[1]);
-  const fraction = digits === 0 ? 0n : BigInt((match[2] ?? "").padEnd(digits, "0") || "0");
-  const minor = whole * (10n ** BigInt(digits)) + fraction;
-  if (minor > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error("Amount exceeds the safe supported range.");
-  return Number(minor);
+  const whole = Number(match[1]);
+  const fraction = digits === 0 ? 0 : Number((match[2] ?? "").padEnd(digits, "0") || "0");
+  const minor = whole * (10 ** digits) + fraction;
+  if (!Number.isSafeInteger(whole) || !Number.isSafeInteger(minor)) {
+    throw new Error("Amount exceeds the safe supported range.");
+  }
+  return minor;
 }
 
 function parsePipeList(raw: string, field: string): string[] {

@@ -46,7 +46,7 @@ function amountToMinorUnits(raw: string, currency: string): number | null {
   if (!/^[A-Z]{3}$/.test(currency)) throw new Error("Enter a valid ISO currency code.");
   let fractionDigits: number;
   try {
-    fractionDigits = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits;
+    fractionDigits = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits ?? 2;
   } catch {
     throw new Error("Enter a valid ISO currency code.");
   }
@@ -55,11 +55,11 @@ function amountToMinorUnits(raw: string, currency: string): number | null {
     : new RegExp("^(0|[1-9]\\d*)(?:\\.(\\d{1," + fractionDigits + "}))?$");
   const match = raw.match(pattern);
   if (!match) throw new Error("Enter a valid price using the supported precision for " + currency + ".");
-  const whole = BigInt(match[1]);
-  const fraction = fractionDigits === 0 ? 0n : BigInt((match[2] ?? "").padEnd(fractionDigits, "0") || "0");
-  const minor = whole * (10n ** BigInt(fractionDigits)) + fraction;
-  if (minor > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error("Price is too large.");
-  return Number(minor);
+  const whole = Number(match[1]);
+  const fraction = fractionDigits === 0 ? 0 : Number((match[2] ?? "").padEnd(fractionDigits, "0") || "0");
+  const minor = whole * (10 ** fractionDigits) + fraction;
+  if (!Number.isSafeInteger(whole) || !Number.isSafeInteger(minor)) throw new Error("Price is too large.");
+  return minor;
 }
 
 function parseProduct(formData: FormData) {
@@ -142,8 +142,9 @@ async function prepareCatalogueImport(file: File, supabase: Awaited<ReturnType<t
 
   const categorySlugs = [...new Set(rows.flatMap((row) => row.category_slug ? [row.category_slug] : []))];
   const categoryBySlug = new Map<string, string>();
-  if (categorySlugs.length) {
-    const { data, error } = await supabase.from("categories").select("id,slug").in("slug", categorySlugs);
+  for (let offset = 0; offset < categorySlugs.length; offset += 100) {
+    const batch = categorySlugs.slice(offset, offset + 100);
+    const { data, error } = await supabase.from("categories").select("id,slug").in("slug", batch);
     if (error) throw new Error("Unable to validate category references.");
     for (const category of data ?? []) categoryBySlug.set(category.slug, category.id);
   }
@@ -157,23 +158,29 @@ async function prepareCatalogueImport(file: File, supabase: Awaited<ReturnType<t
   }
 
   const slugs = [...new Set(rows.map((row) => row.slug).filter(Boolean))];
-  if (slugs.length) {
-    const { data, error } = await supabase.from("products").select("slug").in("slug", slugs);
+  const existingSlugs = new Set<string>();
+  for (let offset = 0; offset < slugs.length; offset += 100) {
+    const batch = slugs.slice(offset, offset + 100);
+    const { data, error } = await supabase.from("products").select("slug").in("slug", batch);
     if (error) throw new Error("Unable to check existing product slugs.");
-    const existing = new Set((data ?? []).map((product) => product.slug));
-    for (const row of rows) {
-      if (existing.has(row.slug)) row.errors.push("Product slug already exists in the catalogue.");
-    }
+    for (const product of data ?? []) existingSlugs.add(product.slug);
+  }
+  for (const row of rows) {
+    if (existingSlugs.has(row.slug)) row.errors.push("Product slug already exists in the catalogue.");
   }
 
   const skus = [...new Set(rows.flatMap((row) => row.sku ? [row.sku] : []))];
-  if (skus.length) {
-    const { data, error } = await supabase.from("products").select("sku").in("sku", skus);
+  const existingSkus = new Set<string>();
+  for (let offset = 0; offset < skus.length; offset += 100) {
+    const batch = skus.slice(offset, offset + 100);
+    const { data, error } = await supabase.from("products").select("sku").in("sku", batch);
     if (error) throw new Error("Unable to check existing product SKUs.");
-    const existing = new Set((data ?? []).flatMap((product) => product.sku ? [product.sku.toUpperCase()] : []));
-    for (const row of rows) {
-      if (row.sku && existing.has(row.sku)) row.errors.push("SKU already exists in the catalogue.");
+    for (const product of data ?? []) {
+      if (product.sku) existingSkus.add(product.sku.toUpperCase());
     }
+  }
+  for (const row of rows) {
+    if (row.sku && existingSkus.has(row.sku)) row.errors.push("SKU already exists in the catalogue.");
   }
 
   return { sha256, errors, rows };

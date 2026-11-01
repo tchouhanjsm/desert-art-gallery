@@ -102,6 +102,11 @@ describe("product catalogue CSV parser", () => {
     expect(duplicateSlug.rows.every((item) => item.errors.some((error) => error.includes("Duplicate slug")))).toBe(true);
   });
 
+  it("rejects amounts beyond the safe integer range", () => {
+    const result = parseProductCsv(csv({ ...valid, price: "9007199254740992" }));
+    expect(result.rows[0].errors.join(" ")).toContain("safe supported range");
+  });
+
   it("derives a URL slug from the title when the slug cell is empty", () => {
     const result = parseProductCsv(csv({ ...valid, slug: "", title: "Hand-worked Textile Jacket" }));
     expect(result.rows[0].slug).toBe("hand-worked-textile-jacket");
