@@ -31,6 +31,15 @@ as $$
   );
 $$;
 
+create or replace function public.is_owner()
+returns boolean language sql stable security definer
+set search_path = pg_catalog, public
+as $owner_check$
+  select exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role = 'owner'
+  );
+$owner_check$;
 create or replace function public.protect_profile_role()
 returns trigger language plpgsql security definer
 set search_path = pg_catalog, public
@@ -38,8 +47,8 @@ as $$
 begin
   if new.role is distinct from old.role
      and coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role'
-     and not public.is_admin() then
-    raise exception 'Only an administrator can change account roles';
+     and not public.is_owner() then
+    raise exception 'Only an owner can change account roles';
   end if;
   return new;
 end;

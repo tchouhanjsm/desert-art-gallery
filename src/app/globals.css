@@ -58,3 +58,48 @@
 .journal-body p{margin:0 0 24px;white-space:pre-wrap}
 @media(max-width:900px){.artisan-grid,.journal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.artisan-grid,.journal-grid{grid-template-columns:1fr}.journal-article-cover{height:90vw}.journal-body{font-size:19px}}
+
+/* Back-office commerce management */
+.admin-page-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:25px;margin-bottom:36px}
+.admin-page-heading h1{font-family:var(--font-display),Georgia,serif;font-size:56px;font-weight:400;margin:8px 0}
+.admin-page-heading p{color:#756b61;font-family:var(--font-display),Georgia,serif;font-size:18px;margin:0}
+.admin-form{max-width:1050px;margin:0 auto;background:#f2ede5;padding:32px;border:1px solid var(--line)}
+.admin-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.admin-form-grid label,.admin-upload-form label,.rights-form label{display:grid;gap:8px;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#62594f}
+.admin-form-grid input,.admin-form-grid select,.admin-form-grid textarea,.admin-upload-form input,.rights-form input:not([type="checkbox"]){width:100%;min-height:43px;padding:10px 12px;background:#fbf9f5;border:1px solid var(--line);border-radius:0;color:var(--ink);font:inherit;letter-spacing:normal;text-transform:none}
+.admin-form-grid textarea{resize:vertical;line-height:1.5}
+.admin-form-grid input:focus,.admin-form-grid select:focus,.admin-form-grid textarea:focus,.admin-upload-form input:focus,.rights-form input:focus{outline:2px solid var(--gold);outline-offset:2px}
+.admin-form-wide{grid-column:1/-1}
+.admin-form-actions{display:flex;align-items:center;gap:24px;margin-top:28px;flex-wrap:wrap}
+.admin-table-wrap{overflow-x:auto;border:1px solid var(--line);background:#fbf9f5}
+.admin-table{width:100%;border-collapse:collapse;min-width:760px}
+.admin-table th{text-align:left;padding:16px 18px;font-size:8px;letter-spacing:.16em;color:#8a7763;font-weight:600;border-bottom:1px solid var(--line)}
+.admin-table td{padding:17px 18px;border-bottom:1px solid rgba(37,35,31,.08);font-size:11px;vertical-align:middle}
+.admin-table tr:last-child td{border-bottom:0}
+.admin-table td strong{display:block;font-weight:500}
+.admin-table td small{display:block;color:#8b8178;font-size:9px;margin-top:4px}
+.admin-table td a{font-size:9px;letter-spacing:.12em;border-bottom:1px solid var(--gold);padding-bottom:3px}
+.admin-status{display:inline-flex;padding:6px 9px;font-size:8px;letter-spacing:.12em;text-transform:uppercase;background:#e8dfd3;color:#685846}
+.status-active,.status-paid,.status-delivered{background:#e1eadf;color:#35543b}
+.status-archived,.status-cancelled,.status-refunded{background:#eee1dc;color:#86503f}
+.status-draft,.status-pending_payment{background:#eee8dc;color:#836943}
+.admin-media-section,.admin-publish-section{max-width:1050px;margin:55px auto 0;padding-top:34px;border-top:1px solid var(--line)}
+.admin-media-section h2,.admin-publish-section h2{font-family:var(--font-display),Georgia,serif;font-size:38px;font-weight:400;margin:8px 0}
+.admin-media-section>p,.admin-publish-section p{max-width:700px;color:#766c62;line-height:1.6}
+.admin-image-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:25px 0}
+.admin-image-card{padding:16px;border:1px solid var(--line);background:#f2ede5;display:grid;align-content:start;gap:12px;min-width:0}
+.admin-image-card>img{width:100%;height:260px;object-fit:cover}
+.admin-image-card>strong{font-family:var(--font-display),Georgia,serif;font-size:19px;font-weight:500}
+.admin-image-card>small{font-size:10px;color:#71675e;line-height:1.5}
+.admin-image-placeholder{height:260px;background:#e5ddd2;display:grid;place-items:center;color:#8a7a67;font-size:9px;letter-spacing:.14em}
+.rights-form{display:grid;gap:12px;padding-top:10px;border-top:1px solid var(--line)}
+.rights-form .rights-confirm{display:flex;align-items:flex-start;gap:9px;font-size:9px;letter-spacing:normal;text-transform:none;line-height:1.5}
+.rights-form .rights-confirm input{margin:1px 0 0}
+.rights-form button,.admin-upload-form button{border:1px solid var(--brown);background:var(--brown);color:white;min-height:40px;padding:0 14px;font-size:8px;letter-spacing:.14em}
+.admin-upload-form{display:grid;grid-template-columns:1fr 1fr auto;gap:15px;align-items:end;padding:22px;background:#f2ede5}
+.admin-upload-form button{white-space:nowrap}
+.admin-publish-section{display:flex;justify-content:space-between;align-items:center;gap:25px}
+.admin-content-links{display:flex;gap:20px;flex-wrap:wrap;margin:0 0 25px}
+.admin-content-links a{font-size:9px;letter-spacing:.13em;border-bottom:1px solid var(--gold);padding-bottom:5px}
+@media(max-width:850px){.admin-image-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-upload-form{grid-template-columns:1fr 1fr}.admin-upload-form button{grid-column:1/-1}}
+@media(max-width:650px){.admin-page-heading{display:block}.admin-page-heading .button-primary{margin-top:20px}.admin-page-heading h1{font-size:44px}.admin-form{padding:20px 15px}.admin-form-grid{grid-template-columns:1fr}.admin-form-wide{grid-column:auto}.admin-image-grid{grid-template-columns:1fr}.admin-upload-form{grid-template-columns:1fr}.admin-upload-form button{grid-column:auto}.admin-publish-section{display:block}.admin-publish-section form{margin-top:20px}}

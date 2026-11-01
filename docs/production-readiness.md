@@ -23,6 +23,13 @@
 - [ ] Add automated unit, integration, accessibility, E2E and security tests
 - [ ] Configure consent-aware analytics and production Core Web Vitals monitoring
 
+## Admin catalogue operations implemented
+- Product drafts can be created and edited by authenticated administrators.
+- Original product media can be uploaded to private storage with alt text.
+- An administrator must record a rights evidence reference and explicitly confirm authorization for each image before it can qualify for publication.
+- Product publication is guarded by a database trigger requiring a price and at least one rights-confirmed image.
+- Admin order, customer and content overview pages are available; fulfillment actions, editorial CRUD and customer communications remain follow-on work.
+
 ## Honest limitations
 This milestone does not implement payment processing, customer login, order fulfilment, inventory reservation, shipping calculation, admin CRUD, persistent wishlist/cart or newsletter subscription. No transaction is represented as complete.
 ## Editorial CMS foundation implemented
