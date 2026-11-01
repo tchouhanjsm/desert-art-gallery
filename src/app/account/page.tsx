@@ -72,7 +72,7 @@ export default async function AccountPage() {
         <label>Phone<input name="phone" maxLength={40}/></label>
         <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes"/> Default shipping address</label>
         <button type="submit" className="button-primary dark-button">SAVE ADDRESS</button>
-      </form></details>}
+      </form></details>
     </section>
     <section className="account-section">
       <div className="section-kicker">ORDER HISTORY</div><h2>Your orders</h2>
