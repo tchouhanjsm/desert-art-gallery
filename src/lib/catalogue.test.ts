@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMoneyFromMinor } from "@/lib/catalogue";
+import { formatMoneyFromMinor } from "./catalogue";
 
 describe("formatMoneyFromMinor", () => {
   it("formats two-decimal currencies from minor units", () => {
