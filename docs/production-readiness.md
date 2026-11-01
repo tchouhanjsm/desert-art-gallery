@@ -95,3 +95,15 @@ Production activation requires merchant-authorized catalogue data and original p
 - The first design-system CI attempt caught a TypeScript tuple-union inference error in the footer navigation configuration; sections now use an explicit shared `NavigationSection` type. The final-head rerun is pending.
 - Final branch/head SHA and exact-head workflow result are recorded in the PR #1 description after CI completes.
 - Next engineering increment: customer-facing product discovery and product detail completeness (query-state search/filter/sort, verified attributes/variants and availability semantics), with server-side data validation and focused tests.
+
+
+### 2026-11-02 — URL-synced product discovery
+- Fixed the header-search handoff: `/shop?q=...` now hydrates the shop search field from the URL on first load.
+- Search, category and sort state are serialized into shareable query parameters and restored on browser back/forward navigation.
+- Added allowlisted sort parsing and category validation against the currently supplied published catalogue; unsupported values fall back to safe defaults.
+- Search input is capped at 100 characters, Unicode-normalized, stripped of control characters and matched case/diacritic-insensitively against the published product name, category and supplied short description only.
+- Price sorting keeps records without a verified price after priced records in either direction; it does not invent or infer a price.
+- Unrelated campaign parameters are preserved when shop filters change.
+- Added unit coverage for URL hydration, invalid query values, Unicode normalization, category filtering, unpriced sorting and URL serialization.
+- Browser-level navigation, keyboard and E2E verification remain unreported; the final exact-head CI result is recorded in PR #1.
+- Next engineering increment: enrich product-detail presentation with only verified catalogue fields and improve image/attribute handling without inventing measurements, materials, condition or provenance.
