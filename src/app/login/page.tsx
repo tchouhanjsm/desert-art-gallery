@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { getSafeRedirectPath } from "@/lib/safe-redirect";
 
 function safeNextPath() {
   const next = new URLSearchParams(window.location.search).get("next");
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+  return getSafeRedirectPath(next, window.location.origin, "/account");
 }
 
 export default function LoginPage() {
