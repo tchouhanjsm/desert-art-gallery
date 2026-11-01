@@ -5,7 +5,7 @@ import { getStorefrontProducts } from "@/lib/catalogue";
 export const metadata = {
   title: "Shop all pieces",
   description:
-    "Explore the published catalogue of textiles and distinctive handmade pieces from Desert Art Gallery.",
+    "Explore published textile and object listings from Desert Art Gallery.",
 };
 
 function ShopBrowserFallback() {
@@ -25,9 +25,9 @@ export default async function ShopPage() {
         <div className="section-kicker">THE COLLECTION</div>
         <h1>Shop all pieces</h1>
         <p>
-          Browse published pieces and use the filters to find relevant details.
-          Product information is shown only when it has been supplied and
-          approved for publication.
+          Browse published listings and use the filters to find the details
+          provided for each piece. Product information is shown only when it
+          has been supplied and approved for publication.
         </p>
       </div>
       <Suspense fallback={<ShopBrowserFallback />}>

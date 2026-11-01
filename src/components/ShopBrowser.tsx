@@ -49,14 +49,20 @@ export function ShopBrowser({ products }: { products: Product[] }) {
     }
   }, [pathname, router, searchParamsString, urlState]);
 
-  function updateUrl(nextState: ShopQueryState) {
+  function updateUrl(
+    nextState: ShopQueryState,
+    history: "push" | "replace" = "replace",
+  ) {
     const nextSearch = serializeShopQuery(
       nextState,
       new URLSearchParams(searchParamsString),
     );
-    router.replace(nextSearch ? pathname + "?" + nextSearch : pathname, {
-      scroll: false,
-    });
+    const href = nextSearch ? pathname + "?" + nextSearch : pathname;
+    if (history === "push") {
+      router.push(href, { scroll: false });
+    } else {
+      router.replace(href, { scroll: false });
+    }
   }
 
   const visible = useMemo(
@@ -97,7 +103,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
             onChange={(event) => {
               const nextCategory = event.currentTarget.value;
               setCategory(nextCategory);
-              updateUrl({ q: query, category: nextCategory, sort });
+              updateUrl({ q: query, category: nextCategory, sort }, "push");
             }}
           >
             {categories.map((item) => (
@@ -115,7 +121,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
             onChange={(event) => {
               const nextSort = event.currentTarget.value as ShopSort;
               setSort(nextSort);
-              updateUrl({ q: query, category, sort: nextSort });
+              updateUrl({ q: query, category, sort: nextSort }, "push");
             }}
           >
             <option value="featured">Featured</option>
@@ -135,7 +141,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
                   q: "",
                   category: ALL_SHOP_CATEGORY,
                   sort: "featured",
-                });
+                }, "push");
               }}
             >
               Clear filters
