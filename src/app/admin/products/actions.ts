@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { hasSupportedImageSignature } from "@/lib/image-signature";
 
 async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -190,6 +191,10 @@ export async function uploadProductImage(formData: FormData) {
   };
   const extension = extensions[file.type];
   if (!extension) throw new Error("Use JPEG, PNG, WebP or AVIF image files.");
+  const signature = new Uint8Array(await file.slice(0, 64).arrayBuffer());
+  if (!hasSupportedImageSignature(file.type, signature)) {
+    throw new Error("The image contents do not match the selected file type.");
+  }
 
   const { data: product, error: productError } = await supabase
     .from("products").select("id").eq("id", productId).maybeSingle();

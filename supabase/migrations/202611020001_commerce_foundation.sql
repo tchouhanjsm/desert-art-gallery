@@ -218,7 +218,6 @@ create table if not exists public.orders (
   discount_minor bigint not null default 0 check (discount_minor >= 0),
   total_minor bigint not null check (total_minor >= 0),
   constraint order_total_matches_components check (total_minor = subtotal_minor + shipping_minor + tax_minor - discount_minor),
-  constraint order_total_matches_components check (total_minor = subtotal_minor + shipping_minor + tax_minor - discount_minor),
   shipping_address jsonb not null,
   billing_address jsonb,
   customer_note text,
@@ -410,6 +409,100 @@ create table if not exists public.audit_log (
   created_at timestamptz not null default now()
 );
 create index if not exists audit_log_created_idx on public.audit_log(created_at desc);
+create index if not exists audit_log_entity_idx
+on public.audit_log(entity_type, entity_id, created_at desc);
+
+-- Audit metadata deliberately records field names, never customer or commercial field values.
+create or replace function public.write_audit_log()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $write_audit_log$
+declare
+  v_old jsonb := case when tg_op = 'INSERT' then '{}'::jsonb else to_jsonb(old) end;
+  v_new jsonb := case when tg_op = 'DELETE' then '{}'::jsonb else to_jsonb(new) end;
+  v_entity_id text;
+  v_changed_fields jsonb;
+begin
+  v_entity_id := coalesce(v_new ->> 'id', v_old ->> 'id', v_new ->> 'slug', v_old ->> 'slug');
+
+  select coalesce(jsonb_agg(fields.key order by fields.key), '[]'::jsonb)
+  into v_changed_fields
+  from jsonb_object_keys(v_old || v_new) as fields(key)
+  where v_old -> fields.key is distinct from v_new -> fields.key;
+
+  insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
+  values (
+    auth.uid(),
+    lower(tg_op),
+    tg_table_name,
+    v_entity_id,
+    jsonb_build_object('changed_fields', v_changed_fields)
+  );
+
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
+end;
+$write_audit_log$;
+
+-- Audit sensitive operational changes without copying names, addresses, emails, prices or payloads.
+drop trigger if exists audit_profiles on public.profiles;
+create trigger audit_profiles after insert or update or delete on public.profiles
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_categories on public.categories;
+create trigger audit_categories after insert or update or delete on public.categories
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_collections on public.collections;
+create trigger audit_collections after insert or update or delete on public.collections
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_products on public.products;
+create trigger audit_products after insert or update or delete on public.products
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_product_images on public.product_images;
+create trigger audit_product_images after insert or update or delete on public.product_images
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_inventory_movements on public.inventory_movements;
+create trigger audit_inventory_movements after insert or update or delete on public.inventory_movements
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_addresses on public.addresses;
+create trigger audit_addresses after insert or update or delete on public.addresses
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_orders on public.orders;
+create trigger audit_orders after insert or update or delete on public.orders
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_order_items on public.order_items;
+create trigger audit_order_items after insert or update or delete on public.order_items
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_discount_codes on public.discount_codes;
+create trigger audit_discount_codes after insert or update or delete on public.discount_codes
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_shipping_zones on public.shipping_zones;
+create trigger audit_shipping_zones after insert or update or delete on public.shipping_zones
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_shipping_rates on public.shipping_rates;
+create trigger audit_shipping_rates after insert or update or delete on public.shipping_rates
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_site_content on public.site_content;
+create trigger audit_site_content after insert or update or delete on public.site_content
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_customer_reviews on public.customer_reviews;
+create trigger audit_customer_reviews after insert or update or delete on public.customer_reviews
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_artisan_profiles on public.artisan_profiles;
+create trigger audit_artisan_profiles after insert or update or delete on public.artisan_profiles
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_journal_posts on public.journal_posts;
+create trigger audit_journal_posts after insert or update or delete on public.journal_posts
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_newsletter_subscribers on public.newsletter_subscribers;
+create trigger audit_newsletter_subscribers after insert or update or delete on public.newsletter_subscribers
+for each row execute function public.write_audit_log();
+drop trigger if exists audit_payment_webhook_events on public.payment_webhook_events;
+create trigger audit_payment_webhook_events after insert or update or delete on public.payment_webhook_events
+for each row execute function public.write_audit_log();
 
 create table if not exists public.payment_webhook_events (
   id uuid primary key default gen_random_uuid(),

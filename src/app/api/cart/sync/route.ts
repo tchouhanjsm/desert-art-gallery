@@ -1,11 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeCartLines } from "@/lib/cart";
+import { isSameOriginRequest } from "@/lib/request-security";
 
 type ExistingCartRow = { id: string; product_id: string; quantity: number; products: { slug: string } | null };
 type ProductRow = { id: string; slug: string; quantity_on_hand: number; is_one_of_a_kind: boolean };
 
 export async function POST(request: NextRequest) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid cart request." }, { status: 400 }); }
   const payload = body as { lines?: unknown } | null;
@@ -31,7 +35,6 @@ export async function POST(request: NextRequest) {
     .eq("status", "active").in("slug", allSlugs);
   if (productError) return NextResponse.json({ error: "Unable to refresh saved bag items." }, { status: 502 });
   const products = (productData ?? []) as unknown as ProductRow[];
-  const bySlug = new Map(products.map((product) => [product.slug, product]));
   const guestQuantity = new Map(guestLines.map((line) => [line.slug, line.quantity]));
   const existingQuantity = new Map<string, number>();
   for (const row of existing) existingQuantity.set(row.product_id, (existingQuantity.get(row.product_id) ?? 0) + row.quantity);

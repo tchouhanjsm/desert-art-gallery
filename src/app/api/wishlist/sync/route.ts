@@ -1,11 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeWishlistSlugs } from "@/lib/wishlist";
+import { isSameOriginRequest } from "@/lib/request-security";
 
 type ExistingWishlistRow = { product_id: string; products: { slug: string } | null };
 type ProductRow = { id: string; slug: string };
 
 export async function POST(request: NextRequest) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid wishlist request." }, { status: 400 }); }
   const payload = body as { slugs?: unknown } | null;
