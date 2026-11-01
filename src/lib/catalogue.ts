@@ -13,6 +13,7 @@ type ProductRow = {
   is_one_of_a_kind: boolean;
   categories: { name: string } | null;
   product_images: ProductImageRow[] | null;
+  collection_products?: { collections: { slug: string } | null }[] | null;
 };
 
 type CollectionRow = {
@@ -30,7 +31,7 @@ export async function getStorefrontProducts(): Promise<Product[]> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id,title,slug,short_description,currency,price_minor,quantity_on_hand,is_one_of_a_kind,categories(name),product_images(storage_path,alt_text,sort_order,rights_confirmed)")
+    .select("id,title,slug,short_description,currency,price_minor,quantity_on_hand,is_one_of_a_kind,categories(name),product_images(storage_path,alt_text,sort_order,rights_confirmed),collection_products(collections(slug))")
     .eq("status", "active")
     .order("published_at", { ascending: false })
     .limit(100);
@@ -63,6 +64,7 @@ export async function getStorefrontProducts(): Promise<Product[]> {
       currency: row.currency,
       quantityOnHand: row.quantity_on_hand,
       isOneOfAKind: row.is_one_of_a_kind,
+      collectionSlugs: (row.collection_products ?? []).flatMap((item) => item.collections ? [item.collections.slug] : []),
     };
   }));
 
