@@ -1,2 +1,8 @@
-import Link from "next/link";
-export const metadata={title:"Shopping bag"};export default function CartPage(){return <div className="page-shell"><div className="page-heading"><div className="section-kicker">YOUR SELECTION</div><h1>Your shopping bag</h1><p>A considered piece begins with a conversation.</p></div><div className="empty-note">Your bag is currently empty.<br/><Link href="/shop" className="empty-link">EXPLORE THE COLLECTION ↗</Link></div></div>;}
+import { CartPageClient } from "@/components/CartPageClient";
+export const metadata = { title: "Shopping bag", description: "Review your selected Desert Art Gallery pieces." };
+export default function CartPage() {
+  return <div className="page-shell">
+    <div className="page-heading"><div className="section-kicker">YOUR SELECTION</div><h1>Your shopping bag</h1><p>Review current availability and product details before placing an order.</p></div>
+    <CartPageClient />
+  </div>;
+}

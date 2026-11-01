@@ -5,6 +5,7 @@ import { getStorefrontProduct } from "@/lib/catalogue";
 import { products } from "@/lib/products";
 import { formatMoneyFromMinor } from "@/lib/money";
 import type { Metadata } from "next";
+import { AddToBagButton } from "@/components/AddToBagButton";
 
 export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
@@ -44,9 +45,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {product.quantityOnHand === 0 && product.id ? "CURRENTLY UNAVAILABLE — PLEASE CONTACT US" : "ASK US TO CONFIRM CURRENT AVAILABILITY"}
         </div>
         <p>Every textile has its own character. Contact our team to confirm the exact piece, measurements, condition notes, fabric details and delivery options before purchase.</p>
-        <a className="button-primary dark-button" href={`mailto:hello@desertartgallery.net?subject=${encodeURIComponent("Enquiry: " + product.name)}`}>
-          ENQUIRE ABOUT THIS PIECE
-        </a>
+        {product.id && product.priceMinor !== null && product.priceMinor !== undefined && product.quantityOnHand !== undefined && product.quantityOnHand > 0 && <AddToBagButton slug={product.slug} quantityOnHand={product.quantityOnHand} />}
+        <a className="button-outline enquiry-button" href={`mailto:hello@desertartgallery.net?subject=${encodeURIComponent("Enquiry: " + product.name)}`}>ENQUIRE ABOUT THIS PIECE</a>
         <div className="detail-footnote">Desert Art Gallery · Jaisalmer, Rajasthan, India<br/>Please obtain written confirmation of the final price, availability and delivery charges before payment.</div>
       </div>
     </div>
