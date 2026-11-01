@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStorefrontProduct } from "@/lib/catalogue";
 import { products } from "@/lib/products";
-import { formatMoneyFromMinor } from "@/lib/catalogue";
+import { formatMoneyFromMinor } from "@/lib/money";
 import type { Metadata } from "next";
 
 export function generateStaticParams() {

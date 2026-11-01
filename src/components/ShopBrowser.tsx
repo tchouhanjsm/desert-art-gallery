@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { formatMoneyFromMinor } from "@/lib/catalogue";
+import { formatMoneyFromMinor } from "@/lib/money";
 import type { Product } from "@/lib/products";
 
 export function ShopBrowser({ products }: { products: Product[] }) {
