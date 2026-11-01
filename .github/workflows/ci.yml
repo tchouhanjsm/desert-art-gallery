@@ -3,29 +3,28 @@ name: CI
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main, "feat/**"]
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
-    name: Typecheck and production build
+    name: Typecheck, lint and production build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
       - name: Typecheck
         run: npm run typecheck
+      - name: Lint
+        run: npm run lint
       - name: Production build
         run: npm run build
