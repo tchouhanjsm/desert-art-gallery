@@ -25,3 +25,9 @@
 
 ## Honest limitations
 This milestone does not implement payment processing, customer login, order fulfilment, inventory reservation, shipping calculation, admin CRUD, persistent wishlist/cart or newsletter subscription. No transaction is represented as complete.
+## Editorial CMS foundation implemented
+- Artisan profiles and journal posts are unpublished by default and only published records are public.
+- Portrait, product and journal-cover media require an explicit rights-confirmed flag plus a non-empty evidence reference.
+- Private media is served through short-lived signed URLs; public reads are constrained by RLS and storage policies.
+- Paid/refunded order status changes are reserved for trusted service-role webhook processing.
+- Newsletter records support consent and pending/confirmed/unsubscribed states; actual double-opt-in and unsubscribe routes remain a follow-on implementation.

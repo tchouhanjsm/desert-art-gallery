@@ -37,3 +37,24 @@
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 @media(max-width:700px){.admin-metrics{grid-template-columns:1fr}.auth-links{flex-direction:column}.shop-controls{width:100%;display:grid;grid-template-columns:1fr 1fr}.shop-controls input{grid-column:1/-1;width:100%}.shop-controls select{max-width:none;width:100%}}
+
+/* Editorial CMS and administration surfaces */
+.artisan-grid,.journal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.artisan-card,.journal-card{min-width:0}
+.artisan-photo,.journal-photo{position:relative;aspect-ratio:4/5;background:#e1d8cb;overflow:hidden;margin-bottom:18px}
+.artisan-photo img,.journal-photo img{object-fit:cover}
+.artisan-photo-empty,.journal-photo-empty{display:grid;place-items:center;color:#8a7a67;font-family:var(--font-display),Georgia,serif;letter-spacing:.16em;font-size:12px}
+.artisan-card h2,.journal-card h2{font-family:var(--font-display),Georgia,serif;font-size:30px;font-weight:400;margin:8px 0}
+.artisan-card p,.journal-card p{font-family:var(--font-display),Georgia,serif;font-size:18px;line-height:1.45;color:#6a6056}
+.artisan-card small{display:block;color:var(--clay);font-size:9px;letter-spacing:.16em;margin-top:14px}
+.artisan-specialties{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.artisan-specialties span{font-size:9px;letter-spacing:.1em;border:1px solid var(--line);padding:7px 9px}
+.journal-card .text-link{font-size:9px}
+.journal-article-cover{position:relative;height:min(58vw,600px);margin:10px 0 55px}
+.journal-article-cover img{object-fit:cover}
+.journal-body{max-width:760px;margin:0 auto;font-family:var(--font-display),Georgia,serif;font-size:21px;line-height:1.7;color:#5d554c}
+.journal-body h2{font-size:36px;line-height:1.15;font-weight:500;color:var(--ink);margin:40px 0 15px}
+.journal-body h3{font-size:28px;font-weight:500;color:var(--ink);margin:32px 0 12px}
+.journal-body p{margin:0 0 24px;white-space:pre-wrap}
+@media(max-width:900px){.artisan-grid,.journal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.artisan-grid,.journal-grid{grid-template-columns:1fr}.journal-article-cover{height:90vw}.journal-body{font-size:19px}}

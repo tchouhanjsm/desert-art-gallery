@@ -131,8 +131,35 @@ create table if not exists public.product_images (
   sort_order integer not null default 0,
   is_primary boolean not null default false,
   rights_confirmed boolean not null default false,
-  created_at timestamptz not null default now()
+  rights_evidence text not null default '',
+  created_at timestamptz not null default now(),
+  constraint product_image_rights_evidence_required check (not rights_confirmed or length(btrim(rights_evidence)) > 0)
 );
+
+create or replace function public.guard_product_publication()
+returns trigger language plpgsql security definer
+set search_path = pg_catalog, public
+as $
+begin
+  if new.status = 'active' then
+    if new.price_minor is null then
+      raise exception 'A verified price is required before publishing a product';
+    end if;
+    if not exists (
+      select 1 from public.product_images pi
+      where pi.product_id = new.id and pi.rights_confirmed = true and length(btrim(pi.rights_evidence)) > 0
+    ) then
+      raise exception 'At least one rights-confirmed product image is required before publishing';
+    end if;
+    if new.published_at is null then new.published_at = now(); end if;
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists guard_product_publication on public.products;
+create trigger guard_product_publication before insert or update on public.products
+for each row execute function public.guard_product_publication();
 
 create table if not exists public.collection_products (
   collection_id uuid not null references public.collections(id) on delete cascade,
@@ -181,6 +208,7 @@ create table if not exists public.orders (
   tax_minor bigint not null default 0 check (tax_minor >= 0),
   discount_minor bigint not null default 0 check (discount_minor >= 0),
   total_minor bigint not null check (total_minor >= 0),
+  constraint order_total_matches_components check (total_minor = subtotal_minor + shipping_minor + tax_minor - discount_minor),
   constraint order_total_matches_components check (total_minor = subtotal_minor + shipping_minor + tax_minor - discount_minor),
   shipping_address jsonb not null,
   billing_address jsonb,
@@ -303,6 +331,8 @@ create table if not exists public.artisan_profiles (
   years_experience smallint check (years_experience is null or years_experience between 0 and 100),
   portrait_path text,
   portrait_rights_confirmed boolean not null default false,
+  portrait_rights_evidence text not null default '',
+  constraint artisan_portrait_rights_evidence_required check (not portrait_rights_confirmed or length(btrim(portrait_rights_evidence)) > 0),
   sort_order integer not null default 0,
   is_published boolean not null default false,
   created_at timestamptz not null default now(),
@@ -318,11 +348,13 @@ create table if not exists public.journal_posts (
   category text not null default 'Stories',
   cover_image_path text,
   cover_image_rights_confirmed boolean not null default false,
+  cover_image_rights_evidence text not null default '',
   status text not null default 'draft' check (status in ('draft','published','archived')),
   author_id uuid references auth.users(id) on delete set null,
   published_at timestamptz,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint journal_cover_rights_evidence_required check (not cover_image_rights_confirmed or length(btrim(cover_image_rights_evidence)) > 0)
 );
 create index if not exists journal_posts_publication_idx on public.journal_posts(status, published_at desc);
 
