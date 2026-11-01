@@ -1,4 +1,4 @@
-export type Product={slug:string;name:string;category:string;image:string;imageAlt:string;note:string;availability:"inquiry";featured?:boolean};
+export type Product={id?:string;slug:string;name:string;category:string;image:string;imageAlt:string;note:string;availability:"inquiry";priceMinor?:number|null;currency?:string;quantityOnHand?:number;isOneOfAKind?:boolean;featured?:boolean};
 export const products:Product[]=[
 {slug:"banjara-vintage-embroidered-jacket",name:"Banjara Vintage Embroidered Jacket",category:"Banjara & Tribal",image:"https://desertartgallery.net/cdn/shop/files/DSC07660.jpg?v=1744360205&width=1400",imageAlt:"Colourful Banjara textile jacket modelled in a sunlit desert landscape",note:"A study in colour, memory and hand-worked textile",availability:"inquiry",featured:true},
 {slug:"mukka-embroidery-zari-jacket",name:"Mukka Embroidery Zari Jacket",category:"Mukka & Zari",image:"https://desertartgallery.net/cdn/shop/files/DSC03923.jpg?v=1742389317&width=1400",imageAlt:"Mukka embroidery jacket with traditional detailing in a desert setting",note:"Intricate surface, considered detail",availability:"inquiry",featured:true},
