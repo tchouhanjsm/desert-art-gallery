@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { signOutCustomer, updateProfile } from "./actions";
+import { deleteAddress, saveAddress, signOutCustomer, updateProfile } from "./actions";
 
 export const metadata = { title: "My account" };
 
@@ -46,7 +46,33 @@ export default async function AccountPage() {
       {addresses.length ? <div className="account-address-grid">{addresses.map((address) => <article className="account-address" key={address.id}>
         {address.is_default_shipping && <span className="admin-status status-active">DEFAULT SHIPPING</span>}
         <strong>{address.recipient_name}</strong><p>{address.address_line_1}{address.address_line_2 ? ", " + address.address_line_2 : ""}<br/>{address.city}{address.region ? ", " + address.region : ""} {address.postal_code}<br/>{address.country_code}</p>
-      </article>)}</div> : <div className="empty-note">No delivery addresses have been saved yet. Addresses can be added during the secure checkout setup.</div>}
+        <details className="address-edit"><summary>EDIT ADDRESS</summary><form action={saveAddress} className="address-form">
+          <input type="hidden" name="id" value={address.id} />
+          <label>Recipient<input name="recipient_name" defaultValue={address.recipient_name} required maxLength={160}/></label>
+          <label>Address line 1<input name="address_line_1" defaultValue={address.address_line_1} required maxLength={240}/></label>
+          <label>Address line 2<input name="address_line_2" defaultValue={address.address_line_2 ?? ""} maxLength={240}/></label>
+          <label>City<input name="city" defaultValue={address.city} required maxLength={120}/></label>
+          <label>State / region<input name="region" defaultValue={address.region ?? ""} maxLength={120}/></label>
+          <label>Postal code<input name="postal_code" defaultValue={address.postal_code} required maxLength={24}/></label>
+          <label>Country code<input name="country_code" defaultValue={address.country_code} required minLength={2} maxLength={2} pattern="[A-Za-z]{2}"/></label>
+          <label>Phone<input name="phone" maxLength={40}/></label>
+          <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" defaultChecked={address.is_default_shipping}/> Default shipping address</label>
+          <button type="submit" className="button-outline">SAVE ADDRESS</button>
+        </form></details>
+        <form action={deleteAddress}><input type="hidden" name="id" value={address.id}/><button type="submit" className="address-delete">DELETE ADDRESS</button></form>
+      </article>)}</div> : <div className="empty-note">No delivery addresses have been saved yet. Add a delivery address below.</div>}
+      <details className="address-add"><summary>ADD A DELIVERY ADDRESS</summary><form action={saveAddress} className="address-form">
+        <label>Recipient<input name="recipient_name" required maxLength={160}/></label>
+        <label>Address line 1<input name="address_line_1" required maxLength={240}/></label>
+        <label>Address line 2<input name="address_line_2" maxLength={240}/></label>
+        <label>City<input name="city" required maxLength={120}/></label>
+        <label>State / region<input name="region" maxLength={120}/></label>
+        <label>Postal code<input name="postal_code" required maxLength={24}/></label>
+        <label>Country code<input name="country_code" placeholder="IN, US, GB…" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}"/></label>
+        <label>Phone<input name="phone" maxLength={40}/></label>
+        <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes"/> Default shipping address</label>
+        <button type="submit" className="button-primary dark-button">SAVE ADDRESS</button>
+      </form></details>}
     </section>
     <section className="account-section">
       <div className="section-kicker">ORDER HISTORY</div><h2>Your orders</h2>

@@ -674,3 +674,71 @@ comment on table public.products is 'Canonical product catalogue. Price values a
 comment on table public.product_images is 'Private-storage media references. Rights confirmation is mandatory before publication.';
 comment on table public.orders is 'Order data. Inserts and payment-state transitions are restricted to trusted server workflows.';
 comment on table public.payment_webhook_events is 'Idempotency ledger for provider webhook events; never stores cardholder data.';
+
+-- One default shipping address per customer, enforced in PostgreSQL.
+update public.addresses a
+set is_default_shipping = false
+where a.is_default_shipping = true
+  and exists (
+    select 1 from public.addresses newer
+    where newer.user_id = a.user_id
+      and newer.is_default_shipping = true
+      and (newer.created_at > a.created_at or (newer.created_at = a.created_at and newer.id > a.id))
+  );
+create unique index if not exists addresses_single_default_per_user_idx
+on public.addresses(user_id) where is_default_shipping = true;
+
+alter table public.addresses
+  add constraint addresses_country_code_format check (country_code ~ '^[A-Z]{2}$');
+
+create or replace function public.save_customer_address(
+  p_address_id uuid,
+  p_recipient_name text,
+  p_address_line_1 text,
+  p_address_line_2 text,
+  p_city text,
+  p_region text,
+  p_postal_code text,
+  p_country_code text,
+  p_phone text,
+  p_is_default_shipping boolean
+) returns uuid
+language plpgsql
+set search_path = pg_catalog, public
+as $save_address$
+declare
+  v_user_id uuid := auth.uid();
+  v_address_id uuid := coalesce(p_address_id, gen_random_uuid());
+  v_saved_id uuid;
+begin
+  if v_user_id is null then raise exception 'Authentication is required'; end if;
+  if length(btrim(coalesce(p_recipient_name, ''))) not between 1 and 160 then raise exception 'Recipient name is required'; end if;
+  if length(btrim(coalesce(p_address_line_1, ''))) not between 1 and 240 then raise exception 'Address line is required'; end if;
+  if length(btrim(coalesce(p_city, ''))) not between 1 and 120 then raise exception 'City is required'; end if;
+  if length(btrim(coalesce(p_postal_code, ''))) not between 1 and 24 then raise exception 'Postal code is required'; end if;
+  if p_country_code !~ '^[A-Z]{2}$' then raise exception 'Country code must be two uppercase letters'; end if;
+  if p_address_id is not null and not exists (select 1 from public.addresses a where a.id = p_address_id and a.user_id = v_user_id) then
+    raise exception 'Address was not found';
+  end if;
+  if coalesce(p_is_default_shipping, false) then
+    update public.addresses set is_default_shipping = false
+    where user_id = v_user_id and is_default_shipping = true and id <> v_address_id;
+  end if;
+  insert into public.addresses (id,user_id,recipient_name,address_line_1,address_line_2,city,region,postal_code,country_code,phone,is_default_shipping)
+  values (v_address_id,v_user_id,btrim(p_recipient_name),nullif(btrim(coalesce(p_address_line_2,'')),''),btrim(p_city),nullif(btrim(coalesce(p_region,'')),''),btrim(p_postal_code),p_country_code,nullif(btrim(coalesce(p_phone,'')),''),coalesce(p_is_default_shipping,false))
+  on conflict (id) do update set
+    recipient_name = excluded.recipient_name,
+    address_line_1 = excluded.address_line_1,
+    address_line_2 = excluded.address_line_2,
+    city = excluded.city,
+    region = excluded.region,
+    postal_code = excluded.postal_code,
+    country_code = excluded.country_code,
+    phone = excluded.phone,
+    is_default_shipping = excluded.is_default_shipping
+  where public.addresses.user_id = v_user_id
+  returning id into v_saved_id;
+  if v_saved_id is null then raise exception 'Unable to save address'; end if;
+  return v_saved_id;
+end;
+$save_address$;

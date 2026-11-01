@@ -14,7 +14,7 @@ export default async function AdminOrdersPage() {
   return <div className="page-shell">
     <div className="admin-page-heading"><div><div className="section-kicker">COMMERCE OPERATIONS</div><h1>Orders</h1><p>Payment-state changes are handled only by verified provider webhooks.</p></div><Link className="text-link" href="/admin">DASHBOARD</Link></div>
     <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>ORDER</th><th>CUSTOMER</th><th>STATUS</th><th>TOTAL</th><th>TRACKING</th><th>PLACED</th></tr></thead><tbody>
-      {(data ?? []).map((order) => <tr key={order.id}><td><strong>{order.order_number}</strong></td><td>{order.email}</td><td><span className={"admin-status status-" + order.status}>{order.status.replaceAll("_", " ")}</span></td><td>{formatMoneyFromMinor(order.total_minor, order.currency)}</td><td>{order.tracking_number ?? "—"}</td><td>{new Date(order.created_at).toLocaleDateString("en-IN")}</td></tr>)}
+      {(data ?? []).map((order) => <tr key={order.id}><td><Link href={"/admin/orders/" + order.id}><strong>{order.order_number}</strong></Link></td><td>{order.email}</td><td><span className={"admin-status status-" + order.status}>{order.status.replaceAll("_", " ")}</span></td><td>{formatMoneyFromMinor(order.total_minor, order.currency)}</td><td>{order.tracking_number ?? "—"}</td><td>{new Date(order.created_at).toLocaleDateString("en-IN")}</td></tr>)}
     </tbody></table>{!(data ?? []).length && <div className="empty-note">No orders have been created yet.</div>}</div>
   </div>;
 }

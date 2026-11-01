@@ -65,3 +65,16 @@
 .order-item p{font-size:10px;color:#786e64}
 @media(max-width:800px){.account-address-grid{grid-template-columns:1fr 1fr}.order-detail-layout{grid-template-columns:1fr}.order-detail-layout .cart-summary{order:-1}}
 @media(max-width:600px){.account-profile-form,.account-address-grid{grid-template-columns:1fr}}
+
+/* Address book and shipment administration */
+.address-add,.address-edit{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.address-add>summary,.address-edit>summary{cursor:pointer;font-size:8px;letter-spacing:.14em;color:var(--clay)}
+.address-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+.address-form label{display:grid;gap:6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#665c52}
+.address-form input:not([type="checkbox"]){min-height:39px;padding:9px 10px;border:1px solid var(--line);background:#fbf9f5;color:var(--ink)}
+.address-form .address-default{display:flex;align-items:center;gap:9px;letter-spacing:normal;text-transform:none}
+.address-form button{grid-column:1/-1;justify-self:start}
+.address-delete{margin-top:10px;border:0;background:transparent;border-bottom:1px solid #b77d68;padding:0 0 4px;color:#955b46;font-size:8px;letter-spacing:.12em}
+.shipment-form{max-width:760px;margin:0;padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.shipment-form button{grid-column:1/-1;justify-self:start}
+@media(max-width:600px){.address-form,.shipment-form{grid-template-columns:1fr}.address-form button,.shipment-form button{grid-column:auto}}
