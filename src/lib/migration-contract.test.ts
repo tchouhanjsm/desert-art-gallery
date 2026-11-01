@@ -17,6 +17,13 @@ describe("commerce migration safety contract", () => {
     }
   });
 
+  it("creates the payment webhook audit trigger only after its table exists", () => {
+    const tableIndex = migration.indexOf("create table if not exists public.payment_webhook_events");
+    const triggerIndex = migration.indexOf("create trigger audit_payment_webhook_events");
+    expect(tableIndex).toBeGreaterThanOrEqual(0);
+    expect(triggerIndex).toBeGreaterThan(tableIndex);
+  });
+
   it("audits sensitive operational tables using changed field names only", () => {
     expect(migration).toContain("jsonb_build_object('changed_fields', v_changed_fields)");
     for (const table of [

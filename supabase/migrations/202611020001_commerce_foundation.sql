@@ -500,9 +500,6 @@ for each row execute function public.write_audit_log();
 drop trigger if exists audit_newsletter_subscribers on public.newsletter_subscribers;
 create trigger audit_newsletter_subscribers after insert or update or delete on public.newsletter_subscribers
 for each row execute function public.write_audit_log();
-drop trigger if exists audit_payment_webhook_events on public.payment_webhook_events;
-create trigger audit_payment_webhook_events after insert or update or delete on public.payment_webhook_events
-for each row execute function public.write_audit_log();
 
 create table if not exists public.payment_webhook_events (
   id uuid primary key default gen_random_uuid(),
@@ -515,6 +512,10 @@ create table if not exists public.payment_webhook_events (
   received_at timestamptz not null default now(),
   unique(provider, provider_event_id)
 );
+
+drop trigger if exists audit_payment_webhook_events on public.payment_webhook_events;
+create trigger audit_payment_webhook_events after insert or update or delete on public.payment_webhook_events
+for each row execute function public.write_audit_log();
 
 -- Updated-at triggers.
 do $$
