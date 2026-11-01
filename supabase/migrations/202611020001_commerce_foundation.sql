@@ -110,6 +110,7 @@ create table if not exists public.products (
   published_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint active_products_require_price check (status <> 'active' or price_minor is not null),
   constraint compare_price_not_below_price check (
     compare_at_price_minor is null or price_minor is null or compare_at_price_minor >= price_minor
   )
@@ -489,6 +490,19 @@ using (public.is_admin());
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('product-media','product-media',false,12582912,array['image/jpeg','image/png','image/webp','image/avif'])
 on conflict (id) do nothing;
+
+drop policy if exists product_media_authorized_public_read on storage.objects;
+create policy product_media_authorized_public_read on storage.objects for select to anon, authenticated
+using (
+  bucket_id = 'product-media' and exists (
+    select 1
+    from public.product_images pi
+    join public.products p on p.id = pi.product_id
+    where pi.storage_path = name
+      and pi.rights_confirmed = true
+      and p.status = 'active'
+  )
+);
 
 drop policy if exists product_media_admin_select on storage.objects;
 create policy product_media_admin_select on storage.objects for select to authenticated
