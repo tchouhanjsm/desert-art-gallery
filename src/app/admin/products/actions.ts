@@ -423,6 +423,21 @@ export async function uploadProductImage(formData: FormData) {
     .from("products").select("id").eq("id", productId).maybeSingle();
   if (productError || !product) throw new Error("Product was not found.");
 
+  const { data: lastImage, error: orderError } = await supabase
+    .from("product_images")
+    .select("sort_order")
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (orderError) throw new Error("Unable to determine the next product image position.");
+
+  const nextSortOrder = lastImage ? Number(lastImage.sort_order) + 1 : 0;
+  if (!Number.isSafeInteger(nextSortOrder) || nextSortOrder > 9999) {
+    throw new Error("This product has reached the supported image ordering limit.");
+  }
+
   const storagePath = productId + "/" + randomUUID() + "." + extension;
   const bytes = new Uint8Array(await file.arrayBuffer());
   const { error: uploadError } = await supabase.storage.from("product-media")
@@ -433,8 +448,8 @@ export async function uploadProductImage(formData: FormData) {
     product_id: productId,
     storage_path: storagePath,
     alt_text: altText,
-    sort_order: 0,
-    is_primary: false,
+    sort_order: nextSortOrder,
+    is_primary: !lastImage,
     rights_confirmed: false,
     rights_evidence: "",
   });
@@ -464,4 +479,65 @@ export async function confirmProductImageRights(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/products/" + productId);
+}
+
+
+export async function updateProductImageOrder(formData: FormData) {
+  const supabase = await requireAdmin();
+  const productId = value(formData, "product_id", 80);
+  const imageId = value(formData, "image_id", 80);
+  const orderText = value(formData, "sort_order", 8);
+
+  if (!productId || !imageId) throw new Error("Product and image IDs are required.");
+  if (!/^(0|[1-9]\d{0,3})$/.test(orderText)) {
+    throw new Error("Image order must be a whole number between 0 and 9999.");
+  }
+
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .select("slug")
+    .eq("id", productId)
+    .maybeSingle();
+  if (productError || !product) throw new Error("Product was not found.");
+
+  const { data, error } = await supabase
+    .from("product_images")
+    .update({ sort_order: Number(orderText) })
+    .eq("id", imageId)
+    .eq("product_id", productId)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) throw new Error("Unable to update this product image order.");
+  revalidatePath("/admin/products/" + productId);
+  revalidatePath("/products/" + product.slug);
+}
+
+export async function setProductImagePrimary(formData: FormData) {
+  const supabase = await requireAdmin();
+  const productId = value(formData, "product_id", 80);
+  const imageId = value(formData, "image_id", 80);
+
+  if (!productId || !imageId) throw new Error("Product and image IDs are required.");
+
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .select("slug")
+    .eq("id", productId)
+    .maybeSingle();
+  if (productError || !product) throw new Error("Product was not found.");
+
+  const { error } = await supabase.rpc("set_product_primary_image", {
+    p_product_id: productId,
+    p_image_id: imageId,
+  });
+
+  if (error) {
+    throw new Error("Primary image was not changed. Confirm the selected image has usage-rights evidence and descriptive alt text.");
+  }
+
+  revalidatePath("/admin/products/" + productId);
+  revalidatePath("/products/" + product.slug);
+  revalidatePath("/shop");
+  revalidatePath("/");
 }

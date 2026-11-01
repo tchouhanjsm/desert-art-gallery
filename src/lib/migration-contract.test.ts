@@ -9,6 +9,10 @@ const inventory = readFileSync(
   new URL("../../supabase/migrations/202611020002_catalogue_import_inventory.sql", import.meta.url),
   "utf8",
 );
+const productMedia = readFileSync(
+  new URL("../../supabase/migrations/202611020003_product_detail_media.sql", import.meta.url),
+  "utf8",
+);
 
 describe("commerce migration safety contract", () => {
   it("does not declare duplicate named constraints within a table", () => {
@@ -65,5 +69,20 @@ describe("commerce migration safety contract", () => {
   it("keeps import history administrator-readable only", () => {
     expect(inventory).toContain("alter table public.catalogue_import_batches enable row level security");
     expect(inventory).toContain("using (public.is_admin())");
+  });
+
+  it("requires descriptive rights-confirmed media before product publication", () => {
+    expect(productMedia).toContain("product_images_one_primary_per_product_idx");
+    expect(productMedia).toContain("length(btrim(pi.alt_text)) > 0");
+    expect(productMedia).toContain("length(btrim(pi.rights_evidence)) > 0");
+  });
+
+  it("changes a product primary image transactionally and only for administrators", () => {
+    expect(productMedia).toContain("create or replace function public.set_product_primary_image");
+    expect(productMedia).toContain("not public.is_admin()");
+    expect(productMedia).toContain("for update");
+    expect(productMedia).toContain("rights_confirmed = true");
+    expect(productMedia).toContain("revoke all on function public.set_product_primary_image(uuid, uuid) from public");
+    expect(productMedia).toContain("grant execute on function public.set_product_primary_image(uuid, uuid) to authenticated");
   });
 });

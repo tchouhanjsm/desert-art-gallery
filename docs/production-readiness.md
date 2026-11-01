@@ -113,3 +113,16 @@ Production activation requires merchant-authorized catalogue data and original p
 - Category and sort changes now create browser-history entries so back/forward restores the previous discovery state. Search typing replaces the current entry to avoid creating one history item per keystroke; clearing filters is a navigable action.
 - Replaced an unverified “handmade” catalogue description with neutral textile/object listing language. Product claims remain item-specific and publication-gated.
 - Query-state tests and the exact-head CI suite passed before this refinement; a new exact-head CI run is required for the follow-up commit.
+
+
+### 2026-11-02 — verified product detail and image gallery foundation
+- Product detail retrieval now queries the requested active slug directly instead of loading the entire published catalogue and signing up to 100 unrelated image URLs for one detail page.
+- Product detail data now includes only supplied database fields: full description, materials, sizes, scalar measurements, condition notes, provenance, craft story and SEO metadata. Empty fields are omitted; no measurements, units, materials or condition are inferred.
+- Added a keyboard-operable product image gallery. Only rights-confirmed images are signed and exposed; the primary image is displayed first, followed by merchant-defined display order and creation time.
+- Increased private image URL lifetime from 15 to 60 minutes to reduce expiry during a customer browsing session. URLs remain signed and are not made public.
+- Admin uploads now append after the existing image order and mark the first image as the provisional primary. The image remains private until rights are confirmed.
+- Admins can update image display order and select a primary image through an administrator-only transactional database function. The selected primary image must have confirmed usage rights, evidence and descriptive alt text.
+- Added a single-primary-image partial unique index and a gallery-order index. The publication trigger now requires a rights-confirmed image with non-empty alt text and evidence.
+- Added regression tests for scalar-only measurement presentation, deterministic gallery ordering, primary-image authorization and publication media requirements.
+- Migration 202611020003 has not been applied to a live Supabase project. Existing production media records, if any, must be reviewed before migration authorization.
+- Exact-head CI, browser visual QA, assistive-technology checks and live Supabase RPC/RLS execution remain separate verification gates.

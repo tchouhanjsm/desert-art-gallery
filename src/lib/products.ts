@@ -1,3 +1,11 @@
+export type ProductImage = {
+  id: string;
+  url: string;
+  altText: string;
+  sortOrder: number;
+  isPrimary: boolean;
+};
+
 export type Product = {
   id?: string;
   slug: string;
@@ -13,6 +21,16 @@ export type Product = {
   isOneOfAKind?: boolean;
   collectionSlugs?: string[];
   featured?: boolean;
+  description?: string;
+  materials?: string[];
+  sizes?: string[];
+  measurements?: Record<string, unknown>;
+  conditionNotes?: string;
+  provenance?: string;
+  craftStory?: string;
+  images?: ProductImage[];
+  seoTitle?: string | null;
+  seoDescription?: string | null;
 };
 
 // Development-only catalogue placeholders. Production storefront data must come

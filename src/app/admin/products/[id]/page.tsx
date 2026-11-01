@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights, adjustProductInventory } from "../actions";
+import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights, adjustProductInventory, updateProductImageOrder, setProductImagePrimary } from "../actions";
 
 export const metadata = { title: "Edit product" };
 
@@ -13,7 +13,7 @@ type ProductRow = {
   materials: string[]; sizes: string[]; measurements: Record<string, unknown>;
   condition_notes: string; provenance: string; craft_story: string; seo_title: string | null; seo_description: string | null;
 };
-type ImageRow = { id: string; storage_path: string; alt_text: string; rights_confirmed: boolean; rights_evidence: string; sort_order: number };
+type ImageRow = { id: string; storage_path: string; alt_text: string; rights_confirmed: boolean; rights_evidence: string; sort_order: number; is_primary: boolean; created_at: string };
 type MovementRow = { id: string; quantity_delta: number; reason: string; reference: string | null; created_at: string };
 
 function displayMoneyInput(value: number | null, currency: string) {
@@ -32,7 +32,7 @@ export default async function EditAdminProductPage({ params }: { params: Promise
   const [productResult, categoryResult, imageResult, movementResult] = await Promise.all([
     supabase.from("products").select("*").eq("id", id).maybeSingle(),
     supabase.from("categories").select("id,name").order("sort_order", { ascending: true }),
-    supabase.from("product_images").select("id,storage_path,alt_text,rights_confirmed,rights_evidence,sort_order").eq("product_id", id).order("sort_order", { ascending: true }),
+    supabase.from("product_images").select("id,storage_path,alt_text,rights_confirmed,rights_evidence,sort_order,is_primary,created_at").eq("product_id", id).order("is_primary", { ascending: false }).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
     supabase.from("inventory_movements").select("id,quantity_delta,reason,reference,created_at").eq("product_id", id).order("created_at", { ascending: false }).limit(25),
   ]);
   if (productResult.error || !productResult.data) notFound();
@@ -108,6 +108,22 @@ export default async function EditAdminProductPage({ params }: { params: Promise
       {images.length ? <div className="admin-image-grid">{images.map((image) => <article className="admin-image-card" key={image.id}>
         {image.url ? <Image src={image.url} alt={image.alt_text} width={500} height={620} unoptimized /> : <div className="admin-image-placeholder">IMAGE PREVIEW UNAVAILABLE</div>}
         <strong>{image.alt_text}</strong>
+        {image.is_primary && <span className="admin-status status-active">Primary display image</span>}
+        <div className="admin-image-actions">
+          <form action={updateProductImageOrder} className="admin-image-order-form">
+            <input type="hidden" name="product_id" value={product.id} />
+            <input type="hidden" name="image_id" value={image.id} />
+            <label>Display order<input type="number" name="sort_order" min="0" max="9999" step="1" defaultValue={image.sort_order} required /></label>
+            <button type="submit">SAVE ORDER</button>
+          </form>
+          {image.rights_confirmed && !image.is_primary && (
+            <form action={setProductImagePrimary}>
+              <input type="hidden" name="product_id" value={product.id} />
+              <input type="hidden" name="image_id" value={image.id} />
+              <button type="submit">SET AS PRIMARY</button>
+            </form>
+          )}
+        </div>
         <span className={image.rights_confirmed ? "admin-status status-active" : "admin-status status-draft"}>{image.rights_confirmed ? "Rights confirmed" : "Rights not confirmed"}</span>
         {image.rights_confirmed ? <small>{image.rights_evidence}</small> : <form action={confirmProductImageRights} className="rights-form">
           <input type="hidden" name="product_id" value={product.id} /><input type="hidden" name="image_id" value={image.id} />
