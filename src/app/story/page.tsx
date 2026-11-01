@@ -1,3 +1,33 @@
 import Image from "next/image";
-export const metadata={title:"Our Story",description:"Discover the spirit and textile heritage behind Desert Art Gallery in Jaisalmer, Rajasthan."};
-export default function StoryPage(){return <div><div className="page-heading story-heading"><div className="section-kicker">THE HOUSE OF DESERT ART GALLERY</div><h1>Preserving heritage.<br/>Celebrating craft.</h1><p>From Jaisalmer, with a deep affection for the stories held in cloth.</p></div><div className="story-hero"><Image src="/images/textile-placeholder.svg" alt="" fill sizes="100vw" unoptimized/></div><div className="page-shell"><div className="info-copy"><p>Desert Art Gallery grew from a love of the Thar Desert and the expressive beauty of its handmade objects. Based in Jaisalmer, Rajasthan, we bring together distinctive textiles, vintage surfaces and pieces shaped by skilled hands.</p><p>We are particularly drawn to the character of old cloth: its softened colours, layered histories, careful stitches and irregularities. When a textile is thoughtfully reworked, it can find a new place in the world without losing the traces of where it has been.</p><h2>Respect for the people behind the pieces</h2><p>Craft is never simply a look. It is knowledge, time and work carried by people and communities. We aim to present that work with care, and to share only artisan stories and production details that we can verify with the makers themselves.</p><h2>A living practice</h2><p>Our collection continues to evolve. We invite you to ask questions about a piece, its materials, its condition and its making. A meaningful purchase should begin with a clear conversation.</p></div></div></div>;}
+
+export const metadata = {
+  title: "Our approach",
+  description: "Learn about Desert Art Gallery, a textile-led gallery based in Jaisalmer, Rajasthan.",
+};
+
+export default function StoryPage() {
+  return (
+    <div>
+      <div className="page-shell">
+        <div className="page-heading story-heading">
+          <div className="section-kicker">DESERT ART GALLERY · JAISALMER</div>
+          <h1>Textiles, objects<br />and their context.</h1>
+          <p>A gallery perspective from Jaisalmer, Rajasthan.</p>
+        </div>
+      </div>
+      <div className="story-hero">
+        <Image src="/images/textile-placeholder.svg" alt="" fill sizes="100vw" unoptimized />
+      </div>
+      <div className="page-shell">
+        <div className="info-copy">
+          <p>Desert Art Gallery is based in Jaisalmer, Rajasthan. Our focus is the visual language of textiles and objects, and the context that helps people understand what they are considering.</p>
+          <p>Every published product should be accompanied by the information the gallery can verify. Materials, measurements, condition, provenance and availability are not assumed; they are confirmed piece by piece.</p>
+          <h2>Respect for the people behind the work</h2>
+          <p>Craft is knowledge, time and work carried by people and communities. Maker names, biographies, portraits and production details should appear only after the people involved have reviewed and approved their use.</p>
+          <h2>A considered conversation</h2>
+          <p>If you are interested in a piece, contact the gallery with its name or link and your destination country. Please wait for written confirmation of the item details, final price and delivery charges before sending payment.</p>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -10,7 +10,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All pieces");
   const [sort, setSort] = useState("featured");
-  const categories = useMemo(() => ["All pieces", ...Array.from(new Set(products.map((p) => p.category))).sort()], [products]);
+  const categories = useMemo(() => ["All pieces", ...Array.from(new Set(products.map((product) => product.category))).sort()], [products]);
 
   const visible = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
@@ -26,36 +26,51 @@ export function ShopBrowser({ products }: { products: Product[] }) {
     });
   }, [products, query, category, sort]);
 
-  return <div>
-    <div className="shop-toolbar">
-      <span>{visible.length} PIECES</span>
-      <div className="shop-controls">
-        <label className="visually-hidden" htmlFor="shop-search">Search products</label>
-        <input id="shop-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search pieces…" />
-        <label className="visually-hidden" htmlFor="shop-category">Filter by collection</label>
-        <select id="shop-category" value={category} onChange={(event) => setCategory(event.target.value)}>
-          {categories.map((item) => <option key={item} value={item}>{item}</option>)}
-        </select>
-        <label className="visually-hidden" htmlFor="shop-sort">Sort products</label>
-        <select id="shop-sort" value={sort} onChange={(event) => setSort(event.target.value)}>
-          <option value="featured">Featured</option>
-          <option value="name">Name</option>
-          <option value="price-low">Price: low to high</option>
-          <option value="price-high">Price: high to low</option>
-        </select>
-      </div>
-    </div>
-    {visible.length ? <div className="product-grid">{visible.map((product) => <article className="product-card" key={product.slug}>
-      <Link href={`/products/${product.slug}`}>
-        <div className="product-image-wrap"><Image src={product.image} alt={product.imageAlt} fill sizes="(max-width:700px) 48vw, 24vw" unoptimized/></div>
-        <div className="product-meta">
-          <div className="product-category">{product.category}</div>
-          <h2 className="product-name">{product.name}</h2>
-          <div className="product-note">{product.note}</div>
-          <div className="product-price">{product.priceMinor != null && product.currency ? formatMoneyFromMinor(product.priceMinor, product.currency) : "PRICE ON ENQUIRY"}</div>
-          <div className="product-availability">{product.quantityOnHand === 0 && product.id ? "CURRENTLY UNAVAILABLE" : "ENQUIRE FOR DETAILS"}</div>
+  return (
+    <div>
+      <div className="shop-toolbar">
+        <span role="status" aria-live="polite">{visible.length} {visible.length === 1 ? "PIECE" : "PIECES"}</span>
+        <div className="shop-controls">
+          <label className="visually-hidden" htmlFor="shop-search">Search products</label>
+          <input id="shop-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search published pieces…" />
+          <label className="visually-hidden" htmlFor="shop-category">Filter by category</label>
+          <select id="shop-category" value={category} onChange={(event) => setCategory(event.target.value)}>
+            {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+          <label className="visually-hidden" htmlFor="shop-sort">Sort products</label>
+          <select id="shop-sort" value={sort} onChange={(event) => setSort(event.target.value)}>
+            <option value="featured">Featured</option>
+            <option value="name">Name</option>
+            <option value="price-low">Price: low to high</option>
+            <option value="price-high">Price: high to low</option>
+          </select>
         </div>
-      </Link>
-    </article>)}</div> : <div className="empty-note">{products.length ? "No pieces match these filters. Try a different search or collection." : "The collection is being curated. Please contact us for current availability."}</div>}
-  </div>;
+      </div>
+      {visible.length ? (
+        <div className="product-grid">
+          {visible.map((product) => (
+            <article className="product-card" key={product.slug}>
+              <Link href={"/products/" + product.slug}>
+                <div className="product-image-wrap">
+                  <Image src={product.image} alt={product.imageAlt} fill sizes="(max-width:700px) 48vw, 24vw" unoptimized />
+                </div>
+                <div className="product-meta">
+                  <div className="product-category">{product.category}</div>
+                  <h2 className="product-name">{product.name}</h2>
+                  <div className="product-note">{product.note}</div>
+                  <div className="product-price">{product.priceMinor != null && product.currency ? formatMoneyFromMinor(product.priceMinor, product.currency) : "PRICE ON ENQUIRY"}</div>
+                  <div className="product-availability">{product.quantityOnHand === 0 && product.id ? "CURRENTLY UNAVAILABLE" : "ENQUIRE FOR DETAILS"}</div>
+                </div>
+              </Link>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-note">
+          {products.length ? "No published pieces match these filters. Try a different search or category." : "No pieces are currently published online. Contact the gallery for current availability."}
+          <div className="center-action"><Link className="text-link" href="/contact">CONTACT THE GALLERY ↗</Link></div>
+        </div>
+      )}
+    </div>
+  );
 }

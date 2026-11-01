@@ -14,7 +14,7 @@ This register separates code present in the repository from integrations that ha
 - Supabase product cards require an active record and a rights-confirmed image in owned private storage. Collection hero images are signed only when their rights flag is confirmed.
 - Metadata defaults, sitemap and robots routes exist.
 
-**Visual readiness limitation:** the current global stylesheet contains cart/account/import component styles but does not yet provide the complete base design system for the editorial storefront (design tokens, page layout, navigation, hero, product/collection grids, typography and responsive breakpoints). The route scaffolding is not yet a verified luxury-ready or accessibility-reviewed customer experience. A full responsive design-system and route-by-route QA phase remains outstanding.
+**Visual readiness limitation:** a responsive global design foundation and core editorial route layouts are now implemented, including navigation, page hierarchy, product/collection grids and mobile breakpoints. Browser visual capture, keyboard/assistive-technology review, contrast testing and route-by-route accessibility QA have not yet been reported; the storefront is not signed off as production-ready.
 
 ### Supabase foundation and data controls
 - Commerce migrations define profiles, catalogue, media, inventory movements, addresses, orders/order items, saved cart/wishlist, discounts, shipping, editorial content, reviews, newsletter, audit and webhook-event tables.
@@ -45,7 +45,8 @@ This register separates code present in the repository from integrations that ha
 
 - [ ] Connect the merchant-approved Supabase project and apply/verify both migrations in that project. No live database migration was run in this delivery.
 - [ ] Verify RLS, storage access, import/adjustment RPC permissions, transaction rollback and auth callbacks with real Supabase anon/authenticated/service-role sessions.
-- [ ] Build the complete luxury editorial design system and responsive route layouts; verify mobile overflow, keyboard navigation, focus, contrast, touch targets, reduced motion and assistive-technology behavior.
+- [x] Implement the responsive editorial design foundation and shared route layouts.
+- [ ] Verify mobile overflow, keyboard navigation, focus, contrast, touch targets, reduced motion and assistive-technology behavior with browser-based QA.
 - [ ] Replace the local textile placeholder with merchant-authorized original photography in owned storage after rights review; confirm rights for every product, collection, editorial and artisan image.
 - [ ] Add customer registration/email verification and approved staff/owner provisioning.
 - [ ] Import the merchant-approved catalogue and complete image association, media optimization and rights evidence review.
@@ -81,3 +82,15 @@ Production activation requires merchant-authorized catalogue data and original p
 **Code foundation:** in progress; PR #1 is not merge-ready until the complete agreed scope, owner inputs, required reviews and exact-head checks are satisfied.
 
 **Production-live:** no. No live payment, shipping, customer messaging, production migration or deployment is authorized or claimed.
+
+
+### 2026-11-02 — responsive editorial storefront and navigation foundation
+- Added the missing global design foundation: colour/type/spacing tokens, page containers, editorial hero, collection/product grids, product detail, shop controls, story/artisan/journal layouts, footer, responsive breakpoints, visible focus states and reduced-motion handling.
+- Reworked the shared header with a skip link, labelled search, expanded-state mobile navigation and close-on-navigation behavior.
+- Replaced unsupported product/provenance/one-of-a-kind marketing language with factual gallery positioning and explicit product-detail confirmation language.
+- Homepage collection/product sections now render only when published records exist; the empty catalogue state is explicit rather than showing empty grids.
+- Removed footer destinations for shipping, returns, FAQ, tracking, privacy and terms because those routes/policies are not implemented or approved. Replaced them with existing pages and direct gallery email.
+- Added route-contract tests so primary/footer navigation cannot point at missing static App Router pages.
+- Browser visual capture, keyboard/assistive-technology audit and automated accessibility tests remain unreported; this is a design foundation, not a claim of production visual sign-off.
+- Final branch/head SHA and exact-head workflow result are recorded in the PR #1 description after CI completes.
+- Next engineering increment: customer-facing product discovery and product detail completeness (query-state search/filter/sort, verified attributes/variants and availability semantics), with server-side data validation and focused tests.

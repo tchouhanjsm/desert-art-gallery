@@ -3,8 +3,8 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata = {
-  title: "Our Makers",
-  description: "Meet the makers and craft specialists whose stories are shared by Desert Art Gallery with their permission.",
+  title: "Our makers",
+  description: "Maker profiles shared by Desert Art Gallery only after the people featured have reviewed and approved their details.",
 };
 
 type ArtisanRow = {
@@ -20,10 +20,22 @@ type ArtisanRow = {
 
 export default async function ArtisansPage() {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return <div className="page-shell">
-    <div className="page-heading"><div className="section-kicker">THE HAND BEHIND THE WORK</div><h1>Meet our makers</h1><p>Craft is personal. Every story deserves to be told accurately.</p></div>
-    <div className="info-copy"><p>Our work connects with tailors, embroiderers and village makers in and around the wider Thar region. Individual profiles will appear here after each person has reviewed and approved their story and portrait.</p><p>Contact us to ask about the making, materials and provenance of a particular textile.</p><Link className="contact-link" href="/contact">CONTACT THE GALLERY ↗</Link></div>
-  </div>;
+  if (!supabase) {
+    return (
+      <div className="page-shell">
+        <div className="page-heading">
+          <div className="section-kicker">PEOPLE & PROCESS</div>
+          <h1>Maker stories</h1>
+          <p>Personal stories should be told by, or with the approval of, the people involved.</p>
+        </div>
+        <div className="info-copy">
+          <p>This space is reserved for profiles that have been reviewed and approved by the people featured. No names, portraits, biographies or experience claims will be published here without their permission.</p>
+          <p>For questions about the making or details of a particular piece, contact the gallery.</p>
+          <Link className="contact-link" href="/contact">CONTACT THE GALLERY ↗</Link>
+        </div>
+      </div>
+    );
+  }
 
   const { data, error } = await supabase.from("artisan_profiles")
     .select("id,full_name,role_title,short_bio,craft_specialties,years_experience,portrait_path,portrait_rights_confirmed")
@@ -40,14 +52,39 @@ export default async function ArtisansPage() {
     return { ...artisan, portrait };
   }));
 
-  return <div className="page-shell">
-    <div className="page-heading"><div className="section-kicker">THE HAND BEHIND THE WORK</div><h1>Meet our makers</h1><p>Skilled hands, individual voices and traditions carried forward.</p></div>
-    {cards.length ? <div className="artisan-grid">{cards.map((artisan) => <article className="artisan-card" key={artisan.id}>
-      {artisan.portrait ? <div className="artisan-photo"><Image src={artisan.portrait} alt={"Portrait of " + artisan.full_name} fill sizes="(max-width:700px) 88vw, 30vw" unoptimized /></div> : <div className="artisan-photo artisan-photo-empty" aria-hidden="true">CRAFT & COMMUNITY</div>}
-      <div className="section-kicker">{artisan.role_title}</div><h2>{artisan.full_name}</h2>
-      {artisan.short_bio && <p>{artisan.short_bio}</p>}
-      {artisan.years_experience !== null && <small>{artisan.years_experience} YEARS OF EXPERIENCE</small>}
-      {!!artisan.craft_specialties.length && <div className="artisan-specialties">{artisan.craft_specialties.map((specialty) => <span key={specialty}>{specialty}</span>)}</div>}
-    </article>)}</div> : <div className="empty-note">Maker profiles will appear here after they have been reviewed and approved by the people featured.</div>}
-  </div>;
+  return (
+    <div className="page-shell">
+      <div className="page-heading">
+        <div className="section-kicker">PEOPLE & PROCESS</div>
+        <h1>Maker stories</h1>
+        <p>Profiles are shared only when the people featured have approved the details and imagery.</p>
+      </div>
+      {cards.length ? (
+        <div className="artisan-grid">
+          {cards.map((artisan) => (
+            <article className="artisan-card" key={artisan.id}>
+              {artisan.portrait ? (
+                <div className="artisan-photo">
+                  <Image src={artisan.portrait} alt={"Portrait of " + artisan.full_name} fill sizes="(max-width:700px) 88vw, 30vw" unoptimized />
+                </div>
+              ) : (
+                <div className="artisan-photo artisan-photo-empty" aria-hidden="true">PORTRAIT NOT PUBLISHED</div>
+              )}
+              <div className="section-kicker">{artisan.role_title}</div>
+              <h2>{artisan.full_name}</h2>
+              {artisan.short_bio && <p>{artisan.short_bio}</p>}
+              {artisan.years_experience !== null && <small>{artisan.years_experience} YEARS OF EXPERIENCE</small>}
+              {!!artisan.craft_specialties.length && (
+                <div className="artisan-specialties">
+                  {artisan.craft_specialties.map((specialty) => <span key={specialty}>{specialty}</span>)}
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-note">No maker profiles are currently approved for publication.</div>
+      )}
+    </div>
+  );
 }

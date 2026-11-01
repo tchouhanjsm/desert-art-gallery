@@ -1,2 +1,134 @@
-import Image from "next/image";import Link from "next/link";import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
-export default async function HomePage(){const [collections,products]=await Promise.all([getStorefrontCollections(),getStorefrontProducts()]);return <><section className="hero"><Image className="hero-image" src="/images/textile-placeholder.svg" alt="" fill priority unoptimized sizes="100vw"/><div className="hero-content"><div className="eyebrow">RARE TEXTILES · TIMELESS STORIES</div><h1>WEAR A PIECE<br/>OF HISTORY.</h1><p>Extraordinary textiles, shaped by generations of craft and the colours of the Thar.</p><Link className="button-primary" href="/shop">EXPLORE THE COLLECTION</Link></div></section><section className="intro"><div className="intro-image-wrap"><Image className="intro-image" src="/images/textile-placeholder.svg" alt="" fill sizes="(max-width:700px) 90vw, 42vw" unoptimized/></div><div className="intro-copy"><div className="section-kicker">THE ART OF THE UNCOMMON</div><h2 className="section-title">Beyond fashion.<br/>A living heritage.</h2><p>At Desert Art Gallery, we are drawn to textiles with a past — the handwork, the unexpected colour, the marks of time that make every piece singular. From Jaisalmer, we bring these extraordinary surfaces into a new light.</p><Link className="text-link" href="/story">DISCOVER OUR WORLD ↗</Link></div></section><section className="collections-section"><div className="section-heading"><div className="section-kicker">A WORLD OF TEXTURE</div><h2 className="section-title">Explore the collections</h2><p>Distinctive pieces. No two stories quite alike.</p></div><div className="collection-grid">{collections.map(item=><Link className="collection-card" href={`/collections/${item.slug}`} key={item.slug}><div className="collection-photo"><Image src={item.image} alt={item.name} fill sizes="(max-width:700px) 45vw, 30vw" unoptimized/></div><span>{item.name}</span><small>{item.description}</small></Link>)}</div></section><section className="featured-section"><div className="section-heading"><div className="section-kicker">SELECTED FOR YOU</div><h2 className="section-title">Exceptional pieces.<br/>Enduring character.</h2><p>A first look at the work and textiles that define our world.</p></div><div className="product-grid">{products.map(item=><article className="product-card" key={item.slug}><Link href={`/products/${item.slug}`}><div className="product-image-wrap"><Image src={item.image} alt={item.imageAlt} fill sizes="(max-width:700px) 48vw, 24vw" unoptimized/></div><div className="product-meta"><div className="product-category">{item.category}</div><h3 className="product-name">{item.name}</h3><div className="product-note">{item.note}</div><div className="product-availability">ENQUIRE FOR CURRENT AVAILABILITY</div></div></Link></article>)}</div><div className="center-action"><Link className="button-outline" href="/shop">VIEW THE COLLECTION</Link></div></section><section className="craft-section"><Image className="craft-photo" src="/images/textile-placeholder.svg" alt="" width={1000} height={1100} unoptimized/><div className="craft-copy"><div className="section-kicker">THE HUMAN HAND</div><h2 className="section-title">Made by hand.<br/>Carried forward.</h2><p>Behind the cloth are the makers: stitchers, tailors and craftspeople whose knowledge lives in the details. We want every story to begin with respect for the hands that made it.</p><Link className="text-link" href="/artisans">MEET OUR MAKERS ↗</Link></div></section><section className="signature"><Image src="/images/textile-placeholder.svg" alt="" fill sizes="100vw" unoptimized/><div className="signature-content"><div className="eyebrow">THE SIGNATURE COLLECTION</div><h2>Unique by nature.<br/>Timeless by design.</h2><Link href="/collections/banjara" className="button-primary">DISCOVER BANJARA</Link></div></section><section className="values">{[{t:"Heritage textiles",d:"A considered selection shaped by regional craft traditions."},{t:"Human craftsmanship",d:"Celebrating the skill, care and creativity behind every stitch."},{t:"Thoughtful reuse",d:"Giving vintage materials another chapter wherever possible."},{t:"Personal service",d:"A real conversation for questions about your chosen piece."}].map(v=><div className="value-item" key={v.t}><b>{v.t}</b><p>{v.d}</p></div>)}</section><section className="story-band"><Image src="/images/textile-placeholder.svg" alt="" width={1000} height={1000} unoptimized/><div className="story-copy"><div className="section-kicker">FROM THE HEART OF THE THAR</div><h2 className="section-title">A desert spirit.<br/>A world of stories.</h2><p>Our home is Jaisalmer, where colour, craft and landscape meet. Desert Art Gallery shares the beauty of textiles that deserve to be seen, understood and worn.</p><Link className="text-link" href="/story">OUR STORY ↗</Link></div></section><section className="newsletter"><div className="section-kicker">A LETTER FROM THE DESERT</div><h2>Discover stories worth wearing.</h2><p>Notes on rare finds, thoughtful craft and new arrivals.</p><form className="newsletter-form" action="mailto:hello@desertartgallery.net" method="post" encType="text/plain"><input type="email" name="email" placeholder="Your email address" aria-label="Email address" required/><button type="submit">JOIN OUR COMMUNITY ↗</button></form></section></>;}
+import Image from "next/image";
+import Link from "next/link";
+import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
+
+export default async function HomePage() {
+  const [collections, products] = await Promise.all([
+    getStorefrontCollections(),
+    getStorefrontProducts(),
+  ]);
+
+  return (
+    <>
+      <section className="hero">
+        <Image className="hero-image" src="/images/textile-placeholder.svg" alt="" fill priority unoptimized sizes="100vw" />
+        <div className="hero-content">
+          <div className="eyebrow">A TEXTILE-LED GALLERY IN JAISALMER</div>
+          <h1>TEXTILES.<br />OBJECTS.<br />STORIES.</h1>
+          <p>A considered view of material, colour and making, based in Jaisalmer, Rajasthan.</p>
+          <Link className="button-primary" href="/shop">EXPLORE THE SHOP</Link>
+        </div>
+      </section>
+
+      <section className="intro">
+        <div className="intro-image-wrap">
+          <Image className="intro-image" src="/images/textile-placeholder.svg" alt="" fill sizes="(max-width:700px) 90vw, 42vw" unoptimized />
+        </div>
+        <div className="intro-copy">
+          <div className="section-kicker">A PLACE FOR MATERIAL & MEANING</div>
+          <h2 className="section-title">A closer look at cloth.</h2>
+          <p>Desert Art Gallery is based in Jaisalmer, Rajasthan. We share a considered view of textiles and objects, alongside the stories and processes that surround them.</p>
+          <p>Product information is published as it is verified. If you have a question about a particular piece, our gallery welcomes a direct enquiry.</p>
+          <Link className="text-link" href="/story">DISCOVER OUR APPROACH ↗</Link>
+        </div>
+      </section>
+
+      {collections.length > 0 && (
+        <section className="collections-section">
+          <div className="section-heading">
+            <div className="section-kicker">EXPLORE BY COLLECTION</div>
+            <h2 className="section-title">Browse the gallery</h2>
+            <p>Published collections and their available details.</p>
+          </div>
+          <div className="collection-grid">
+            {collections.map((item) => (
+              <Link className="collection-card" href={"/collections/" + item.slug} key={item.slug}>
+                <div className="collection-photo">
+                  <Image src={item.image} alt="" fill sizes="(max-width:700px) 45vw, 25vw" unoptimized />
+                </div>
+                <span>{item.name}</span>
+                <small>{item.description}</small>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="featured-section">
+        <div className="section-heading">
+          <div className="section-kicker">THE ONLINE CATALOGUE</div>
+          <h2 className="section-title">{products.length > 0 ? "Published pieces" : "The catalogue is being prepared"}</h2>
+          <p>{products.length > 0 ? "Explore the pieces currently published by the gallery." : "Pieces will appear here when their details and image permissions are ready."}</p>
+        </div>
+        {products.length > 0 ? (
+          <>
+            <div className="product-grid">
+              {products.slice(0, 8).map((item) => (
+                <article className="product-card" key={item.slug}>
+                  <Link href={"/products/" + item.slug}>
+                    <div className="product-image-wrap">
+                      <Image src={item.image} alt={item.imageAlt} fill sizes="(max-width:700px) 48vw, 24vw" unoptimized />
+                    </div>
+                    <div className="product-meta">
+                      <div className="product-category">{item.category}</div>
+                      <h3 className="product-name">{item.name}</h3>
+                      <div className="product-note">{item.note}</div>
+                      <div className="product-availability">CONTACT THE GALLERY FOR DETAILS</div>
+                    </div>
+                  </Link>
+                </article>
+              ))}
+            </div>
+            <div className="center-action"><Link className="button-outline" href="/shop">VIEW THE SHOP</Link></div>
+          </>
+        ) : (
+          <div className="empty-note">
+            No pieces are currently published online. Contact the gallery to ask about current availability.
+            <div className="center-action"><Link className="text-link" href="/contact">CONTACT THE GALLERY ↗</Link></div>
+          </div>
+        )}
+      </section>
+
+      <section className="craft-section">
+        <div className="craft-copy">
+          <div className="section-kicker">PEOPLE & PROCESS</div>
+          <h2 className="section-title">Stories, shared with care.</h2>
+          <p>Maker profiles and production details belong to the people behind the work. We share them only when the individuals involved have reviewed and approved what is published.</p>
+          <Link className="text-link" href="/artisans">ABOUT MAKER STORIES ↗</Link>
+        </div>
+      </section>
+
+      <section className="values" aria-label="Gallery principles">
+        <div className="value-item">
+          <b>Clear details</b>
+          <p>Product information is presented as it is verified.</p>
+        </div>
+        <div className="value-item">
+          <b>Respectful representation</b>
+          <p>Imagery and personal stories require appropriate permission.</p>
+        </div>
+        <div className="value-item">
+          <b>Direct enquiries</b>
+          <p>Ask the gallery to confirm details before making a purchase decision.</p>
+        </div>
+      </section>
+
+      <section className="story-band">
+        <Image src="/images/textile-placeholder.svg" alt="" width={1000} height={1200} unoptimized />
+        <div className="story-copy">
+          <div className="section-kicker">FROM JAISALMER, RAJASTHAN</div>
+          <h2 className="section-title">A gallery with a point of view.</h2>
+          <p>Explore our approach to textiles, objects and the care taken when presenting the people and processes connected to them.</p>
+          <Link className="text-link" href="/story">READ OUR STORY ↗</Link>
+        </div>
+      </section>
+
+      <section className="contact-band">
+        <div className="section-kicker">A DIRECT CONVERSATION</div>
+        <h2>Have a question?</h2>
+        <p>For product details, availability or destination-specific delivery questions, contact the gallery before making payment.</p>
+        <Link className="button-outline" href="/contact">CONTACT THE GALLERY</Link>
+      </section>
+    </>
+  );
+}
