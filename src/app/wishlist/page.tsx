@@ -1,2 +1,5 @@
-import Link from "next/link";
-export const metadata={title:"Wishlist"};export default function WishlistPage(){return <div className="page-shell"><div className="page-heading"><div className="section-kicker">SAVED PIECES</div><h1>Your wishlist</h1><p>Keep the pieces that have caught your eye close by.</p></div><div className="empty-note">Your wishlist is ready for its first discovery.<br/><Link href="/shop" className="empty-link">EXPLORE THE COLLECTION ↗</Link></div></div>;}
+import { WishlistPageClient } from "@/components/WishlistPageClient";
+export const metadata = { title: "Wishlist", description: "Keep your favourite Desert Art Gallery pieces together." };
+export default function WishlistPage() {
+  return <div className="page-shell"><div className="page-heading"><div className="section-kicker">SAVED PIECES</div><h1>Your wishlist</h1><p>Keep the pieces that have caught your eye close by.</p></div><WishlistPageClient /></div>;
+}

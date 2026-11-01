@@ -32,3 +32,16 @@
 .enquiry-button{display:flex;width:max-content;max-width:100%;margin-top:9px}
 @media(max-width:800px){.cart-page-layout{grid-template-columns:1fr}.cart-summary{order:-1}.cart-drawer{padding:20px 18px}}
 @media(max-width:520px){.cart-page-line{grid-template-columns:105px 1fr;gap:15px}.cart-page-line>img{width:105px;height:145px}.cart-page-line h2{font-size:22px}.cart-drawer-total{font-size:8px}}
+
+/* Customer wishlist surfaces */
+.wishlist-toggle{display:flex;align-items:center;gap:10px;border:0;background:transparent;color:var(--ink);padding:12px 0;font-size:8px;letter-spacing:.15em}
+.wishlist-toggle[aria-pressed="true"]{color:var(--clay)}
+.wishlist-count{position:absolute;right:0;top:0;background:var(--gold);color:white;width:15px;height:15px;border-radius:50%;font-size:9px;display:grid;place-items:center}
+.wishlist-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.wishlist-card{min-width:0}
+.wishlist-card>a>img{display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;margin-bottom:14px}
+.wishlist-card h2{font-family:var(--font-display),Georgia,serif;font-size:25px;font-weight:400;margin:8px 0}
+.wishlist-card p{font-size:12px}
+.wishlist-placeholder{aspect-ratio:3/4;background:var(--sand);margin-bottom:14px}
+.wishlist-remove{border:0;background:transparent;border-bottom:1px solid var(--gold);padding:0 0 5px;font-size:8px;letter-spacing:.13em}
+@media(max-width:700px){.wishlist-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
