@@ -79,6 +79,7 @@ create table if not exists public.collections (
   slug text not null unique,
   description text not null default '',
   hero_image_path text,
+  hero_image_rights_confirmed boolean not null default false,
   sort_order integer not null default 0,
   is_published boolean not null default false,
   created_at timestamptz not null default now(),
@@ -501,6 +502,12 @@ using (
     where pi.storage_path = name
       and pi.rights_confirmed = true
       and p.status = 'active'
+  )
+  or bucket_id = 'product-media' and exists (
+    select 1 from public.collections c
+    where c.hero_image_path = name
+      and c.hero_image_rights_confirmed = true
+      and c.is_published = true
   )
 );
 
