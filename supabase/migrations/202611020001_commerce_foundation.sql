@@ -139,7 +139,7 @@ create table if not exists public.product_images (
 create or replace function public.guard_product_publication()
 returns trigger language plpgsql security definer
 set search_path = pg_catalog, public
-as $
+as $product_publish$
 begin
   if new.status = 'active' then
     if new.price_minor is null then
@@ -155,7 +155,7 @@ begin
   end if;
   return new;
 end;
-$;
+$product_publish$;
 
 drop trigger if exists guard_product_publication on public.products;
 create trigger guard_product_publication before insert or update on public.products
@@ -376,7 +376,7 @@ create unique index if not exists newsletter_email_unique_idx on public.newslett
 create or replace function public.protect_order_payment_status()
 returns trigger language plpgsql security definer
 set search_path = pg_catalog, public
-as $
+as $payment_guard$
 begin
   if new.status is distinct from old.status
      and new.status in ('paid','refunded')
@@ -385,7 +385,7 @@ begin
   end if;
   return new;
 end;
-$;
+$payment_guard$;
 
 drop trigger if exists protect_order_payment_status on public.orders;
 create trigger protect_order_payment_status before update on public.orders
