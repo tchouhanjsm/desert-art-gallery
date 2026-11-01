@@ -4,7 +4,6 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
   if (!url || !anonKey) return NextResponse.next({ request });
 
   let response = NextResponse.next({ request });
@@ -14,27 +13,38 @@ export async function middleware(request: NextRequest) {
       setAll(cookiesToSet) {
         for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
         response = NextResponse.next({ request });
-        for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
-        }
+        for (const { name, value, options } of cookiesToSet) response.cookies.set(name, value, options);
       },
     },
   });
 
+  // getUser() validates the access token against Supabase Auth; do not trust getSession() alone.
   const { data: { user } } = await supabase.auth.getUser();
-  const requiresAuth = request.nextUrl.pathname.startsWith("/admin") ||
-    request.nextUrl.pathname.startsWith("/account");
+  const path = request.nextUrl.pathname;
 
-  if (requiresAuth && !user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
-    redirectUrl.searchParams.set("next", request.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
+  if ((path.startsWith("/admin") || path.startsWith("/account")) && !user) {
+    const target = request.nextUrl.clone();
+    target.pathname = "/login";
+    target.searchParams.set("next", path);
+    return NextResponse.redirect(target);
+  }
+
+  if (path.startsWith("/admin") && user) {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error || !profile || !["admin", "owner"].includes(profile.role)) {
+      const target = request.nextUrl.clone();
+      target.pathname = "/account";
+      target.search = "";
+      return NextResponse.redirect(target);
+    }
   }
 
   return response;
 }
 
-export const config = {
-  matcher: ["/admin/:path*", "/account/:path*"],
-};
+export const config = { matcher: ["/admin/:path*", "/account/:path*"] };
