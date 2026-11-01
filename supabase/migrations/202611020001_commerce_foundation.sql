@@ -181,6 +181,7 @@ create table if not exists public.orders (
   tax_minor bigint not null default 0 check (tax_minor >= 0),
   discount_minor bigint not null default 0 check (discount_minor >= 0),
   total_minor bigint not null check (total_minor >= 0),
+  constraint order_total_matches_components check (total_minor = subtotal_minor + shipping_minor + tax_minor - discount_minor),
   shipping_address jsonb not null,
   billing_address jsonb,
   customer_note text,
@@ -292,6 +293,72 @@ create table if not exists public.customer_reviews (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.artisan_profiles (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  role_title text not null default '',
+  short_bio text not null default '',
+  biography text not null default '',
+  craft_specialties text[] not null default '{}',
+  years_experience smallint check (years_experience is null or years_experience between 0 and 100),
+  portrait_path text,
+  portrait_rights_confirmed boolean not null default false,
+  sort_order integer not null default 0,
+  is_published boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.journal_posts (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text not null unique,
+  excerpt text not null default '',
+  content_markdown text not null default '',
+  category text not null default 'Stories',
+  cover_image_path text,
+  cover_image_rights_confirmed boolean not null default false,
+  status text not null default 'draft' check (status in ('draft','published','archived')),
+  author_id uuid references auth.users(id) on delete set null,
+  published_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists journal_posts_publication_idx on public.journal_posts(status, published_at desc);
+
+create table if not exists public.newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null check (email = lower(trim(email))),
+  status text not null default 'pending' check (status in ('pending','confirmed','unsubscribed')),
+  consent_at timestamptz not null,
+  confirmation_token_hash text,
+  unsubscribe_token_hash text not null unique,
+  source text not null default 'website',
+  confirmed_at timestamptz,
+  unsubscribed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists newsletter_email_unique_idx on public.newsletter_subscribers(lower(email));
+
+create or replace function public.protect_order_payment_status()
+returns trigger language plpgsql security definer
+set search_path = pg_catalog, public
+as $
+begin
+  if new.status is distinct from old.status
+     and new.status in ('paid','refunded')
+     and coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
+    raise exception 'Payment status can only be changed by a trusted payment webhook';
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists protect_order_payment_status on public.orders;
+create trigger protect_order_payment_status before update on public.orders
+for each row execute function public.protect_order_payment_status();
+
 create table if not exists public.audit_log (
   id bigint generated always as identity primary key,
   actor_id uuid references auth.users(id) on delete set null,
@@ -319,7 +386,7 @@ create table if not exists public.payment_webhook_events (
 do $$
 declare t text;
 begin
-  foreach t in array array['profiles','categories','collections','products','addresses','orders','cart_items','discount_codes','shipping_zones','shipping_rates','site_content','customer_reviews'] loop
+  foreach t in array array['profiles','categories','collections','products','addresses','orders','cart_items','discount_codes','shipping_zones','shipping_rates','site_content','customer_reviews','artisan_profiles','journal_posts','newsletter_subscribers'] loop
     execute format('drop trigger if exists set_updated_at on public.%I', t);
     execute format('create trigger set_updated_at before update on public.%I for each row execute function public.set_updated_at()', t);
   end loop;
@@ -348,6 +415,9 @@ alter table public.shipping_zones enable row level security;
 alter table public.shipping_rates enable row level security;
 alter table public.site_content enable row level security;
 alter table public.customer_reviews enable row level security;
+alter table public.artisan_profiles enable row level security;
+alter table public.journal_posts enable row level security;
+alter table public.newsletter_subscribers enable row level security;
 alter table public.audit_log enable row level security;
 alter table public.payment_webhook_events enable row level security;
 
@@ -476,6 +546,26 @@ drop policy if exists customer_reviews_admin_all on public.customer_reviews;
 create policy customer_reviews_admin_all on public.customer_reviews for all to authenticated
 using (public.is_admin()) with check (public.is_admin());
 
+-- Editorial content is private until explicitly published. Portraits/covers require documented rights.
+drop policy if exists artisan_profiles_public_read on public.artisan_profiles;
+create policy artisan_profiles_public_read on public.artisan_profiles for select to anon, authenticated
+using (is_published or public.is_admin());
+drop policy if exists artisan_profiles_admin_all on public.artisan_profiles;
+create policy artisan_profiles_admin_all on public.artisan_profiles for all to authenticated
+using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists journal_posts_public_read on public.journal_posts;
+create policy journal_posts_public_read on public.journal_posts for select to anon, authenticated
+using ((status = 'published' and published_at is not null) or public.is_admin());
+drop policy if exists journal_posts_admin_all on public.journal_posts;
+create policy journal_posts_admin_all on public.journal_posts for all to authenticated
+using (public.is_admin()) with check (public.is_admin());
+
+-- Newsletter lifecycle writes are reserved for trusted server routes.
+drop policy if exists newsletter_subscribers_admin_read on public.newsletter_subscribers;
+create policy newsletter_subscribers_admin_read on public.newsletter_subscribers for select to authenticated
+using (public.is_admin());
+
 -- Operational/audit data is admin-read-only to end users. Trusted server routes use service_role.
 drop policy if exists inventory_movements_admin_read on public.inventory_movements;
 create policy inventory_movements_admin_read on public.inventory_movements for select to authenticated
@@ -508,6 +598,20 @@ using (
     where c.hero_image_path = name
       and c.hero_image_rights_confirmed = true
       and c.is_published = true
+  )
+);
+
+drop policy if exists product_media_editorial_public_read on storage.objects;
+create policy product_media_editorial_public_read on storage.objects for select to anon, authenticated
+using (
+  bucket_id = 'product-media' and exists (
+    select 1 from public.artisan_profiles a
+    where a.portrait_path = name and a.portrait_rights_confirmed = true and a.is_published = true
+  )
+  or bucket_id = 'product-media' and exists (
+    select 1 from public.journal_posts j
+    where j.cover_image_path = name and j.cover_image_rights_confirmed = true
+      and j.status = 'published' and j.published_at is not null
   )
 );
 
