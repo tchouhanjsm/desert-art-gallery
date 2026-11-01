@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { formatMoneyFromMinor } from "@/lib/money";
 import {
@@ -146,7 +147,7 @@ export function CatalogueImportForm() {
           <strong>Catalogue import completed.</strong>
           <p>{result.productsCreated} draft products created; {result.stockUnitsAdded} opening stock units recorded.</p>
           <small>Import batch: {result.batchId}</small>
-          <a href="/admin/products">VIEW PRODUCT CATALOGUE</a>
+          <Link href="/admin/products">VIEW PRODUCT CATALOGUE</Link>
         </div>
       ) : null}
     </div>
