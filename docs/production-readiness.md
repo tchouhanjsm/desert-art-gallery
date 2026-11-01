@@ -115,7 +115,7 @@ Production activation requires merchant-authorized catalogue data and original p
 - Query-state tests and the exact-head CI suite passed before this refinement; a new exact-head CI run is required for the follow-up commit.
 
 
-### 2026-11-02 — verified product detail and image gallery foundation
+### 2026-11-02 — published product detail and image gallery foundation
 - Product detail retrieval now queries the requested active slug directly instead of loading the entire published catalogue and signing up to 100 unrelated image URLs for one detail page.
 - Product detail data now includes only supplied database fields: full description, materials, sizes, scalar measurements, condition notes, provenance, craft story and SEO metadata. Empty fields are omitted; no measurements, units, materials or condition are inferred.
 - Added a keyboard-operable product image gallery. Only rights-confirmed images are signed and exposed; the primary image is displayed first, followed by merchant-defined display order and creation time.
@@ -126,3 +126,11 @@ Production activation requires merchant-authorized catalogue data and original p
 - Added regression tests for scalar-only measurement presentation, deterministic gallery ordering, primary-image authorization and publication media requirements.
 - Migration 202611020003 has not been applied to a live Supabase project. Existing production media records, if any, must be reviewed before migration authorization.
 - Exact-head CI, browser visual QA, assistive-technology checks and live Supabase RPC/RLS execution remain separate verification gates.
+
+
+### 2026-11-02 — deterministic self-hosted typography and CI build resilience
+- The product-detail commit passed typecheck, all 59 unit tests and ESLint, but its production build failed inside Next.js Google Font loading while parsing the remote Cormorant Garamond response.
+- Root cause: the build depended on a live Google Fonts fetch at compile time. This is an external network dependency and can fail independently of application code.
+- Replaced next/font/google with pinned Fontsource variable-font packages for Cormorant Garamond and DM Sans. Font files are bundled and served by the application; production builds no longer need to contact Google Fonts.
+- Added the SIL Open Font License attribution register and a regression test that prevents reintroducing remote Google font imports or removing the self-hosted dependencies.
+- The exact-head build rerun is required before this increment is considered CI-green.

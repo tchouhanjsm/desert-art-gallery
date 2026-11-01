@@ -2,6 +2,8 @@
 /* Desert Art Gallery — responsive editorial design foundation */
 :root{
   color-scheme:light;
+  --font-display:"Cormorant Garamond Variable",Georgia,serif;
+  --font-body:"DM Sans Variable",Arial,sans-serif;
   --ink:#27231f;
   --ink-soft:#4e463e;
   --muted:#766d63;
