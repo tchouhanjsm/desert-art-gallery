@@ -725,7 +725,7 @@ begin
     where user_id = v_user_id and is_default_shipping = true and id <> v_address_id;
   end if;
   insert into public.addresses (id,user_id,recipient_name,address_line_1,address_line_2,city,region,postal_code,country_code,phone,is_default_shipping)
-  values (v_address_id,v_user_id,btrim(p_recipient_name),nullif(btrim(coalesce(p_address_line_2,'')),''),btrim(p_city),nullif(btrim(coalesce(p_region,'')),''),btrim(p_postal_code),p_country_code,nullif(btrim(coalesce(p_phone,'')),''),coalesce(p_is_default_shipping,false))
+  values (v_address_id,v_user_id,btrim(p_recipient_name),btrim(p_address_line_1),nullif(btrim(coalesce(p_address_line_2,'')),''),btrim(p_city),nullif(btrim(coalesce(p_region,'')),''),btrim(p_postal_code),p_country_code,nullif(btrim(coalesce(p_phone,'')),''),coalesce(p_is_default_shipping,false))
   on conflict (id) do update set
     recipient_name = excluded.recipient_name,
     address_line_1 = excluded.address_line_1,
