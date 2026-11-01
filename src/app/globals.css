@@ -14,8 +14,6 @@
   --clay-dark:#704535;
   --gold:#ad8a5b;
   --white:#fff;
-  --font-display:var(--font-display),Georgia,serif;
-  --font-body:var(--font-body),Arial,sans-serif;
   --page-width:1440px;
   --page-gutter:clamp(22px,5.4vw,84px);
   --shadow-soft:0 18px 55px rgba(42,32,23,.09);
