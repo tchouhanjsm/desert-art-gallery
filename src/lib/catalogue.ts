@@ -1,5 +1,4 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { formatMoneyFromMinor } from "./money";
 import { collections as previewCollections, products as previewProducts, type Product } from "@/lib/products";
 
 type ProductImageRow = { storage_path: string; alt_text: string; sort_order: number; rights_confirmed: boolean };
