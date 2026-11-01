@@ -92,5 +92,6 @@ Production activation requires merchant-authorized catalogue data and original p
 - Removed footer destinations for shipping, returns, FAQ, tracking, privacy and terms because those routes/policies are not implemented or approved. Replaced them with existing pages and direct gallery email.
 - Added route-contract tests so primary/footer navigation cannot point at missing static App Router pages.
 - Browser visual capture, keyboard/assistive-technology audit and automated accessibility tests remain unreported; this is a design foundation, not a claim of production visual sign-off.
+- The first design-system CI attempt caught a TypeScript tuple-union inference error in the footer navigation configuration; sections now use an explicit shared `NavigationSection` type. The final-head rerun is pending.
 - Final branch/head SHA and exact-head workflow result are recorded in the PR #1 description after CI completes.
 - Next engineering increment: customer-facing product discovery and product detail completeness (query-state search/filter/sort, verified attributes/variants and availability semantics), with server-side data validation and focused tests.

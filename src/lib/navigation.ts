@@ -3,6 +3,11 @@ export type NavigationItem = {
   label: string;
 };
 
+type NavigationSection = {
+  title: string;
+  links: NavigationItem[];
+};
+
 export const primaryNavigation: NavigationItem[] = [
   { href: "/", label: "Home" },
   { href: "/shop", label: "Shop" },
@@ -12,7 +17,7 @@ export const primaryNavigation: NavigationItem[] = [
   { href: "/contact", label: "Contact" },
 ];
 
-export const footerNavigation = [
+export const footerNavigation: NavigationSection[] = [
   {
     title: "Explore",
     links: [
@@ -28,4 +33,4 @@ export const footerNavigation = [
       { href: "/contact", label: "Contact" },
     ],
   },
-] as const;
+];
