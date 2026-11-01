@@ -1,0 +1,1 @@
+import Link from "next/link";export default function NotFound(){return <div className="page-shell"><div className="page-heading"><div className="section-kicker">A LOST THREAD</div><h1>Page not found</h1><p>The page may have moved, but the collection is waiting.</p><Link className="button-outline" href="/shop">RETURN TO THE COLLECTION</Link></div></div>;}
