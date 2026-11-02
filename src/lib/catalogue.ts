@@ -2,6 +2,9 @@ import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { collections as previewCollections, products as previewProducts, type Product, type ProductImage, type ProductVariant } from "@/lib/products";
 import { isPresentableProductImage, sortProductImages } from "@/lib/product-details";
+import { hasMySqlDatabase } from "@/server/db";
+import { getProductCollectionSlugs, getPublishedCollections } from "@/server/editorial/repository";
+import { getEditorialMediaUrl } from "@/server/media/storage";
 
 type ProductImageRow = {
   id: string;
@@ -136,6 +139,9 @@ export async function getStorefrontProducts(): Promise<Product[]> {
   if (error) throw new Error("Unable to load the published catalogue: " + error.message);
 
   const rows = (data ?? []) as unknown as ProductRow[];
+  const mysqlCollectionLinks = hasMySqlDatabase()
+    ? await getProductCollectionSlugs(rows.map((row) => row.slug))
+    : null;
   const resolved = await Promise.all(rows.map(async (row): Promise<Product | null> => {
     const approvedImages = sortProductImages(
       (row.product_images ?? []).filter(isPresentableProductImage),
@@ -161,7 +167,9 @@ export async function getStorefrontProducts(): Promise<Product[]> {
       currency: safeCurrency(row.currency),
       quantityOnHand: safeQuantity(row.quantity_on_hand),
       isOneOfAKind: row.is_one_of_a_kind,
-      collectionSlugs: (row.collection_products ?? []).flatMap((item) => item.collections ? [item.collections.slug] : []),
+      collectionSlugs: mysqlCollectionLinks
+        ? mysqlCollectionLinks.get(row.slug) ?? []
+        : (row.collection_products ?? []).flatMap((item) => item.collections ? [item.collections.slug] : []),
     };
   }));
 
@@ -169,6 +177,21 @@ export async function getStorefrontProducts(): Promise<Product[]> {
 }
 
 export async function getStorefrontCollections(): Promise<StorefrontCollection[]> {
+  if (hasMySqlDatabase()) {
+    const rows = await getPublishedCollections();
+    return rows.map((row) => {
+      const approvedImage = row.hero_image_path && row.hero_image_rights_confirmed &&
+        row.hero_image_rights_evidence.trim() && row.hero_image_alt.trim();
+      return {
+        name: row.name,
+        slug: row.slug,
+        description: row.description,
+        image: approvedImage ? getEditorialMediaUrl(row.hero_image_path as string) : "/images/textile-placeholder.svg",
+        imageAlt: row.hero_image_alt.trim() || row.name,
+      };
+    });
+  }
+
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return process.env.NODE_ENV === "development"

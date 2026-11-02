@@ -4,6 +4,24 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupportedImageSignature } from "@/lib/image-signature";
+import { hasMySqlDatabase } from "@/server/db";
+import {
+  confirmEditorialImageRights as confirmMySqlEditorialImageRights,
+  getHomepageRecord,
+  saveArtisanRecord,
+  saveCollectionRecord,
+  saveHomepageRecord,
+  saveJournalRecord,
+  setEditorialImage,
+  replaceCollectionProductSlugs,
+} from "@/server/editorial/repository";
+import {
+  createEditorialStorageKey,
+  removeEditorialMedia,
+  storeEditorialMedia,
+  type EditorialImageMime,
+  type EditorialTarget,
+} from "@/server/media/storage";
 
 async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -88,6 +106,21 @@ export async function saveHomepageContent(formData: FormData) {
     throw new Error("Complete both headline lines, their accent words and the description.");
   }
 
+  if (hasMySqlDatabase()) {
+    const existing = await getHomepageRecord();
+    const body: Record<string, unknown> = { ...(existing?.body ?? {}), ...values };
+    const isPublished = checked(formData, "is_published");
+    if (isPublished && typeof body.hero_image_path === "string" && body.hero_image_path &&
+      (body.hero_image_rights_confirmed !== true ||
+       typeof body.hero_image_rights_evidence !== "string" || !body.hero_image_rights_evidence.trim() ||
+       typeof body.hero_image_alt !== "string" || !body.hero_image_alt.trim())) {
+      throw new Error("Confirm usage rights and provide descriptive alt text before publishing the homepage image.");
+    }
+    await saveHomepageRecord(body, isPublished, userId);
+    revalidateEditorial();
+    return;
+  }
+
   const { data: existing, error: readError } = await supabase
     .from("site_content")
     .select("id,body")
@@ -115,6 +148,37 @@ export async function saveHomepageContent(formData: FormData) {
   revalidateEditorial();
 }
 
+export async function saveCollectionProducts(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  if (!hasMySqlDatabase()) throw new Error("Product curation for MySQL collections is not enabled.");
+
+  const collectionId = field(formData, "collection_id", 80);
+  if (!collectionId) throw new Error("Choose a collection before assigning products.");
+  const submitted = formData.getAll("product_slugs");
+  if (submitted.length > 200 || submitted.some((value) => typeof value !== "string")) {
+    throw new Error("Choose no more than 200 products for one collection.");
+  }
+  const slugs = [...new Set(submitted.map((value) => String(value).trim()).filter(Boolean))];
+  if (slugs.some((slug) => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))) {
+    throw new Error("One or more selected product slugs are invalid.");
+  }
+
+  if (slugs.length) {
+    const { data, error } = await supabase.from("products")
+      .select("slug")
+      .eq("status", "active")
+      .in("slug", slugs);
+    if (error) throw new Error("Unable to verify selected catalogue products.");
+    const verified = new Set((data ?? []).map((row) => row.slug));
+    if (verified.size !== slugs.length) {
+      throw new Error("A selected product is no longer active. Refresh the page and review the collection assignments.");
+    }
+  }
+
+  await replaceCollectionProductSlugs(collectionId, slugs);
+  revalidateEditorial();
+}
+
 export async function saveCollection(formData: FormData) {
   const { supabase } = await requireAdmin();
   const id = field(formData, "id", 80);
@@ -124,6 +188,12 @@ export async function saveCollection(formData: FormData) {
   if (name.length < 2) throw new Error("Collection name must contain at least two characters.");
   if (!description) throw new Error("Add a short collection description.");
   const isPublished = checked(formData, "is_published");
+
+  if (hasMySqlDatabase()) {
+    await saveCollectionRecord({ id: id || undefined, name, slug, description, sortOrder: sortOrder(formData), isPublished });
+    revalidateEditorial();
+    return;
+  }
 
   if (id) {
     const { data: current, error: readError } = await supabase.from("collections")
@@ -173,6 +243,22 @@ export async function saveArtisanProfile(formData: FormData) {
     is_published: isPublished,
   };
 
+  if (hasMySqlDatabase()) {
+    await saveArtisanRecord({
+      id: id || undefined,
+      fullName,
+      roleTitle,
+      shortBio,
+      biography,
+      specialties,
+      yearsExperience,
+      sortOrder: sortOrder(formData),
+      isPublished,
+    });
+    revalidateEditorial();
+    return;
+  }
+
   if (id) {
     const { data: current, error: readError } = await supabase.from("artisan_profiles")
       .select("portrait_path,portrait_rights_confirmed")
@@ -205,6 +291,21 @@ export async function saveJournalPost(formData: FormData) {
   }
   if (!["draft", "published", "archived"].includes(status)) throw new Error("Choose a valid publication status.");
 
+  if (hasMySqlDatabase()) {
+    await saveJournalRecord({
+      id: id || undefined,
+      title,
+      slug,
+      excerpt,
+      contentMarkdown: content,
+      category,
+      status: status as "draft" | "published" | "archived",
+      authorId: userId,
+    });
+    revalidateEditorial();
+    return;
+  }
+
   const values = { title, slug, excerpt, content_markdown: content, category, status };
   if (id) {
     const { data: current, error: readError } = await supabase.from("journal_posts")
@@ -224,8 +325,6 @@ export async function saveJournalPost(formData: FormData) {
   }
   revalidateEditorial();
 }
-
-type EditorialTarget = "homepage" | "collection" | "artisan" | "journal";
 
 function imageType(file: File) {
   const extensions: Record<string, string> = {
@@ -253,6 +352,20 @@ export async function uploadEditorialImage(formData: FormData) {
   const extension = imageType(file);
   const signature = new Uint8Array(await file.slice(0, 64).arrayBuffer());
   if (!hasSupportedImageSignature(file.type, signature)) throw new Error("The image contents do not match the selected file type.");
+
+  if (hasMySqlDatabase()) {
+    const storageKey = createEditorialStorageKey(target, id, file.type as EditorialImageMime);
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    await storeEditorialMedia(storageKey, bytes);
+    try {
+      await setEditorialImage(target, id, storageKey, altText);
+    } catch (error) {
+      await removeEditorialMedia(storageKey).catch(() => undefined);
+      throw error;
+    }
+    revalidateEditorial();
+    return;
+  }
 
   let homepageBody: Record<string, unknown> | null = null;
   if (target === "homepage") {
@@ -320,6 +433,12 @@ export async function confirmEditorialImageRights(formData: FormData) {
   if (!["homepage", "collection", "artisan", "journal"].includes(target) || !id) throw new Error("Content target is invalid.");
   if (evidence.length < 12 || !checked(formData, "confirm_rights")) {
     throw new Error("Provide a meaningful usage-rights reference and explicitly confirm authorization.");
+  }
+
+  if (hasMySqlDatabase()) {
+    await confirmMySqlEditorialImageRights(target, id, evidence);
+    revalidateEditorial();
+    return;
   }
 
   if (target === "homepage") {
