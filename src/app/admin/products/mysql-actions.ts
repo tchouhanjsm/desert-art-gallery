@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireLocalAdmin } from "@/server/auth/local-admin";
 import { hasSupportedImageSignature } from "@/lib/image-signature";
 import { getMySqlDb, isMySqlCatalogueEnabled } from "@/server/db";
 import { adjustVariantInventory } from "@/server/catalogue/inventory";
@@ -46,18 +46,8 @@ async function requireCatalogueAdmin() {
   if (!isMySqlCatalogueEnabled()) {
     throw new Error("Enable MYSQL_CATALOGUE_ENABLED before using the MySQL catalogue.");
   }
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new Error("Supabase identity is not configured.");
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) throw new Error("Sign in with an administrator account.");
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profileError || !profile || !["admin", "owner"].includes(profile.role)) {
-    throw new Error("Administrator permissions are required.");
-  }
-  return user;
+  return requireLocalAdmin();
 }
-
 function textValue(formData: FormData, key: string, max = 500) {
   const raw = formData.get(key);
   if (typeof raw !== "string") return "";
