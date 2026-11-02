@@ -6,10 +6,10 @@ import { closeMySqlPool, getMySqlDb } from "./index";
 import {
   expireVariantStockReservations, reserveVariantStock,
   releaseVariantStockReservation, consumeVariantStockReservation, adjustVariantInventory,
-} from "@/server/catalogue/inventory";
+} from "../catalogue/inventory";
 import {
   getAvailableVariantQuantity, getPublishedProductBySlug, isPublicProductMedia, listPublishedProducts,
-} from "@/server/catalogue/repository";
+} from "../catalogue/repository";
 import {
   artisanProfiles, collections, inventoryMovements, inventoryReservationItems,
   inventoryReservations, journalPosts, productCategories, productCategoryLinks,
