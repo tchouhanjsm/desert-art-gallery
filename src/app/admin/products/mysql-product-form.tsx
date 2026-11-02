@@ -18,6 +18,7 @@ export type MySqlProductFormValues = {
   shortDescription?: string;
   description?: string;
   productType?: string;
+  categorySlugs?: string[];
   materials?: string[];
   sizes?: string[];
   measurements?: Record<string, unknown> | null;
@@ -56,6 +57,7 @@ export function MySqlProductForm({
         <label>Price<input name="price" required inputMode="decimal" defaultValue={initial?.price ?? ""} placeholder="Enter verified price" /></label>
         <label>Compare-at price<input name="compare_at_price" inputMode="decimal" defaultValue={initial?.compareAtPrice ?? ""} /></label>
         <label>Product type<input name="product_type" maxLength={100} defaultValue={initial?.productType ?? ""} /></label>
+        <label>Category slugs (comma separated)<input name="category_slugs" maxLength={2000} defaultValue={(initial?.categorySlugs ?? []).join(", ")} placeholder="Use existing active MySQL category slugs" /></label>
         <label className="admin-form-wide">Short description<input name="short_description" maxLength={240} defaultValue={initial?.shortDescription ?? ""} /></label>
         <label className="admin-form-wide">Full description<textarea name="description" rows={5} maxLength={12000} defaultValue={initial?.description ?? ""} /></label>
         <label>Materials (comma separated)<input name="materials" defaultValue={(initial?.materials ?? []).join(", ")} /></label>
