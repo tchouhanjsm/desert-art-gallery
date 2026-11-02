@@ -46,10 +46,13 @@ type Movement = {
 };
 
 function ResultMessage({ state }: { state: CatalogueActionResult }) {
-  if (!state.error && !state.ok) return null;
-  return state.error
-    ? <p className="owner-inline-warning" role="alert">{state.error}</p>
-    : <p className="catalogue-import-note" role="status">Saved successfully.</p>;
+  if (state.ok === false) {
+    return <p className="owner-inline-warning" role="alert">{state.error}</p>;
+  }
+  if (state.ok === true) {
+    return <p className="catalogue-import-note" role="status">Saved successfully.</p>;
+  }
+  return null;
 }
 
 function UploadMediaForm({ productId }: { productId: string }) {
