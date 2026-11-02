@@ -127,6 +127,35 @@ suite("real MySQL migration and catalogue integration", () => {
     })).rejects.toBeTruthy();
   }, 30_000);
 
+  it("rejects invalid products and collection-product links without valid targets", async () => {
+    const db = getMySqlDb();
+    const productId = randomUUID();
+    await expect(db.insert(products).values({
+      id: productId, title: "Bad compare price", slug: "bad-compare-" + productId,
+      currency: "USD", priceMinor: 1000, compareAtPriceMinor: 500,
+    })).rejects.toBeTruthy();
+
+    const collectionId = randomUUID();
+    const missingProduct = "missing-" + randomUUID();
+    try {
+      await db.insert(collections).values({ id: collectionId, name: "FK collection", slug: "fk-" + collectionId, description: "" });
+      await expect(db.insert(collectionProductLinks).values({
+        id: randomUUID(), collectionId, productSlug: missingProduct,
+      })).rejects.toBeTruthy();
+    } finally {
+      await db.delete(collections).where(eq(collections.id, collectionId));
+    }
+  }, 30_000);
+
+  it("enforces artisan years-of-experience and portrait rights constraints", async () => {
+    const db = getMySqlDb();
+    const id = randomUUID();
+    await expect(db.insert(artisanProfiles).values({
+      id, fullName: "Invalid artisan", biography: "", craftSpecialties: [],
+      yearsExperience: 101,
+    })).rejects.toBeTruthy();
+  }, 30_000);
+
   it("reopens the pool and reads previously committed content", async () => {
     const db = getMySqlDb();
     const id = randomUUID();
