@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import type { ProductImage } from "@/lib/products";
 
@@ -9,6 +10,9 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
   const active = images[activeIndex] ?? images[0];
 
   if (!active) return null;
+
+  const previous = () => setActiveIndex((current) => (current - 1 + images.length) % images.length);
+  const next = () => setActiveIndex((current) => (current + 1) % images.length);
 
   return (
     <div className="detail-gallery">
@@ -22,9 +26,20 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
           sizes="(max-width:700px) 90vw, 55vw"
           unoptimized
         />
+        {images.length > 1 && (
+          <div className="product-gallery-navigation" aria-label="Gallery navigation">
+            <button type="button" onClick={previous} aria-label="View previous product image">
+              <ChevronLeft size={19} aria-hidden="true" />
+            </button>
+            <span aria-hidden="true">{String(activeIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}</span>
+            <button type="button" onClick={next} aria-label="View next product image">
+              <ChevronRight size={19} aria-hidden="true" />
+            </button>
+          </div>
+        )}
       </div>
       {images.length > 1 && (
-        <div className="product-gallery-thumbnails" role="group" aria-label="Product images">
+        <div className="product-gallery-thumbnails" role="group" aria-label="Choose a product image">
           {images.map((image, index) => (
             <button
               className="product-gallery-thumb"
@@ -47,7 +62,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
         </div>
       )}
       <span className="visually-hidden" aria-live="polite">
-        Image {activeIndex + 1} of {images.length}
+        Image {activeIndex + 1} of {images.length}: {active.altText || title}
       </span>
     </div>
   );
