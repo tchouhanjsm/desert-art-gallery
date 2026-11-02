@@ -178,3 +178,21 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
   KEY admin_sessions_user_expiry_idx (admin_user_id, expires_at),
   CONSTRAINT admin_sessions_user_fk FOREIGN KEY (admin_user_id) REFERENCES admin_users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS catalogue_import_batches (
+  id CHAR(36) NOT NULL,
+  source_sha256 CHAR(64) NOT NULL,
+  source_name VARCHAR(255) NOT NULL,
+  row_count INT NOT NULL,
+  products_created INT NOT NULL,
+  stock_units_added BIGINT UNSIGNED NOT NULL,
+  report JSON NOT NULL,
+  created_by CHAR(36) NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE KEY catalogue_import_batches_source_sha_uq (source_sha256),
+  KEY catalogue_import_batches_created_idx (created_at),
+  CONSTRAINT catalogue_import_batches_row_count_check CHECK (row_count BETWEEN 1 AND 500),
+  CONSTRAINT catalogue_import_batches_products_check CHECK (products_created BETWEEN 1 AND 500)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
