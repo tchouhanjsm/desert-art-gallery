@@ -8,12 +8,10 @@ const migration = readFileSync(
 
 describe("owner CMS media migration contract", () => {
   it("adds descriptive alternative text and rights evidence to editorial image records", () => {
-    expect(migration).toContain("collections.hero_image_alt");
-    expect(migration).toContain("collections.hero_image_rights_evidence");
-    expect(migration).toContain("artisan_profiles");
-    expect(migration).toContain("portrait_alt_text");
-    expect(migration).toContain("journal_posts");
-    expect(migration).toContain("cover_image_alt");
+    expect(migration).toContain("add column if not exists hero_image_alt");
+    expect(migration).toContain("add column if not exists hero_image_rights_evidence");
+    expect(migration).toContain("add column if not exists portrait_alt_text");
+    expect(migration).toContain("add column if not exists cover_image_alt");
   });
 
   it("requires rights evidence when a collection hero image is approved", () => {
