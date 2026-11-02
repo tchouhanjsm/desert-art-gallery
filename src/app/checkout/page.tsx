@@ -1,47 +1,44 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { asc, desc, eq } from "drizzle-orm";
 import { CheckoutForm } from "@/components/CheckoutForm";
+import { requireUser } from "@/server/auth/session";
+import { getMySqlDb } from "@/server/db";
+import { addresses, checkoutTaxRules, shippingRates, shippingZones } from "@/server/db/schema";
 
 export const metadata = {
-  title: "Delivery and order review",
-  description: "Review delivery details and prepare an unpaid order draft.",
-  robots: { index: false, follow: false },
+ title:"Delivery and order review",
+ description:"Review delivery details and prepare an unpaid order draft.",
+ robots:{index:false,follow:false},
 };
 
-export default async function CheckoutPage() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return <div className="page-shell"><div className="page-heading"><div className="section-kicker">SECURE ORDER REVIEW</div><h1>Delivery details</h1><p>Checkout is not configured yet. No order or payment has been created.</p></div><Link className="text-link" href="/cart">RETURN TO YOUR BAG</Link></div>;
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login?next=%2Fcheckout");
-
-  const [addresses, zones, rates, taxRules] = await Promise.all([
-    supabase.from("addresses")
-      .select("id,recipient_name,address_line_1,address_line_2,city,region,postal_code,country_code,phone,is_default_shipping")
-      .eq("user_id", user.id)
-      .order("is_default_shipping", { ascending: false })
-      .order("created_at", { ascending: false }),
-    supabase.from("shipping_zones").select("id,name,country_codes").eq("is_active", true),
-    supabase.from("shipping_rates").select("id,zone_id,name,currency,amount_minor,min_delivery_days,max_delivery_days,duties_disclosure").eq("is_active", true),
-    supabase.from("checkout_tax_rules").select("id,country_code,currency,tax_name,rate_basis_points,taxable_shipping,disclosure").eq("is_active", true),
-  ]);
-
-  if (addresses.error || zones.error || rates.error || taxRules.error) {
-    return <div className="page-shell"><div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Delivery details</h1><p>Checkout configuration is not ready. No order or payment has been created.</p></div><div className="checkout-notice" role="status">The gallery must configure and verify destination-specific shipping, tax and duties disclosures before an order draft can be prepared.</div><Link className="text-link" href="/cart">RETURN TO YOUR BAG</Link></div>;
-  }
-
-  const savedAddresses = (addresses.data ?? []).map((address) => ({
-    ...address, address_line_2: address.address_line_2 ?? "", region: address.region ?? "", phone: address.phone ?? "",
-  }));
-
-  return <div className="page-shell">
-    <div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Delivery details</h1><p>Choose a configured delivery option and review the destination disclosures.</p></div>
-    <CheckoutForm
-      addresses={savedAddresses}
-      zones={zones.data ?? []}
-      rates={rates.data ?? []}
-      taxRules={taxRules.data ?? []}
-    />
-  </div>;
+export default async function CheckoutPage(){
+ const user=await requireUser();
+ const db=getMySqlDb();
+ const [addressRows,zoneRows,rateRows,taxRows]=await Promise.all([
+  db.select().from(addresses).where(eq(addresses.userId,user.id)).orderBy(desc(addresses.isDefaultShipping),desc(addresses.createdAt)),
+  db.select().from(shippingZones).where(eq(shippingZones.isActive,true)).orderBy(asc(shippingZones.name)),
+  db.select().from(shippingRates).where(eq(shippingRates.isActive,true)).orderBy(asc(shippingRates.name)),
+  db.select().from(checkoutTaxRules).where(eq(checkoutTaxRules.isActive,true)).orderBy(asc(checkoutTaxRules.countryCode),asc(checkoutTaxRules.currency)),
+ ]);
+ const savedAddresses=addressRows.map(row=>({
+  id:row.id,recipient_name:row.recipientName,address_line_1:row.addressLine1,
+  address_line_2:row.addressLine2??"",city:row.city,region:row.region??"",
+  postal_code:row.postalCode,country_code:row.countryCode,phone:row.phone??"",
+  is_default_shipping:row.isDefaultShipping,
+ }));
+ const zones=zoneRows.map(row=>({id:row.id,name:row.name,country_codes:row.countryCodes}));
+ const rates=rateRows.map(row=>({
+  id:row.id,zone_id:row.zoneId,name:row.name,currency:row.currency,amount_minor:row.amountMinor,
+  min_delivery_days:row.minDeliveryDays,max_delivery_days:row.maxDeliveryDays,
+  duties_disclosure:row.dutiesDisclosure,
+ }));
+ const taxRules=taxRows.map(row=>({
+  id:row.id,country_code:row.countryCode,currency:row.currency,tax_name:row.taxName,
+  rate_basis_points:row.rateBasisPoints,taxable_shipping:row.taxableShipping,disclosure:row.disclosure,
+ }));
+ return <div className="page-shell">
+  <div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Delivery details</h1><p>Choose a configured delivery option and review the destination disclosures.</p></div>
+  <CheckoutForm addresses={savedAddresses} zones={zones} rates={rates} taxRules={taxRules}/>
+ </div>;
 }
