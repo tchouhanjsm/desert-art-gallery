@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  MAX_PRODUCT_IMAGE_BYTES,
   detectProductImageMime,
   parseProductImageName,
   validateProductImageBytes,
@@ -44,6 +45,14 @@ describe("private product image intake", () => {
     expect(validateProductImageBytes("01-primary.png", png)).toEqual({
       valid: true,
       mimeType: "image/png",
+    });
+  });
+
+  it("rejects oversized files before requiring image-signature parsing", () => {
+    const oversized = new Uint8Array(MAX_PRODUCT_IMAGE_BYTES + 1);
+    expect(validateProductImageBytes("01-primary.jpg", oversized)).toEqual({
+      valid: false,
+      reason: "Image exceeds the 12 MB upload limit.",
     });
   });
 });
