@@ -1,0 +1,199 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/components/CartProvider";
+import { formatMoneyFromMinor } from "@/lib/money";
+import type { CheckoutAddress } from "@/lib/checkout";
+
+type SavedAddress = CheckoutAddress & { id: string; is_default_shipping: boolean };
+type ShippingZone = { id: string; name: string; country_codes: string[] };
+type ShippingRate = {
+  id: string; zone_id: string; name: string; currency: string; amount_minor: number;
+  min_delivery_days: number | null; max_delivery_days: number | null; duties_disclosure: string | null;
+};
+type TaxRule = {
+  id: string; country_code: string; currency: string; tax_name: string;
+  rate_basis_points: number; taxable_shipping: boolean; disclosure: string;
+};
+
+const emptyAddress: CheckoutAddress = {
+  recipient_name: "", address_line_1: "", city: "", postal_code: "", country_code: "",
+};
+
+export function CheckoutForm({
+  addresses, zones, rates, taxRules,
+}: {
+  addresses: SavedAddress[]; zones: ShippingZone[]; rates: ShippingRate[]; taxRules: TaxRule[];
+}) {
+  const router = useRouter();
+  const { lines, preview, isLoading, error: cartError } = useCart();
+  const [address, setAddress] = useState<CheckoutAddress>(addresses[0] ?? emptyAddress);
+  const [customerNote, setCustomerNote] = useState("");
+  const [shippingRateId, setShippingRateId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [holdExpiry, setHoldExpiry] = useState("");
+  const reservationKey = useRef<{ fingerprint: string; key: string } | null>(null);
+
+  const currencies = [...new Set(preview.map((item) => item.currency).filter((value): value is string => Boolean(value)))];
+  const currency = currencies.length === 1 ? currencies[0] : null;
+  const matchingZones = useMemo(() => zones.filter((zone) =>
+    zone.country_codes.map((code) => code.toUpperCase()).includes(address.country_code.toUpperCase()),
+  ), [zones, address.country_code]);
+  const matchingZoneIds = useMemo(() => new Set(matchingZones.map((zone) => zone.id)), [matchingZones]);
+  const matchingRates = useMemo(() => matchingZones.length === 1 ? rates.filter((rate) =>
+    matchingZoneIds.has(rate.zone_id) && rate.currency === currency && Boolean(rate.duties_disclosure?.trim()),
+  ) : [], [rates, matchingZones.length, matchingZoneIds, currency]);
+  const matchingTaxRules = useMemo(() => taxRules.filter((rule) =>
+    rule.country_code === address.country_code.toUpperCase() && rule.currency === currency,
+  ), [taxRules, address.country_code, currency]);
+  const effectiveRateId = matchingRates.some((rate) => rate.id === shippingRateId) ? shippingRateId : "";
+  const selectedRate = matchingRates.find((rate) => rate.id === effectiveRateId) ?? null;
+  const readyLines = lines.length > 0 && preview.length === lines.length
+    && preview.every((item) => item.available && item.priceMinor !== null && item.currency === currency);
+  const canPrepare = readyLines && !isLoading && !cartError && Boolean(currency)
+    && Boolean(selectedRate) && matchingTaxRules.length > 0;
+
+  function updateAddress(field: keyof CheckoutAddress, value: string) {
+    setAddress((current) => ({ ...current, [field]: field === "country_code" ? value.toUpperCase().slice(0, 2) : value }));
+  }
+
+  function selectSavedAddress(id: string) {
+    if (!id) { setAddress(emptyAddress); return; }
+    const saved = addresses.find((item) => item.id === id);
+    if (saved) setAddress({
+      recipient_name: saved.recipient_name,
+      address_line_1: saved.address_line_1,
+      ...(saved.address_line_2 ? { address_line_2: saved.address_line_2 } : {}),
+      city: saved.city,
+      ...(saved.region ? { region: saved.region } : {}),
+      postal_code: saved.postal_code,
+      country_code: saved.country_code,
+      ...(saved.phone ? { phone: saved.phone } : {}),
+    });
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canPrepare || !selectedRate || !currency) return;
+    setBusy(true);
+    setMessage("");
+    setHoldExpiry("");
+    try {
+      const fingerprint = JSON.stringify(lines);
+      if (!reservationKey.current || reservationKey.current.fingerprint !== fingerprint) {
+        reservationKey.current = { fingerprint, key: crypto.randomUUID() };
+      }
+      const reserveResponse = await fetch("/api/cart/reserve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": reservationKey.current.key },
+        body: JSON.stringify({ lines }),
+        cache: "no-store",
+      });
+      const reservation = await reserveResponse.json();
+      if (!reserveResponse.ok || typeof reservation.reservation_id !== "string") {
+        if (reserveResponse.status === 409) reservationKey.current = null;
+        throw new Error(reservation.error || "Inventory could not be reserved. Refresh your bag and try again.");
+      }
+      if (typeof reservation.expires_at === "string") setHoldExpiry(reservation.expires_at);
+
+      const response = await fetch("/api/checkout/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reservationId: reservation.reservation_id,
+          shippingRateId: selectedRate.id,
+          idempotencyKey: crypto.randomUUID(),
+          shippingAddress: address,
+          customerNote,
+        }),
+        cache: "no-store",
+      });
+      const result = await response.json();
+      if (!response.ok || typeof result.order_id !== "string") {
+        throw new Error(result.error || "The order draft could not be prepared.");
+      }
+      router.push("/account/orders/" + result.order_id);
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : "The order draft could not be prepared.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!lines.length) return <div className="empty-note">Your bag is empty. <Link href="/shop" className="empty-link">EXPLORE THE COLLECTION ↗</Link></div>;
+
+  return <div className="checkout-layout">
+    <form className="checkout-form" onSubmit={handleSubmit}>
+      {addresses.length > 0 && <label className="checkout-saved-address">Use a saved delivery address
+        <select defaultValue={addresses[0]?.id ?? ""} onChange={(event) => selectSavedAddress(event.target.value)}>
+          {addresses.map((saved) => <option key={saved.id} value={saved.id}>{saved.recipient_name} — {saved.city}, {saved.country_code}</option>)}
+          <option value="">Enter a different address</option>
+        </select>
+      </label>}
+      <section className="checkout-section">
+        <div className="section-kicker">01 / DELIVERY ADDRESS</div>
+        <h2>Where should the order go?</h2>
+        <div className="checkout-fields">
+          <label>Recipient name<input required maxLength={160} autoComplete="name" value={address.recipient_name} onChange={(event) => updateAddress("recipient_name", event.target.value)}/></label>
+          <label>Address line 1<input required maxLength={240} autoComplete="address-line1" value={address.address_line_1} onChange={(event) => updateAddress("address_line_1", event.target.value)}/></label>
+          <label>Address line 2<input maxLength={240} autoComplete="address-line2" value={address.address_line_2 ?? ""} onChange={(event) => updateAddress("address_line_2", event.target.value)}/></label>
+          <label>City<input required maxLength={120} autoComplete="address-level2" value={address.city} onChange={(event) => updateAddress("city", event.target.value)}/></label>
+          <label>State / region<input maxLength={120} autoComplete="address-level1" value={address.region ?? ""} onChange={(event) => updateAddress("region", event.target.value)}/></label>
+          <label>Postal code<input required maxLength={24} autoComplete="postal-code" value={address.postal_code} onChange={(event) => updateAddress("postal_code", event.target.value)}/></label>
+          <label>Country code<input required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" autoComplete="country" placeholder="Two-letter code" value={address.country_code} onChange={(event) => updateAddress("country_code", event.target.value)}/></label>
+          <label>Phone number<input maxLength={40} autoComplete="tel" value={address.phone ?? ""} onChange={(event) => updateAddress("phone", event.target.value)}/></label>
+        </div>
+      </section>
+
+      <section className="checkout-section">
+        <div className="section-kicker">02 / DELIVERY OPTION</div>
+        <h2>Available shipping</h2>
+        {!currency && <p className="checkout-blocker">Your bag must contain products priced in one currency before checkout can continue.</p>}
+        {matchingZones.length > 1 && <p className="checkout-blocker">More than one active shipping zone matches this country. The owner must resolve the overlap before checkout can continue.</p>}
+        {currency && matchingZones.length === 0 && <p className="checkout-blocker">No active shipping zone covers {address.country_code || "this destination"}. No delivery estimate or rate will be invented.</p>}
+        {currency && matchingZones.length === 1 && matchingRates.length === 0 && <p className="checkout-blocker">No merchant-approved shipping rate is configured for {address.country_code || "this destination"} in {currency}. No delivery estimate or rate will be invented.</p>}
+        {matchingRates.length > 0 && <label>Shipping option
+          <select value={effectiveRateId} onChange={(event) => setShippingRateId(event.target.value)} required>
+            <option value="" disabled>Select a shipping option</option>
+            {matchingRates.map((rate) => <option key={rate.id} value={rate.id}>{rate.name} — {formatMoneyFromMinor(rate.amount_minor, rate.currency)}</option>)}
+          </select>
+        </label>}
+        {selectedRate && <div className="checkout-disclosure">
+          <strong>{selectedRate.name}</strong>
+          {selectedRate.min_delivery_days !== null && selectedRate.max_delivery_days !== null
+            ? <p>Configured delivery window: {selectedRate.min_delivery_days}–{selectedRate.max_delivery_days} days</p>
+            : <p>No delivery window has been configured for this rate.</p>}
+          <p>{selectedRate.duties_disclosure}</p>
+        </div>}
+      </section>
+
+      <section className="checkout-section">
+        <div className="section-kicker">03 / TAX AND DUTIES</div>
+        <h2>Destination disclosures</h2>
+        {!currency || matchingTaxRules.length === 0
+          ? <p className="checkout-blocker">No approved tax policy is configured for this country and currency. Checkout remains unavailable until the owner records the applicable rule or an explicit zero-rate rule.</p>
+          : matchingTaxRules.map((rule) => <div className="checkout-disclosure" key={rule.id}><strong>{rule.tax_name}</strong><p>{rule.disclosure}</p></div>)}
+      </section>
+
+      <section className="checkout-section">
+        <div className="section-kicker">04 / ORDER NOTE</div>
+        <label>Optional delivery note<textarea maxLength={1000} rows={3} value={customerNote} onChange={(event) => setCustomerNote(event.target.value)}/></label>
+      </section>
+      {cartError && <p className="checkout-error" role="alert">{cartError}</p>}
+      {message && <p className="checkout-error" role="alert">{message}</p>}
+      {holdExpiry && <p className="checkout-blocker" role="status">A temporary inventory hold is active until {new Date(holdExpiry).toLocaleString("en-IN")}. If no draft is prepared, the hold will expire automatically when the trusted cleanup job runs.</p>}
+      <div className="checkout-notice" role="note">This step prepares an unpaid order draft only. No payment is requested or taken. The draft expires with its temporary inventory reservation; secure payment will be enabled only after provider and webhook verification.</div>
+      <button className="button-primary dark-button" type="submit" disabled={!canPrepare || busy}>{busy ? "PREPARING ORDER…" : "PREPARE UNPAID ORDER DRAFT"}</button>
+    </form>
+    <aside className="cart-summary checkout-summary">
+      <div className="section-kicker">YOUR SELECTION</div><h2>Order review</h2>
+      {preview.map((item) => <div className="cart-summary-row" key={item.slug + "::" + (item.variantId ?? "")}><span>{item.name}{item.variantLabel ? " · " + item.variantLabel : ""} × {item.quantityRequested}</span><strong>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor * item.quantityRequested, item.currency) : "Unavailable"}</strong></div>)}
+      <p>Product prices are refreshed from the current catalogue. Shipping and configured tax are calculated again on the server before a draft is created.</p>
+      {currency && <p>Currency: <strong>{currency}</strong></p>}
+      {isLoading && <p className="cart-state">Refreshing availability…</p>}
+    </aside>
+  </div>;
+}
