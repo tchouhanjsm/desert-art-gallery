@@ -74,6 +74,7 @@ function validateInput(sourceName: string, bytes: Uint8Array): {
 }
 
 export async function previewLocalCatalogueCsv(sourceName: string, bytes: Uint8Array): Promise<LocalCatalogueImportPreview> {
+  assertLocalMySqlTarget();
   const input = validateInput(sourceName, bytes);
   const db = getMySqlDb();
   const rows: LocalCatalogueImportRow[] = input.rows.map((row) => ({
