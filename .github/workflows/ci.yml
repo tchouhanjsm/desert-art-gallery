@@ -42,6 +42,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate local MySQL Compose configuration
+        env:
+          MYSQL_ROOT_PASSWORD: compose-config-root
+          MYSQL_DATABASE: desert_art_gallery
+          MYSQL_USER: dag_local
+          MYSQL_PASSWORD: compose-config-password
+          MYSQL_HOST_PORT: "3307"
+        run: docker compose config --quiet
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Wait for MySQL
