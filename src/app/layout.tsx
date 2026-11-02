@@ -3,8 +3,7 @@ import "@fontsource-variable/cormorant-garamond";
 import "@fontsource-variable/dm-sans";
 import "./globals.css";
 import "@/styles/theme.css";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { SiteChrome } from "@/components/SiteChrome";
 import { CartProvider } from "@/components/CartProvider";
 import { WishlistProvider } from "@/components/WishlistProvider";
 
@@ -30,9 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <CartProvider>
           <WishlistProvider>
-            <Header />
-            <main id="main-content" tabIndex={-1}>{children}</main>
-            <Footer />
+            <SiteChrome>
+              <main id="main-content" tabIndex={-1}>{children}</main>
+            </SiteChrome>
           </WishlistProvider>
         </CartProvider>
       </body>
