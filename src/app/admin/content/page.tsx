@@ -93,8 +93,8 @@ function EditorialUpload({ target, id, label, altText }: {
 
 export default async function AdminContentPage() {
   const mysqlMode = hasMySqlDatabase();
-  const supabase = mysqlMode ? null : await createSupabaseServerClient();
-  if (!mysqlMode && !supabase) {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
     return (
       <section className="owner-page">
         <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>Manage the homepage, collections, maker profiles and journal without changing application code.</p></div></header>
@@ -109,25 +109,26 @@ export default async function AdminContentPage() {
   let artisans: ArtisanRecord[] = [];
   let journal: JournalRecord[] = [];
   let homePreview: string | null = null;
-  let collectionCards: (CollectionRecord & { preview: string | null })[] = [];
+  let collectionCards: (CollectionRecord & { preview: string | null; productSlugs?: string[] })[] = [];
   let artisanCards: (ArtisanRecord & { preview: string | null })[] = [];
   let journalCards: (JournalRecord & { preview: string | null })[] = [];
   let productOptions: ProductOption[] = [];
   let productOptionsError = false;
 
   if (mysqlMode) {
-    if (!supabase) {
+    let workspace: Awaited<ReturnType<typeof getEditorialWorkspace>>;
+    try {
+      workspace = await getEditorialWorkspace();
+    } catch {
       return (
         <section className="owner-page">
-          <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>MySQL content is enabled, but the existing owner identity provider is not configured.</p></div></header>
-          <div className="owner-inline-warning"><AlertCircle size={18} /> Configure the existing Supabase authentication variables before using the owner portal. MySQL replaces CMS data storage in this phase, not login or roles.</div>
+          <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>The MySQL editorial backend could not be loaded.</p></div></header>
+          <div className="owner-inline-warning"><AlertCircle size={18} /> Check the MySQL connection and apply the Drizzle migrations before opening the CMS workspace.</div>
         </section>
       );
     }
-    const [workspace, productOptionsResult] = await Promise.all([
-      getEditorialWorkspace(),
-      supabase.from("products").select("slug,title").eq("status", "active").order("title").limit(500),
-    ]);
+    const productOptionsResult = await supabase.from("products")
+      .select("slug,title").eq("status", "active").order("title").limit(500);
     productOptionsError = Boolean(productOptionsResult.error);
     productOptions = (productOptionsResult.data ?? []) as ProductOption[];
     const collectionAssignments = await getCollectionProductSlugsByCollection(workspace.collections.map((item) => item.id));
