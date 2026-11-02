@@ -31,14 +31,14 @@ async function main() {
     await chmod(destination, 0o700);
   }
 
-  process.stdout.write("Private local workspace is ready:\\n");
+  process.stdout.write("Private local workspace is ready:\n");
   for (const directory of directories) {
-    process.stdout.write("  .local-data/" + directory + "/\\n");
+    process.stdout.write("  .local-data/" + directory + "/\n");
   }
-  process.stdout.write("\\nNo database was initialized or modified. Configure a dedicated native MySQL data directory only after verifying the installed server and existing data location.\\n");
+  process.stdout.write("\nNo database was initialized or modified. Configure a dedicated native MySQL data directory only after verifying the installed server and existing data location.\n");
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write((error instanceof Error ? error.message : "Unable to prepare the local workspace.") + "\\n");
+  process.stderr.write((error instanceof Error ? error.message : "Unable to prepare the local workspace.") + "\n");
   process.exitCode = 1;
 });
