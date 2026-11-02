@@ -131,8 +131,15 @@ export const products = mysqlTable("products", {
   legacyId: char("legacy_id", { length: 36 }),
   title: varchar("title", { length: 240 }).notNull(),
   slug: varchar("slug", { length: 180 }).notNull(),
+  shortDescription: varchar("short_description", { length: 240 }).notNull().default(""),
   description: text("description").notNull().default(""),
   productType: varchar("product_type", { length: 100 }).notNull().default(""),
+  materials: json("materials").$type<string[] | null>(),
+  sizes: json("sizes").$type<string[] | null>(),
+  measurements: json("measurements").$type<Record<string, unknown> | null>(),
+  conditionNotes: text("condition_notes").notNull().default(""),
+  provenance: text("provenance").notNull().default(""),
+  craftStory: text("craft_story").notNull().default(""),
   currency: char("currency", { length: 3 }).notNull(),
   priceMinor: bigint("price_minor", { mode: "number", unsigned: true }).notNull(),
   compareAtPriceMinor: bigint("compare_at_price_minor", { mode: "number", unsigned: true }),
@@ -164,7 +171,7 @@ export const productCategoryLinks = mysqlTable("product_category_links", {
 export const productVariants = mysqlTable("product_variants", {
   id: char("id", { length: 36 }).primaryKey(),
   productId: char("product_id", { length: 36 }).notNull().references(() => products.id, { onDelete: "cascade" }),
-  sku: varchar("sku", { length: 100 }).notNull(),
+  sku: varchar("sku", { length: 100 }),
   label: varchar("label", { length: 180 }).notNull(),
   attributes: json("attributes").$type<Record<string, string>>().notNull(),
   priceMinor: bigint("price_minor", { mode: "number", unsigned: true }),
@@ -222,13 +229,13 @@ export const inventoryReservations = mysqlTable("inventory_reservations", {
   id: char("id", { length: 36 }).primaryKey(),
   customerReference: varchar("customer_reference", { length: 180 }).notNull(),
   idempotencyKey: varchar("idempotency_key", { length: 180 }).notNull(),
-  status: varchar("status", { length: 16 }).$type<"reserved" | "released" | "expired">().notNull().default("reserved"),
+  status: varchar("status", { length: 16 }).$type<"reserved" | "released" | "expired" | "consumed">().notNull().default("reserved"),
   expiresAt: datetime("expires_at", { mode: "date", fsp: 3 }).notNull(),
   createdAt: createdAt(),
 }, (table) => [
   uniqueIndex("inventory_reservations_idempotency_uq").on(table.idempotencyKey),
   index("inventory_reservations_expiry_idx").on(table.status, table.expiresAt),
-  check("inventory_reservations_status_check", sql`${table.status} IN ('reserved','released','expired')`),
+  check("inventory_reservations_status_check", sql`${table.status} IN ('reserved','released','expired','consumed')`),
 ]);
 
 export const inventoryReservationItems = mysqlTable("inventory_reservation_items", {
