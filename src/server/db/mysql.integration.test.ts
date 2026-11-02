@@ -11,7 +11,7 @@ import {
   getAvailableVariantQuantity, getPublishedProductBySlug, isPublicProductMedia, listPublishedProducts,
 } from "../catalogue/repository";
 import {
-  artisanProfiles, collections, inventoryMovements, inventoryReservationItems,
+  adminSessions, adminUsers, artisanProfiles, collections, inventoryMovements, inventoryReservationItems, catalogueImportBatches,
   inventoryReservations, journalPosts, productCategories, productCategoryLinks,
   productMedia, products, productVariants, siteContent,
 } from "./schema";
@@ -305,6 +305,46 @@ suite("real MySQL migration and catalogue integration", () => {
       await db.delete(products).where(eq(products.id, productId));
     }
   }, 45_000);
+
+  it("stores only local owner credentials and hashed expiring session tokens", async () => {
+    const db = getMySqlDb();
+    const ownerId = randomUUID();
+    const sessionId = randomUUID();
+    const email = "owner-" + ownerId + "@example.test";
+    const tokenHash = randomUUID().replace(/-/g, "").padEnd(64, "a").slice(0, 64);
+    try {
+      await db.insert(adminUsers).values({
+        id: ownerId,
+        email,
+        displayName: "Integration Owner",
+        passwordHash: "scrypt$" + "a".repeat(32) + "$" + "b".repeat(128),
+        role: "owner",
+        isActive: true,
+      });
+      await db.insert(adminSessions).values({
+        id: sessionId,
+        adminUserId: ownerId,
+        tokenHash,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      });
+      const [session] = await db.select({
+        email: adminUsers.email,
+        role: adminUsers.role,
+        tokenHash: adminSessions.tokenHash,
+      }).from(adminSessions)
+        .innerJoin(adminUsers, eq(adminUsers.id, adminSessions.adminUserId))
+        .where(eq(adminSessions.id, sessionId));
+      expect(session?.email).toBe(email);
+      expect(session?.role).toBe("owner");
+      expect(session?.tokenHash).toBe(tokenHash);
+      await db.delete(adminUsers).where(eq(adminUsers.id, ownerId));
+      const remaining = await db.select().from(adminSessions).where(eq(adminSessions.id, sessionId));
+      expect(remaining).toHaveLength(0);
+    } finally {
+      await db.delete(adminSessions).where(eq(adminSessions.id, sessionId));
+      await db.delete(adminUsers).where(eq(adminUsers.id, ownerId));
+    }
+  }, 30_000);
 
   it("reopens the pool and reads previously committed content", async () => {
     const db = getMySqlDb();
