@@ -242,16 +242,6 @@ async function main() {
         });
       }
 
-      for (const link of collectionProductRows) {
-        await tx.insert(collectionProductLinks).values({
-          id: randomUUID(),
-          collectionId: link.collectionId,
-          productSlug: link.productSlug,
-          sortOrder: link.sortOrder,
-          createdAt: new Date(),
-        });
-      }
-
       for (const row of artisanRows) {
         const confirmed = Boolean(row.portrait_rights_confirmed) &&
           Boolean(row.portrait_alt_text?.trim()) && Boolean(row.portrait_rights_evidence?.trim());

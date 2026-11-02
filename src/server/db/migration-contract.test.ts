@@ -20,8 +20,6 @@ describe("MySQL editorial CMS migration contract", () => {
     expect(migration).toContain("journal_posts_slug_uq");
     expect(migration).toContain("collection_product_links_pair_uq");
     expect(migration).toContain("collection_product_links_collection_fk");
-    expect(migration).toContain("collection_product_links_pair_uq");
-    expect(migration).toContain("collection_product_links_collection_fk");
   });
 
   it("does not allow publishing rights-confirmed images without evidence and alt text", () => {
