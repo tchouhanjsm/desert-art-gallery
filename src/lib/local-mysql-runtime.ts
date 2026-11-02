@@ -26,7 +26,7 @@ export function parseLocalMySqlConnectionUrl(raw: string): LocalMySqlConnectionC
   }
 
   return {
-    host: url.hostname.replace(/^\\[|\\]$/g, ""),
+    host: url.hostname.replace(/^\[|\]$/g, ""),
     port,
     user,
     password,
@@ -35,7 +35,7 @@ export function parseLocalMySqlConnectionUrl(raw: string): LocalMySqlConnectionC
 }
 
 function versionParts(value: string): [number, number, number] | null {
-  const match = value.match(/(?:^|[^0-9])(\\d+)\\.(\\d+)\\.(\\d+)/);
+  const match = value.match(/(?:^|[^0-9])(\d+)\.(\d+)\.(\d+)/);
   if (!match) return null;
   return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
