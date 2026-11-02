@@ -111,10 +111,11 @@ export async function createMySqlDraftProduct(formData: FormData): Promise<Catal
   try {
     await requireCatalogueAdmin();
     const input = productInput(formData);
+    const { categorySlugs, ...productFields } = input;
     const id = randomUUID();
     const db = getMySqlDb();
     await db.transaction(async (tx) => {
-      await tx.insert(products).values({ id, ...input, status: "draft" });
+      await tx.insert(products).values({ id, ...productFields, status: "draft" });
       await tx.insert(productVariants).values({
         id: randomUUID(),
         productId: id,
@@ -127,11 +128,11 @@ export async function createMySqlDraftProduct(formData: FormData): Promise<Catal
         isActive: true,
         sortOrder: 0,
       });
-      const categories = input.categorySlugs.length
+      const categories = categorySlugs.length
         ? await tx.select({ id: productCategories.id, slug: productCategories.slug }).from(productCategories)
-          .where(and(inArray(productCategories.slug, input.categorySlugs), eq(productCategories.isActive, true)))
+          .where(and(inArray(productCategories.slug, categorySlugs), eq(productCategories.isActive, true)))
         : [];
-      if (categories.length !== input.categorySlugs.length) {
+      if (categories.length !== categorySlugs.length) {
         throw new Error("One or more category slugs do not match active MySQL categories.");
       }
       if (categories.length) {
@@ -151,17 +152,18 @@ export async function updateMySqlDraftProduct(formData: FormData): Promise<Catal
     const id = textValue(formData, "id", 36);
     if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("A valid product ID is required.");
     const input = productInput(formData);
+    const { categorySlugs, ...productFields } = input;
     const db = getMySqlDb();
     const [current] = await db.select().from(products).where(eq(products.id, id)).limit(1);
     if (!current || current.status === "archived") throw new Error("Product was not found or has been archived.");
     if (current.status === "published" && input.priceMinor < 1) throw new Error("Published products require a verified non-zero price.");
     await db.transaction(async (tx) => {
-      await tx.update(products).set(input).where(eq(products.id, id));
-      const categories = input.categorySlugs.length
+      await tx.update(products).set(productFields).where(eq(products.id, id));
+      const categories = categorySlugs.length
         ? await tx.select({ id: productCategories.id, slug: productCategories.slug }).from(productCategories)
-          .where(and(inArray(productCategories.slug, input.categorySlugs), eq(productCategories.isActive, true)))
+          .where(and(inArray(productCategories.slug, categorySlugs), eq(productCategories.isActive, true)))
         : [];
-      if (categories.length !== input.categorySlugs.length) {
+      if (categories.length !== categorySlugs.length) {
         throw new Error("One or more category slugs do not match active MySQL categories.");
       }
       await tx.delete(productCategoryLinks).where(eq(productCategoryLinks.productId, id));
