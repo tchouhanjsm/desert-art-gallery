@@ -34,6 +34,9 @@ describe("MySQL editorial CMS migration contract", () => {
   it("defines a Drizzle MySQL migration journal entry", () => {
     const parsed = JSON.parse(journal) as { dialect?: string; entries?: { tag: string }[] };
     expect(parsed.dialect).toBe("mysql");
-    expect(parsed.entries?.map((entry) => entry.tag)).toEqual(["0000_mysql_editorial_cms"]);
+    expect(parsed.entries?.map((entry) => entry.tag)).toEqual([
+      "0000_mysql_editorial_cms",
+      "0001_mysql_catalogue_inventory",
+    ]);
   });
 });
