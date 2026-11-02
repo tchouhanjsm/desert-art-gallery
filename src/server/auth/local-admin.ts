@@ -51,8 +51,8 @@ export async function createLocalAdminSession(emailInput: string, password: stri
 
   if (!verifyOwnerPassword(password, user.passwordHash)) {
     await db.update(adminUsers).set({
+      lockedUntil: sql`CASE WHEN ${adminUsers.failedLoginCount} >= ${MAX_FAILED_LOGIN_ATTEMPTS - 1} THEN DATE_ADD(CURRENT_TIMESTAMP(3), INTERVAL ${LOCKOUT_MINUTES} MINUTE) ELSE ${adminUsers.lockedUntil} END`,
       failedLoginCount: sql`LEAST(${adminUsers.failedLoginCount} + 1, 100)`,
-      lockedUntil: sql`CASE WHEN ${adminUsers.failedLoginCount} + 1 >= ${MAX_FAILED_LOGIN_ATTEMPTS} THEN DATE_ADD(CURRENT_TIMESTAMP(3), INTERVAL ${LOCKOUT_MINUTES} MINUTE) ELSE ${adminUsers.lockedUntil} END`,
     }).where(eq(adminUsers.id, user.id));
     throw new Error("Email or password is incorrect.");
   }
