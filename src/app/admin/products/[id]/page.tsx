@@ -106,7 +106,6 @@ export default async function EditAdminProductPage({ params }: { params: Promise
       <MySqlProductForm mode="edit" initial={initial} />
       <MySqlProductManagement
         productId={id}
-        productSlug={mysqlProduct.slug}
         productStatus={mysqlProduct.status}
         media={media}
         variants={variantRows.map((variant) => ({
