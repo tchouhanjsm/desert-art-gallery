@@ -165,14 +165,12 @@ function PublicationControls({ productId, status }: { productId: string; status:
 
 export function MySqlProductManagement({
   productId,
-  productSlug,
   productStatus,
   media,
   variants,
   movements,
 }: {
   productId: string;
-  productSlug: string;
   productStatus: string;
   media: Media[];
   variants: Variant[];
