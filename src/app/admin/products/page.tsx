@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, Package, Plus, Upload } from "lucide-react";
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getMySqlDb, isMySqlCatalogueEnabled } from "@/server/db";
@@ -19,15 +19,16 @@ async function MySqlProductsPage() {
     db.select({ count: sql<number>`COUNT(*)` }).from(products).where(eq(products.status, "draft")),
   ]);
   const ids = rows.map((row) => row.id);
-  const [variantRows] = ids.length ? await Promise.all([
-    db.select({
+  const variantRows = ids.length
+    ? await db.select({
       productId: productVariants.productId,
       sku: productVariants.sku,
       quantity: productVariants.stockQuantity,
       sortOrder: productVariants.sortOrder,
-    }).from(productVariants).where(inArray(productVariants.productId, ids))
-      .orderBy(desc(productVariants.isActive), desc(productVariants.sortOrder)),
-  ]) : [[]];
+    }).from(productVariants)
+      .where(and(inArray(productVariants.productId, ids), eq(productVariants.isActive, true)))
+      .orderBy(desc(productVariants.sortOrder))
+    : [];
   const byProduct = new Map<string, { sku: string | null; quantity: number }>();
   for (const item of variantRows) {
     const current = byProduct.get(item.productId);
