@@ -17,7 +17,7 @@ import {
   X,
   Images,
 } from "lucide-react";
-import { signOutCustomer } from "@/app/account/actions";
+import { signOutLocalOwner } from "@/app/owner/login/actions";
 
 const navigation = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard, section: "WORKSPACE" },
@@ -90,7 +90,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="owner-storefront-link">
             <ArrowUpRight size={15} /> View public storefront
           </Link>
-          <form action={signOutCustomer}>
+          <form action={signOutLocalOwner}>
             <button className="owner-signout" type="submit"><LogOut size={16} /> Sign out</button>
           </form>
         </div>
