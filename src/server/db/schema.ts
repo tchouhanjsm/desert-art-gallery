@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   char,
   datetime,
@@ -7,6 +8,7 @@ import {
   int,
   json,
   mysqlTable,
+  primaryKey,
   smallint,
   text,
   uniqueIndex,
@@ -103,3 +105,123 @@ export const journalPosts = mysqlTable("journal_posts", {
   index("journal_posts_publication_idx").on(table.status, table.publishedAt),
   index("journal_posts_updated_idx").on(table.updatedAt),
 ]);
+
+export const productCategories = mysqlTable("product_categories", {
+  id: char("id", { length: 36 }).primaryKey(),
+  name: varchar("name", { length: 160 }).notNull(),
+  slug: varchar("slug", { length: 180 }).notNull(),
+  description: text("description").notNull().default(""),
+  sortOrder: int("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("product_categories_slug_uq").on(table.slug),
+  index("product_categories_active_order_idx").on(table.isActive, table.sortOrder, table.name),
+]);
+
+export const products = mysqlTable("products", {
+  id: char("id", { length: 36 }).primaryKey(),
+  legacyId: char("legacy_id", { length: 36 }),
+  title: varchar("title", { length: 240 }).notNull(),
+  slug: varchar("slug", { length: 180 }).notNull(),
+  description: text("description").notNull().default(""),
+  productType: varchar("product_type", { length: 100 }).notNull().default(""),
+  currency: char("currency", { length: 3 }).notNull(),
+  priceMinor: bigint("price_minor", { mode: "number", unsigned: true }).notNull(),
+  compareAtPriceMinor: bigint("compare_at_price_minor", { mode: "number", unsigned: true }),
+  status: varchar("status", { length: 16 }).$type<"draft" | "published" | "archived">().notNull().default("draft"),
+  isOneOfAKind: boolean("is_one_of_a_kind").notNull().default(false),
+  featured: boolean("featured").notNull().default(false),
+  seoTitle: varchar("seo_title", { length: 255 }).notNull().default(""),
+  seoDescription: varchar("seo_description", { length: 500 }).notNull().default(""),
+  publishedAt: datetime("published_at", { mode: "date", fsp: 3 }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("products_slug_uq").on(table.slug),
+  uniqueIndex("products_legacy_id_uq").on(table.legacyId),
+  index("products_status_created_idx").on(table.status, table.createdAt),
+  index("products_featured_status_idx").on(table.featured, table.status),
+]);
+
+export const productCategoryLinks = mysqlTable("product_category_links", {
+  productId: char("product_id", { length: 36 }).notNull().references(() => products.id, { onDelete: "cascade" }),
+  categoryId: char("category_id", { length: 36 }).notNull().references(() => productCategories.id, { onDelete: "cascade" }),
+}, (table) => [
+  primaryKey({ columns: [table.productId, table.categoryId] }),
+  index("product_category_links_category_idx").on(table.categoryId, table.productId),
+]);
+
+export const productVariants = mysqlTable("product_variants", {
+  id: char("id", { length: 36 }).primaryKey(),
+  productId: char("product_id", { length: 36 }).notNull().references(() => products.id, { onDelete: "cascade" }),
+  sku: varchar("sku", { length: 100 }).notNull(),
+  label: varchar("label", { length: 180 }).notNull(),
+  attributes: json("attributes").$type<Record<string, string>>().notNull(),
+  priceMinor: bigint("price_minor", { mode: "number", unsigned: true }),
+  currency: char("currency", { length: 3 }).notNull(),
+  stockQuantity: int("stock_quantity", { unsigned: true }).notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: int("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("product_variants_sku_uq").on(table.sku),
+  index("product_variants_product_order_idx").on(table.productId, table.isActive, table.sortOrder),
+]);
+
+export const productMedia = mysqlTable("product_media", {
+  id: char("id", { length: 36 }).primaryKey(),
+  productId: char("product_id", { length: 36 }).notNull().references(() => products.id, { onDelete: "cascade" }),
+  storageKey: varchar("storage_key", { length: 512 }).notNull(),
+  altText: varchar("alt_text", { length: 300 }).notNull(),
+  rightsConfirmed: boolean("rights_confirmed").notNull().default(false),
+  rightsEvidence: varchar("rights_evidence", { length: 1000 }).notNull().default(""),
+  mimeType: varchar("mime_type", { length: 40 }).notNull(),
+  byteSize: bigint("byte_size", { mode: "number", unsigned: true }).notNull(),
+  width: int("width", { unsigned: true }),
+  height: int("height", { unsigned: true }),
+  position: int("position").notNull().default(0),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  createdAt: createdAt(),
+}, (table) => [
+  uniqueIndex("product_media_storage_key_uq").on(table.storageKey),
+  index("product_media_product_order_idx").on(table.productId, table.position, table.id),
+]);
+
+export const inventoryMovements = mysqlTable("inventory_movements", {
+  id: char("id", { length: 36 }).primaryKey(),
+  variantId: char("variant_id", { length: 36 }).notNull().references(() => productVariants.id, { onDelete: "restrict" }),
+  quantityDelta: int("quantity_delta").notNull(),
+  reason: varchar("reason", { length: 160 }).notNull(),
+  referenceKey: varchar("reference_key", { length: 180 }).notNull(),
+  actorId: char("actor_id", { length: 36 }),
+  createdAt: createdAt(),
+}, (table) => [
+  uniqueIndex("inventory_movements_reference_uq").on(table.referenceKey),
+  index("inventory_movements_variant_created_idx").on(table.variantId, table.createdAt),
+]);
+
+export const inventoryReservations = mysqlTable("inventory_reservations", {
+  id: char("id", { length: 36 }).primaryKey(),
+  customerReference: varchar("customer_reference", { length: 180 }).notNull(),
+  idempotencyKey: varchar("idempotency_key", { length: 180 }).notNull(),
+  status: varchar("status", { length: 16 }).$type<"reserved" | "released" | "expired">().notNull().default("reserved"),
+  expiresAt: datetime("expires_at", { mode: "date", fsp: 3 }).notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  uniqueIndex("inventory_reservations_idempotency_uq").on(table.idempotencyKey),
+  index("inventory_reservations_expiry_idx").on(table.status, table.expiresAt),
+]);
+
+export const inventoryReservationItems = mysqlTable("inventory_reservation_items", {
+  id: char("id", { length: 36 }).primaryKey(),
+  reservationId: char("reservation_id", { length: 36 }).notNull().references(() => inventoryReservations.id, { onDelete: "cascade" }),
+  variantId: char("variant_id", { length: 36 }).notNull().references(() => productVariants.id, { onDelete: "restrict" }),
+  quantity: int("quantity", { unsigned: true }).notNull(),
+}, (table) => [
+  uniqueIndex("inventory_reservation_items_pair_uq").on(table.reservationId, table.variantId),
+  index("inventory_reservation_items_variant_idx").on(table.variantId),
+]);
+

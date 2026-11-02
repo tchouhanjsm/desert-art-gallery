@@ -1,7 +1,5 @@
 # Desert Art Gallery
 
-**Where Every Textile Tells a Story.**
-
 An editorial commerce experience for rare heritage textiles and handcrafted pieces from Jaisalmer, Rajasthan.
 
 ## Local development
@@ -15,6 +13,8 @@ Do not publish guessed prices, measurements, stock, artisan biographies, shippin
 
 See `data/product-import-template.csv` and `docs/production-readiness.md` for catalogue and launch requirements.
 
-## Owner CMS backend
+## Owner CMS and MySQL
 
-The MySQL/Drizzle editorial cutover, one-time Supabase content/media importer, environment setup and explicit production boundaries are documented in [MySQL Editorial CMS Cutover — Phase 4](docs/MYSQL-EDITORIAL-CUTOVER-PHASE-4.md).
+The MySQL/Drizzle editorial cutover and one-time import are documented in [MySQL Editorial CMS Cutover — Phase 4](docs/MYSQL-EDITORIAL-CUTOVER-PHASE-4.md).
+
+The catalogue/inventory schema is being introduced as a separate staged migration. The existing Supabase commerce adapter remains the active fallback until a local MySQL cutover is explicitly accepted. See [MySQL Catalogue Migration — Phase 5](docs/MYSQL-CATALOGUE-MIGRATION-PHASE-5.md).

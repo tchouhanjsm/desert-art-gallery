@@ -3,6 +3,8 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -15,16 +17,45 @@ jobs:
   validate:
     name: Typecheck, tests, lint and production build
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0.36
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: desert_gallery_test
+          MYSQL_USER: dag_test
+          MYSQL_PASSWORD: dag_test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+    env:
+      NODE_ENV: test
+      DATABASE_URL: mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_test
+      MEDIA_STORAGE_ROOT: /tmp/desert-gallery-ci-media
+      MYSQL_INTEGRATION_TEST: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Wait for MySQL
+        run: |
+          for attempt in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -udag_test -pdag_test_password --silent; then exit 0; fi
+            sleep 2
+          done
+          echo "MySQL did not become ready" >&2
+          exit 1
       - name: Typecheck
         run: npm run typecheck
-      - name: Unit tests
+      - name: Unit and integration tests
         run: npm test
       - name: Lint
         run: npm run lint
