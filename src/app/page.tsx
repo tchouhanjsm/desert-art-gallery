@@ -32,7 +32,7 @@ export default async function HomePage() {
           </div>
           <div className="atelier-hero-foot">
             <span>DESERT ART GALLERY</span>
-            <span>26° NORTH · RAJASTHAN, INDIA</span>
+            <span>JAISALMER · RAJASTHAN · INDIA</span>
           </div>
         </div>
         <div className="atelier-hero-stamp" aria-hidden="true">
@@ -58,7 +58,7 @@ export default async function HomePage() {
           <span className="atelier-art-index">A STUDY IN MATERIAL · 01</span>
         </div>
         <div className="atelier-intro-copy">
-          <div className="section-kicker">THE GALLERY'S POINT OF VIEW</div>
+          <div className="section-kicker">THE GALLERY&apos;S POINT OF VIEW</div>
           <h2 className="section-title">A slower way to discover <em>objects.</em></h2>
           <p>Based in Jaisalmer, Desert Art Gallery brings textiles and objects into focus through considered presentation, clear details and the stories that can be responsibly shared.</p>
           <p>Every listing should help you understand the piece before you enquire. Where information is still being confirmed, we say so clearly.</p>
@@ -127,7 +127,7 @@ export default async function HomePage() {
         <div className="atelier-story-copy">
           <div className="section-kicker">A GALLERY ROOTED IN PLACE</div>
           <h2 className="section-title">A place for <em>material,</em><br />meaning and discovery.</h2>
-          <p>Explore the gallery's approach to textiles, objects and the care taken when presenting the people and processes connected to them.</p>
+          <p>Explore the gallery&apos;s approach to textiles, objects and the care taken when presenting the people and processes connected to them.</p>
           <Link className="atelier-light-link" href="/story">Read our story <span aria-hidden="true">↗</span></Link>
         </div>
         <div className="atelier-story-image">
