@@ -10,15 +10,15 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "vitest run src/server/db/mysql.integration.test.ts",
-    "db:up": "docker compose up -d mysql",
-    "db:stop": "docker compose stop mysql",
-    "db:status": "docker compose ps mysql",
-    "db:logs": "docker compose logs --tail=100 mysql",
+    "local:prepare": "node --import=tsx scripts/prepare-local-workspace.ts",
+    "db:ping": "node --import=tsx scripts/mysql-status.ts --ping",
+    "db:status": "node --import=tsx scripts/mysql-status.ts",
     "db:migrate": "node --import=tsx scripts/migrate-mysql.ts",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
     "db:import-editorial": "node --env-file=.env --import=tsx scripts/import-editorial-to-mysql.ts",
     "db:bootstrap-admin": "node --env-file=.env --import=tsx scripts/bootstrap-local-admin.ts",
-    "db:import-products": "node --env-file=.env --import=tsx scripts/import-products-to-mysql.ts"
+    "db:import-products": "node --env-file=.env --import=tsx scripts/import-products-to-mysql.ts",
+    "media:preview": "node --import=tsx scripts/preview-product-images.ts"
   },
   "dependencies": {
     "next": "^15.1.6",
