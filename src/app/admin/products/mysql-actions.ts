@@ -246,10 +246,12 @@ export async function createMySqlCategory(formData: FormData): Promise<Catalogue
     const name = textValue(formData, "name", 160);
     const slug = slugify(textValue(formData, "slug", 180) || name);
     if (name.length < 2 || !slug) throw new Error("Enter a category name and valid slug.");
+    const sortOrderText = textValue(formData, "sort_order", 6) || "0";
+    if (!/^\d{1,6}$/.test(sortOrderText)) throw new Error("Display order must be a whole number between 0 and 999999.");
     const id = randomUUID();
     await getMySqlDb().insert(productCategories).values({
       id, name, slug, description: textValue(formData, "description", 2000),
-      sortOrder: Number(textValue(formData, "sort_order", 6) || "0"),
+      sortOrder: Number(sortOrderText),
     });
     revalidatePath("/admin/products");
     return { ok: true, id };
