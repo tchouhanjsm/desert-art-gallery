@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { collections as previewCollections, products as previewProducts, type Product, type ProductImage } from "@/lib/products";
+import { collections as previewCollections, products as previewProducts, type Product, type ProductImage, type ProductVariant } from "@/lib/products";
 import { isPresentableProductImage, sortProductImages } from "@/lib/product-details";
 
 type ProductImageRow = {
@@ -27,7 +27,19 @@ type ProductRow = {
   collection_products?: { collections: { slug: string } | null }[] | null;
 };
 
+type ProductVariantRow = {
+  id: string;
+  label: string;
+  sku: string | null;
+  attributes: unknown;
+  price_override_minor: number | string | null;
+  quantity_on_hand: number;
+  status: "active" | "draft" | "archived";
+  sort_order: number;
+};
+
 type ProductDetailRow = ProductRow & {
+  product_variants: ProductVariantRow[] | null;
   description: string | null;
   materials: string[] | null;
   sizes: string[] | null;
@@ -188,7 +200,7 @@ export const getStorefrontProduct = cache(async (slug: string): Promise<Product 
 
   const { data, error } = await supabase
     .from("products")
-    .select("id,title,slug,short_description,description,currency,price_minor,quantity_on_hand,is_one_of_a_kind,materials,sizes,measurements,condition_notes,provenance,craft_story,seo_title,seo_description,categories(name),product_images(id,storage_path,alt_text,sort_order,is_primary,rights_confirmed,created_at)")
+    .select("id,title,slug,short_description,description,currency,price_minor,quantity_on_hand,is_one_of_a_kind,materials,sizes,measurements,condition_notes,provenance,craft_story,seo_title,seo_description,categories(name),product_images(id,storage_path,alt_text,sort_order,is_primary,rights_confirmed,created_at),product_variants(id,label,sku,attributes,price_override_minor,quantity_on_hand,status,sort_order)")
     .eq("status", "active")
     .eq("slug", slug)
     .maybeSingle();
@@ -221,6 +233,18 @@ export const getStorefrontProduct = cache(async (slug: string): Promise<Product 
     provenance: row.provenance?.trim() ?? "",
     craftStory: row.craft_story?.trim() ?? "",
     images,
+    variants: (row.product_variants ?? [])
+      .filter((variant): variant is ProductVariantRow => variant.status === "active")
+      .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label))
+      .map((variant): ProductVariant => ({
+        id: variant.id,
+        label: variant.label,
+        sku: variant.sku,
+        attributes: recordValue(variant.attributes),
+        priceMinor: safePriceMinor(variant.price_override_minor),
+        quantityOnHand: safeQuantity(variant.quantity_on_hand),
+        status: variant.status,
+      })),
     seoTitle: row.seo_title,
     seoDescription: row.seo_description,
   };

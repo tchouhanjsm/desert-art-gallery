@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { useCart } from "@/components/CartProvider";
+import { cartLineKey } from "@/lib/cart";
 
 export function CartPageClient() {
   const { lines, preview, isLoading, error, removeItem, setQuantity } = useCart();
@@ -15,11 +16,12 @@ export function CartPageClient() {
     <section className="cart-page-lines">
       {isLoading && <p className="cart-state">Refreshing current product and stock details…</p>}
       {error && <p className="cart-error" role="status">{error}</p>}
-      {preview.map((item) => <article className="cart-page-line" key={item.slug}>
+      {preview.map((item) => <article className="cart-page-line" key={cartLineKey(item.slug, item.variantId ?? undefined)}>
         {item.image ? <Image src={item.image} alt={item.imageAlt} width={160} height={210} unoptimized /> : <div className="cart-line-placeholder" />}
         <div className="cart-line-details"><div className="section-kicker">DESERT ART GALLERY</div><h2>{item.name}</h2>
           <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price unavailable"}</p>
-          <div className="cart-quantity"><button aria-label="Decrease quantity" onClick={() => setQuantity(item.slug, item.quantityRequested - 1)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug)}>REMOVE</button></div>
+          {item.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}
+          <div className="cart-quantity"><button aria-label="Decrease quantity" onClick={() => setQuantity(item.slug, item.quantityRequested - 1, item.variantId ?? undefined)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1, item.variantId ?? undefined)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug, item.variantId ?? undefined)}>REMOVE</button></div>
           {!item.available && <small className="cart-error">Only {item.availableQuantity} currently available. Please adjust this line.</small>}
         </div>
       </article>)}

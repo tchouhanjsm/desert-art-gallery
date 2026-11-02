@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights, adjustProductInventory, updateProductImageOrder, setProductImagePrimary } from "../actions";
+import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights, adjustProductInventory, updateProductImageOrder, setProductImagePrimary, createProductVariant, updateProductVariant, adjustProductVariantInventory } from "../actions";
 
 export const metadata = { title: "Edit product" };
 
@@ -15,6 +15,10 @@ type ProductRow = {
 };
 type ImageRow = { id: string; storage_path: string; alt_text: string; rights_confirmed: boolean; rights_evidence: string; sort_order: number; is_primary: boolean; created_at: string };
 type MovementRow = { id: string; quantity_delta: number; reason: string; reference: string | null; created_at: string };
+type VariantRow = {
+  id: string; sku: string | null; label: string; attributes: Record<string, unknown>;
+  price_override_minor: number | null; quantity_on_hand: number; status: "draft" | "active" | "archived";
+};
 
 function displayMoneyInput(value: number | null, currency: string) {
   if (value === null) return "";
@@ -29,17 +33,20 @@ export default async function EditAdminProductPage({ params }: { params: Promise
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><div className="page-heading"><h1>Edit product</h1><p>Connect Supabase to manage the catalogue.</p></div></div>;
 
-  const [productResult, categoryResult, imageResult, movementResult] = await Promise.all([
+  const [productResult, categoryResult, imageResult, movementResult, variantResult] = await Promise.all([
     supabase.from("products").select("*").eq("id", id).maybeSingle(),
     supabase.from("categories").select("id,name").order("sort_order", { ascending: true }),
     supabase.from("product_images").select("id,storage_path,alt_text,rights_confirmed,rights_evidence,sort_order,is_primary,created_at").eq("product_id", id).order("is_primary", { ascending: false }).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
-    supabase.from("inventory_movements").select("id,quantity_delta,reason,reference,created_at").eq("product_id", id).order("created_at", { ascending: false }).limit(25),
+    supabase.from("inventory_movements").select("id,quantity_delta,reason,reference,created_at").eq("product_id", id).is("variant_id", null).order("created_at", { ascending: false }).limit(25),
+    supabase.from("product_variants").select("id,sku,label,attributes,price_override_minor,quantity_on_hand,status").eq("product_id", id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
   ]);
   if (productResult.error || !productResult.data) notFound();
-  if (categoryResult.error || imageResult.error) throw new Error("Unable to load product editor data.");
+  if (categoryResult.error || imageResult.error || variantResult.error) throw new Error("Unable to load product editor data.");
   const product = productResult.data as ProductRow;
   const imageRows = (imageResult.data ?? []) as ImageRow[];
   const movements = (movementResult.data ?? []) as MovementRow[];
+  const variants = (variantResult.data ?? []) as VariantRow[];
+  const hasActiveVariants = variants.some((variant) => variant.status === "active");
   const images = await Promise.all(imageRows.map(async (image) => {
     const { data } = await supabase.storage.from("product-media").createSignedUrl(image.storage_path, 900);
     return { ...image, url: data?.signedUrl ?? null };
@@ -73,18 +80,66 @@ export default async function EditAdminProductPage({ params }: { params: Promise
       <div className="admin-form-actions"><button className="button-primary dark-button" type="submit">SAVE PRODUCT</button><Link href="/admin/products" className="text-link">BACK TO CATALOGUE</Link></div>
     </form>
 
+
+    <section className="admin-media-section">
+      <div className="section-kicker">PURCHASABLE OPTIONS</div>
+      <h2>Product variants</h2>
+      <p>Enter only options confirmed by the merchant. Each active option has its own SKU, price override and stock ledger. When active variants exist, checkout reservation uses variant stock instead of product-level stock.</p>
+      {variants.length ? <div className="admin-variant-list">{variants.map((variant) => (
+        <article className="admin-variant-card" key={variant.id}>
+          <form action={updateProductVariant} className="admin-form">
+            <input type="hidden" name="product_id" value={product.id} />
+            <input type="hidden" name="product_slug" value={product.slug} />
+            <input type="hidden" name="variant_id" value={variant.id} />
+            <div className="admin-form-grid">
+              <label>Option label<input name="label" defaultValue={variant.label} required maxLength={120} /></label>
+              <label>Variant SKU<input name="sku" defaultValue={variant.sku ?? ""} maxLength={80} /></label>
+              <label>Price override (optional)<input name="price_override" inputMode="decimal" defaultValue={displayMoneyInput(variant.price_override_minor, product.currency)} /></label>
+              <label>Status<select name="status" defaultValue={variant.status}><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></label>
+              <label className="admin-form-wide">Merchant-supplied attributes (JSON object)<textarea name="attributes" rows={2} defaultValue={JSON.stringify(variant.attributes, null, 2)} required /></label>
+            </div>
+            <div className="admin-form-actions"><button className="button-outline" type="submit">SAVE VARIANT</button><span className={"admin-status status-" + variant.status}>{variant.status}</span></div>
+          </form>
+          <p>Variant stock on hand: <strong>{variant.quantity_on_hand}</strong></p>
+          <form action={adjustProductVariantInventory} className="shipment-form">
+            <input type="hidden" name="product_id" value={product.id} />
+            <input type="hidden" name="product_slug" value={product.slug} />
+            <input type="hidden" name="variant_id" value={variant.id} />
+            <label>Quantity change<input name="quantity_delta" type="number" step="1" required placeholder="Positive to add, negative to remove" /></label>
+            <label>Reason<select name="reason" required defaultValue="correction"><option value="restock">Restock</option><option value="correction">Stock correction</option><option value="damage">Damage / write-off</option><option value="return">Customer return</option><option value="other">Other</option></select></label>
+            <label>Reference (optional)<input name="reference" maxLength={120} /></label>
+            <button className="button-outline" type="submit">RECORD VARIANT STOCK MOVEMENT</button>
+          </form>
+        </article>
+      ))}</div> : <p className="empty-note">No variants are configured. This product currently uses its product-level stock record.</p>}
+      <h3>Add a verified option</h3>
+      <form action={createProductVariant} className="admin-form">
+        <input type="hidden" name="product_id" value={product.id} />
+        <input type="hidden" name="product_slug" value={product.slug} />
+        <div className="admin-form-grid">
+          <label>Option label<input name="label" required maxLength={120} placeholder="Merchant-supplied option name" /></label>
+          <label>Variant SKU<input name="sku" maxLength={80} /></label>
+          <label>Price override (optional)<input name="price_override" inputMode="decimal" /></label>
+          <label className="admin-form-wide">Attributes (JSON object)<textarea name="attributes" rows={3} required placeholder='{"attribute": "merchant-supplied value"}' /></label>
+        </div>
+        <div className="admin-form-actions"><button className="button-primary dark-button" type="submit">CREATE DRAFT VARIANT</button></div>
+      </form>
+      {hasActiveVariants && <p className="catalogue-import-note">Active variants are selected individually on the product page. Product-level stock is not used for those options.</p>}
+    </section>
+
     <section className="admin-media-section">
       <div className="section-kicker">INVENTORY CONTROL</div>
       <h2>Stock ledger</h2>
       <p>Current on-hand quantity: <strong>{product.quantity_on_hand}</strong>. Every adjustment is written atomically to the inventory movement ledger. Product detail edits cannot silently overwrite stock.</p>
-      <form action={adjustProductInventory} className="shipment-form">
+      {!hasActiveVariants && <form action={adjustProductInventory} className="shipment-form">
         <input type="hidden" name="product_id" value={product.id} />
         <label>Quantity change<input name="quantity_delta" type="number" step="1" required placeholder="Positive to add, negative to remove" /></label>
         <label>Reason<select name="reason" required defaultValue="correction"><option value="restock">Restock</option><option value="correction">Stock correction</option><option value="damage">Damage / write-off</option><option value="return">Customer return</option><option value="other">Other</option></select></label>
         <label>Reference (optional)<input name="reference" maxLength={120} placeholder="Supplier or stocktake reference" /></label>
         <button className="button-outline" type="submit">RECORD INVENTORY MOVEMENT</button>
-      </form>
-      <h3>Recent stock movements</h3>
+      </form>}
+      {hasActiveVariants && <p className="catalogue-import-note">Product-level stock adjustments are disabled while active variants exist. Use each variant's own ledger above.</p>}
+      <h3>Recent product-level stock movements</h3>
       {movementResult.error ? <p className="catalogue-import-note">Movement history is unavailable. Verify the catalogue inventory migration.</p> : movements.length ? (
         <div className="admin-table-wrap">
           <table className="admin-table">

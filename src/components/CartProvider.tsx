@@ -4,16 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { formatMoneyFromMinor } from "@/lib/money";
-import { mergeCartLine, normalizeCartLines, setCartLineQuantity, type CartLine } from "@/lib/cart";
+import { cartLineKey, mergeCartLine, normalizeCartLines, setCartLineQuantity, type CartLine } from "@/lib/cart";
 
 type CartPreviewItem = {
-  slug: string; name: string; quantityRequested: number; availableQuantity: number;
-  available: boolean; priceMinor: number | null; currency: string | null; image: string | null; imageAlt: string;
+  slug: string; variantId: string | null; variantLabel: string | null; name: string;
+  quantityRequested: number; availableQuantity: number; available: boolean;
+  priceMinor: number | null; currency: string | null; image: string | null; imageAlt: string;
 };
 type CartContextValue = {
   lines: CartLine[]; preview: CartPreviewItem[]; lineCount: number; isLoading: boolean; error: string;
-  drawerOpen: boolean; addItem: (slug: string, maximum: number) => void; removeItem: (slug: string) => void;
-  setQuantity: (slug: string, quantity: number) => void; openDrawer: () => void; closeDrawer: () => void;
+  drawerOpen: boolean; addItem: (slug: string, maximum: number, variantId?: string) => void;
+  removeItem: (slug: string, variantId?: string) => void;
+  setQuantity: (slug: string, quantity: number, variantId?: string) => void;
+  openDrawer: () => void; closeDrawer: () => void;
 };
 const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "desert-art-gallery:bag:v1";
@@ -87,13 +90,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(timer);
   }, [hydrated, lines]);
 
-  const addItem = useCallback((slug: string, maximum: number) => {
+  const addItem = useCallback((slug: string, maximum: number, variantId?: string) => {
     if (maximum < 1) { setError("This piece is currently unavailable."); return; }
-    setLines((current) => mergeCartLine(current, slug, 1, Math.min(99, maximum)));
+    setLines((current) => mergeCartLine(current, slug, 1, Math.min(99, maximum), variantId));
     setDrawerOpen(true);
   }, []);
-  const removeItem = useCallback((slug: string) => setLines((current) => current.filter((line) => line.slug !== slug)), []);
-  const setQuantity = useCallback((slug: string, quantity: number) => setLines((current) => setCartLineQuantity(current, slug, quantity)), []);
+  const removeItem = useCallback((slug: string, variantId?: string) => setLines((current) =>
+    current.filter((line) => cartLineKey(line.slug, line.variantId) !== cartLineKey(slug, variantId))), []);
+  const setQuantity = useCallback((slug: string, quantity: number, variantId?: string) => setLines((current) =>
+    setCartLineQuantity(current, slug, quantity, variantId)), []);
   const openDrawer = useCallback(() => { setDrawerOpen(true); if (hydrated) void refresh(lines); }, [hydrated, lines, refresh]);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const lineCount = useMemo(() => lines.reduce((total, line) => total + line.quantity, 0), [lines]);
@@ -115,11 +120,12 @@ function CartDrawer() {
       {isLoading && <p className="cart-state">Refreshing current product and stock details…</p>}
       {error && <p className="cart-error" role="status">{error}</p>}
       {!lines.length ? <div className="empty-note">Your bag is waiting for its first piece.<br/><Link href="/shop" className="empty-link" onClick={closeDrawer}>EXPLORE THE COLLECTION ↗</Link></div> :
-        <div className="cart-drawer-lines">{preview.map((item) => <article className="cart-line" key={item.slug}>
+        <div className="cart-drawer-lines">{preview.map((item) => <article className="cart-line" key={cartLineKey(item.slug, item.variantId ?? undefined)}>
           {item.image ? <Image src={item.image} alt={item.imageAlt} width={88} height={116} unoptimized /> : <div className="cart-line-placeholder" aria-hidden="true" />}
           <div className="cart-line-details"><h3>{item.name}</h3>
+            {item.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}
             {item.priceMinor !== null && item.currency ? <p>{formatMoneyFromMinor(item.priceMinor, item.currency)}</p> : <p>Price unavailable</p>}
-            <div className="cart-quantity"><button aria-label="Decrease quantity" onClick={() => setQuantity(item.slug, item.quantityRequested - 1)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug)}>REMOVE</button></div>
+            <div className="cart-quantity"><button aria-label="Decrease quantity" onClick={() => setQuantity(item.slug, item.quantityRequested - 1, item.variantId ?? undefined)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1, item.variantId ?? undefined)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug, item.variantId ?? undefined)}>REMOVE</button></div>
             {!item.available && <small className="cart-error">Only {item.availableQuantity} currently available. Please adjust this line.</small>}
           </div>
         </article>)}</div>}

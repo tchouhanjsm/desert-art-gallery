@@ -142,3 +142,31 @@ Production activation requires merchant-authorized catalogue data and original p
 - Added regression coverage for missing alt text, missing storage paths and unconfirmed image rights.
 - Fixed the Autoprefixer warning on the admin image-order form by using the interoperable flex-end alignment value.
 - No production data was read or changed. The new migration remains unapplied pending owner authorization.
+
+
+## Dated handoff — 2026-11-02 06:21 IST
+
+### Current increment: merchant-managed variants and short-lived inventory reservations
+
+- Added `product_variants` with merchant-supplied labels/attributes, optional price overrides, per-option stock, status, SKU uniqueness, ordering and admin-only writes. Public reads require both an active variant and active parent product.
+- Added variant stock movements to the existing inventory ledger. Variant stock cannot be directly edited; an administrator-only row-locked RPC records each adjustment and rejects reductions below active reservations.
+- Added variant selection to product details. The storefront displays only active database variants, requires a selection when active variants exist, resolves the selected price from the variant override or verified product base price, and never fabricates option labels or attributes.
+- Cart identity is now product plus optional variant UUID. Guest storage, authenticated cart sync, cart preview and cart page controls preserve separate quantities for separate options. Sync drops stale/inactive options and recalculates stock/price from the current catalogue.
+- Added authenticated same-origin `POST /api/cart/reserve`. It requires a UUID `Idempotency-Key`, accepts at most 20 lines, validates active product/variant relationships, and calls a database RPC. The RPC derives prices from database rows, locks product then variant in deterministic order, subtracts active holds, limits each hold to 5–30 minutes and caps each customer at three active reservations. It rejects duplicate lines, changed idempotency payloads and overselling.
+- Added customer-owned reservation reads, idempotent release, and a service-role-only expiry function. Reservation state does not change order/payment state and no payment provider is invoked.
+- Added admin draft/create/update/archive controls for variants and a variant-specific inventory movement form. Product-level stock editing is hidden while active variants exist.
+- Added unit tests for UUID validation, scalar attribute constraints, price fallback, availability and product/variant cart identity; expanded migration contract tests for RLS, locks, idempotency, expiry and restricted execution.
+
+### Safety boundaries and known limitations
+
+- Reservation API currently requires an authenticated customer. Guest reservation support is intentionally not enabled until a secure guest-session/idempotency-token design is implemented.
+- The expiry function is ready for a trusted scheduler/service-role job, but no cron or background scheduler is configured. Expired holds are excluded from availability immediately by timestamp; status cleanup occurs on the next reservation request or trusted expiry invocation.
+- Reservation is a short-lived stock hold only. There is no order creation, payment capture, order-paid transition, shipping calculation or customer email in this increment.
+- Variant and reservation migrations are committed but not applied to a live Supabase project. Live RLS/RPC concurrency tests remain unrun.
+- Merchant must supply actual option labels, attributes, SKUs, price overrides and stock. No sizes, colours, materials or option values are seeded.
+
+### Verification and next handoff
+
+- Branch: `feat/luxury-storefront-foundation`; base remains `main`.
+- The source files and tests were read from the live branch before editing. Local clone/test execution is unavailable because this runtime cannot resolve `github.com`; GitHub Actions is required for final typecheck, unit tests, lint and build evidence.
+- Next engineering increment: order lifecycle and checkout preflight, but only after reservation expiry scheduling, guest reservation decision, shipping/tax configuration model and owner-approved fulfilment inputs are addressed. Do not add payment capture until order creation, reconciliation and signed webhook flows are complete.

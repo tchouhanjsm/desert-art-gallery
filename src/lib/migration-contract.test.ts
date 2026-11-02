@@ -13,6 +13,10 @@ const productMedia = readFileSync(
   new URL("../../supabase/migrations/202611020003_product_detail_media.sql", import.meta.url),
   "utf8",
 );
+const variants = readFileSync(
+  new URL("../../supabase/migrations/202611020004_variants_inventory_reservations.sql", import.meta.url),
+  "utf8",
+);
 
 describe("commerce migration safety contract", () => {
   it("does not declare duplicate named constraints within a table", () => {
@@ -85,5 +89,49 @@ describe("commerce migration safety contract", () => {
     expect(productMedia).toContain("rights_confirmed = true");
     expect(productMedia).toContain("revoke all on function public.set_product_primary_image(uuid, uuid) from public");
     expect(productMedia).toContain("grant execute on function public.set_product_primary_image(uuid, uuid) to authenticated");
+  });
+});
+
+
+describe("variant and inventory reservation migration safety contract", () => {
+  it("keeps variants private unless both the variant and parent product are active", () => {
+    expect(variants).toContain("alter table public.product_variants enable row level security");
+    expect(variants).toContain("status = 'active' and exists");
+    expect(variants).toContain("p.status = 'active'");
+    expect(variants).toContain("create policy product_variants_admin_all");
+  });
+
+  it("routes variant stock changes through an atomic movement ledger", () => {
+    expect(variants).toContain("add column if not exists variant_id uuid");
+    expect(variants).toContain("create or replace function public.adjust_product_variant_inventory");
+    expect(variants).toContain("for update");
+    expect(variants).toContain("insert into public.inventory_movements");
+    expect(variants).toContain("Variant inventory cannot become negative");
+  });
+
+  it("reserves only database-priced stock and serializes product inventory locks", () => {
+    expect(variants).toContain("create or replace function public.reserve_inventory");
+    expect(variants).toContain("security definer");
+    expect(variants).toContain("auth.uid()");
+    expect(variants).toContain("for update");
+    expect(variants).toContain("price_override_minor");
+    expect(variants).toContain("v_available < v_item.quantity");
+    expect(variants).toContain("p_ttl_seconds not between 300 and 1800");
+    expect(variants).toContain("pg_advisory_xact_lock");
+  });
+
+  it("does not expose reservation writes directly to customer roles", () => {
+    expect(variants).toContain("alter table public.inventory_reservations enable row level security");
+    expect(variants).toContain("alter table public.inventory_reservation_items enable row level security");
+    expect(variants).toContain("revoke all on function public.expire_inventory_reservations() from authenticated");
+    expect(variants).toContain("grant execute on function public.reserve_inventory(jsonb, text, integer) to authenticated");
+    expect(variants).toContain("grant execute on function public.expire_inventory_reservations() to service_role");
+  });
+
+  it("supports idempotent reservation release and expiry without payment state changes", () => {
+    expect(variants).toContain("request_hash");
+    expect(variants).toContain("create or replace function public.release_inventory_reservation");
+    expect(variants).toContain("create or replace function public.expire_inventory_reservations");
+    expect(variants).not.toContain("update public.orders set status = 'paid'");
   });
 });

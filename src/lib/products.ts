@@ -6,6 +6,16 @@ export type ProductImage = {
   isPrimary: boolean;
 };
 
+export type ProductVariant = {
+  id: string;
+  label: string;
+  sku: string | null;
+  attributes: Record<string, unknown>;
+  priceMinor: number | null;
+  quantityOnHand: number;
+  status: "active" | "draft" | "archived";
+};
+
 export type Product = {
   id?: string;
   slug: string;
@@ -29,6 +39,7 @@ export type Product = {
   provenance?: string;
   craftStory?: string;
   images?: ProductImage[];
+  variants?: ProductVariant[];
   seoTitle?: string | null;
   seoDescription?: string | null;
 };

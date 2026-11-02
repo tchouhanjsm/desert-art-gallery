@@ -38,9 +38,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = await getStorefrontProduct(slug);
   if (!product) notFound();
 
-  const priceLabel = product.priceMinor != null && product.currency
-    ? formatMoneyFromMinor(product.priceMinor, product.currency)
-    : "Price available on enquiry";
+  const variants = product.variants ?? [];
+  const resolvedVariantPrices = variants
+    .map((variant) => variant.priceMinor ?? product.priceMinor)
+    .filter((price): price is number => price !== null && price !== undefined);
+  const distinctVariantPrices = new Set(resolvedVariantPrices);
+  const priceLabel = variants.length > 0 && distinctVariantPrices.size > 1
+    ? "Select an option to view its price"
+    : product.priceMinor != null && product.currency
+      ? formatMoneyFromMinor(resolvedVariantPrices[0] ?? product.priceMinor, product.currency)
+      : "Price available on enquiry";
+  const hasAvailableStock = variants.length > 0
+    ? variants.some((variant) => variant.quantityOnHand > 0)
+    : (product.quantityOnHand ?? 0) > 0;
 
   const galleryImages: ProductImage[] = product.images?.length
     ? product.images
@@ -79,9 +89,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {product.note && <div className="detail-note">{product.note}</div>}
           <div className="detail-price">{priceLabel}</div>
           <div className="product-availability">
-            {product.id && product.quantityOnHand === 0
+            {product.id && !hasAvailableStock
               ? "NO CURRENT STOCK RECORDED — CONTACT THE GALLERY"
-              : product.id && product.quantityOnHand !== undefined
+              : product.id
                 ? "AVAILABILITY SUBJECT TO FINAL CONFIRMATION"
                 : "CONTACT THE GALLERY TO CONFIRM AVAILABILITY"}
           </div>
@@ -91,9 +101,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {product.id
             && product.priceMinor != null
             && product.currency
-            && product.quantityOnHand !== undefined
-            && product.quantityOnHand > 0
-            && <AddToBagButton slug={product.slug} quantityOnHand={product.quantityOnHand} />}
+            && hasAvailableStock
+            && <AddToBagButton
+              slug={product.slug}
+              quantityOnHand={product.quantityOnHand ?? 0}
+              variants={variants}
+              priceMinor={product.priceMinor}
+              currency={product.currency}
+            />}
           <WishlistToggle slug={product.slug} />
           <a
             className="button-outline enquiry-button"

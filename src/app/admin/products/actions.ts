@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupportedImageSignature } from "@/lib/image-signature";
 import { parseProductCsv, type ProductImportPreviewRow, type ProductImportRow } from "@/lib/product-import";
+import { parseVariantAttributes } from "@/lib/variants";
 
 async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -540,4 +541,95 @@ export async function setProductImagePrimary(formData: FormData) {
   revalidatePath("/products/" + product.slug);
   revalidatePath("/shop");
   revalidatePath("/");
+}
+
+
+function parseVariantForm(formData: FormData, currency: string) {
+  const label = value(formData, "label", 120);
+  if (label.length < 1) throw new Error("Variant label is required.");
+  const attributesText = value(formData, "attributes", 3000);
+  let rawAttributes: unknown;
+  try {
+    rawAttributes = JSON.parse(attributesText);
+  } catch {
+    throw new Error("Variant attributes must be valid JSON object data.");
+  }
+  const attributes = parseVariantAttributes(rawAttributes);
+  const sku = value(formData, "sku", 80).toUpperCase() || null;
+  if (sku && !/^[A-Z0-9][A-Z0-9._/-]{0,79}$/.test(sku)) {
+    throw new Error("Variant SKU contains unsupported characters.");
+  }
+  const priceOverride = amountToMinorUnits(value(formData, "price_override", 32), currency);
+  return { label, attributes, sku, price_override_minor: priceOverride };
+}
+
+export async function createProductVariant(formData: FormData) {
+  const supabase = await requireAdmin();
+  const productId = value(formData, "product_id", 80);
+  if (!productId) throw new Error("Product ID is required.");
+  const { data: product, error: productError } = await supabase
+    .from("products").select("id,currency").eq("id", productId).maybeSingle();
+  if (productError || !product) throw new Error("Product was not found.");
+  const variant = parseVariantForm(formData, product.currency);
+  const { error } = await supabase.from("product_variants").insert({
+    product_id: productId,
+    ...variant,
+    quantity_on_hand: 0,
+    status: "draft",
+  });
+  if (error) throw new Error("Variant was not created. Check for duplicate labels or SKUs.");
+  revalidatePath("/admin/products/" + productId);
+  revalidatePath("/products/" + (value(formData, "product_slug", 100) || ""));
+}
+
+export async function updateProductVariant(formData: FormData) {
+  const supabase = await requireAdmin();
+  const productId = value(formData, "product_id", 80);
+  const variantId = value(formData, "variant_id", 80);
+  const status = value(formData, "status", 16);
+  if (!productId || !variantId) throw new Error("Product and variant IDs are required.");
+  if (!["draft", "active", "archived"].includes(status)) throw new Error("Choose a supported variant status.");
+  const { data: product, error: productError } = await supabase
+    .from("products").select("id,currency").eq("id", productId).maybeSingle();
+  if (productError || !product) throw new Error("Product was not found.");
+  const variant = parseVariantForm(formData, product.currency);
+  const { data, error } = await supabase.from("product_variants")
+    .update({ ...variant, status })
+    .eq("id", variantId)
+    .eq("product_id", productId)
+    .select("id")
+    .maybeSingle();
+  if (error || !data) throw new Error("Variant was not updated. Verify its attributes, SKU and publication state.");
+  revalidatePath("/admin/products/" + productId);
+  revalidatePath("/products/" + (value(formData, "product_slug", 100) || ""));
+  revalidatePath("/shop");
+}
+
+export async function adjustProductVariantInventory(formData: FormData) {
+  const supabase = await requireAdmin();
+  const productId = value(formData, "product_id", 80);
+  const variantId = value(formData, "variant_id", 80);
+  const deltaText = value(formData, "quantity_delta", 12);
+  const reason = value(formData, "reason", 24);
+  const reference = value(formData, "reference", 120);
+  if (!productId || !variantId) throw new Error("Product and variant IDs are required.");
+  if (!/^-?(0|[1-9]\\d*)$/.test(deltaText)) throw new Error("Enter a signed whole-number stock adjustment.");
+  const delta = Number(deltaText);
+  if (!Number.isSafeInteger(delta) || delta === 0 || Math.abs(delta) > 2147483647) {
+    throw new Error("Stock adjustment must be a non-zero whole number within the supported range.");
+  }
+  if (!["restock", "correction", "damage", "return", "other"].includes(reason)) {
+    throw new Error("Choose a supported inventory adjustment reason.");
+  }
+  if ((reason === "restock" || reason === "return") && delta < 0) throw new Error("Restock and return adjustments must increase stock.");
+  if (reason === "damage" && delta > 0) throw new Error("Damage adjustments must decrease stock.");
+  const { error } = await supabase.rpc("adjust_product_variant_inventory", {
+    p_variant_id: variantId,
+    p_quantity_delta: delta,
+    p_reason: reason,
+    p_reference: reference || null,
+  });
+  if (error) throw new Error("Variant inventory was not changed. Check available stock and retry.");
+  revalidatePath("/admin/products/" + productId);
+  revalidatePath("/products/" + (value(formData, "product_slug", 100) || ""));
 }
