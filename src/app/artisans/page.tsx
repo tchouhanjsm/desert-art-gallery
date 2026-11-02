@@ -15,6 +15,7 @@ type ArtisanRow = {
   craft_specialties: string[];
   years_experience: number | null;
   portrait_path: string | null;
+  portrait_alt_text: string;
   portrait_rights_confirmed: boolean;
 };
 
@@ -38,7 +39,7 @@ export default async function ArtisansPage() {
   }
 
   const { data, error } = await supabase.from("artisan_profiles")
-    .select("id,full_name,role_title,short_bio,craft_specialties,years_experience,portrait_path,portrait_rights_confirmed")
+    .select("id,full_name,role_title,short_bio,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed")
     .eq("is_published", true).order("sort_order", { ascending: true });
   if (error) throw new Error("Unable to load maker profiles.");
 
@@ -65,7 +66,7 @@ export default async function ArtisansPage() {
             <article className="artisan-card" key={artisan.id}>
               {artisan.portrait ? (
                 <div className="artisan-photo">
-                  <Image src={artisan.portrait} alt={"Portrait of " + artisan.full_name} fill sizes="(max-width:700px) 88vw, 30vw" unoptimized />
+                  <Image src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || ("Portrait of " + artisan.full_name)} fill sizes="(max-width:700px) 88vw, 30vw" unoptimized />
                 </div>
               ) : (
                 <div className="artisan-photo artisan-photo-empty" aria-hidden="true">PORTRAIT NOT PUBLISHED</div>
