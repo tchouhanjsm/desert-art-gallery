@@ -24,8 +24,8 @@ function databaseUrl(): URL {
     throw new Error("DATABASE_URL must be a valid MySQL connection URL.");
   }
 
-  if (!["mysql:", "mysqls:"].includes(parsed.protocol)) {
-    throw new Error("DATABASE_URL must use mysql:// or mysqls://.");
+  if (parsed.protocol !== "mysql:") {
+    throw new Error("DATABASE_URL must use the mysql:// scheme supported by the Drizzle MySQL migration runner.");
   }
   if (!parsed.hostname || !parsed.username || !parsed.pathname || parsed.pathname === "/") {
     throw new Error("DATABASE_URL must include a host, username and database name.");
@@ -55,7 +55,6 @@ export function getMySqlPool(): Pool {
     charset: "utf8mb4",
     supportBigNumbers: true,
     bigNumberStrings: true,
-    ssl: url.protocol === "mysqls:" ? { rejectUnauthorized: true } : undefined,
   });
   return current.pool;
 }
