@@ -43,6 +43,7 @@ type SourceJournalPost = {
   author_id: string | null; published_at: string | null; created_at: string | null; updated_at: string | null;
 };
 type SourceCollectionProduct = { collection_id: string; product_id: string; sort_order: number };
+type SourceCollectionProduct = { collection_id: string; product_id: string; sort_order: number };
 
 const importMarker = "__legacy_supabase_editorial_import_v1";
 const commitMode = process.argv.includes("--commit");
@@ -223,6 +224,16 @@ async function main() {
           heroImageRightsConfirmed: confirmed, heroImageRightsEvidence: row.hero_image_rights_evidence ?? "",
           sortOrder: row.sort_order ?? 0, isPublished: Boolean(row.is_published),
           createdAt: asDate(row.created_at), updatedAt: asDate(row.updated_at),
+        });
+      }
+
+      for (const link of collectionProductRows) {
+        await tx.insert(collectionProductLinks).values({
+          id: randomUUID(),
+          collectionId: link.collectionId,
+          productSlug: link.productSlug,
+          sortOrder: link.sortOrder,
+          createdAt: new Date(),
         });
       }
 
