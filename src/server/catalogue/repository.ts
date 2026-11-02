@@ -1,11 +1,11 @@
 import { and, asc, desc, eq, inArray, like, or, sql } from "drizzle-orm";
-import type { Product, ProductImage, ProductVariant } from "@/lib/products";
-import { getMySqlDb } from "@/server/db";
+import type { Product, ProductImage, ProductVariant } from "../../lib/products";
+import { getMySqlDb } from "../db";
 import {
   collectionProductLinks, collections, inventoryReservationItems, inventoryReservations,
   productCategories, productCategoryLinks, productMedia, products, productVariants,
-} from "@/server/db/schema";
-import { getProductMediaUrl, safeProductStorageKey } from "@/server/media/product-storage";
+} from "../db/schema";
+import { getProductMediaUrl, safeProductStorageKey } from "../media/product-storage";
 
 export type PublishedProductQuery = {
   search?: string;
