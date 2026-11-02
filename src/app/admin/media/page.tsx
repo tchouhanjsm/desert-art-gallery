@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, Images, Package, ShieldCheck, Upload } from "lucide-react";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { desc, eq } from "drizzle-orm";
+import { getMySqlDb } from "@/server/db";
+import { productImages, products } from "@/server/db/schema";
+import { getAdminMediaUrl } from "@/server/media/storage";
 import {
   confirmProductImageRights,
   setProductImagePrimary,
@@ -34,39 +37,24 @@ function relatedProduct(value: RelatedProduct): ProductOption | null {
 }
 
 export default async function AdminMediaPage() {
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    return (
-      <section className="owner-page">
-        <header className="owner-page-heading">
-          <div><span className="owner-eyebrow">VISUAL MERCHANDISING</span><h1>Media library</h1><p>Manage the photographs attached to your catalogue.</p></div>
-        </header>
-        <div className="owner-setup-card">
-          <AlertCircle size={22} />
-          <div><h2>Media storage is not connected</h2><p>Connect the configured database and private product-media storage to review and manage gallery photographs. This preview contains no live media.</p></div>
-        </div>
-      </section>
-    );
-  }
-
-  const [productResult, mediaResult] = await Promise.all([
-    supabase.from("products").select("id,title,slug,status").order("title", { ascending: true }).limit(500),
-    supabase.from("product_images")
-      .select("id,product_id,storage_path,alt_text,rights_confirmed,rights_evidence,sort_order,is_primary,created_at,products(id,title,slug,status)")
-      .order("created_at", { ascending: false })
-      .limit(200),
+  const [productRows, mediaRows] = await Promise.all([
+    getMySqlDb().select({id:products.id,title:products.title,slug:products.slug,status:products.status})
+      .from(products).orderBy(asc(products.title)).limit(500),
+    getMySqlDb().select({
+      id:productImages.id,product_id:productImages.productId,storage_path:productImages.storagePath,
+      alt_text:productImages.altText,rights_confirmed:productImages.rightsConfirmed,
+      rights_evidence:productImages.rightsEvidence,sort_order:productImages.sortOrder,
+      is_primary:productImages.isPrimary,created_at:productImages.createdAt,
+      product_id_ref:products.id,product_title:products.title,product_slug:products.slug,product_status:products.status,
+    }).from(productImages).innerJoin(products,eq(products.id,productImages.productId))
+      .orderBy(desc(productImages.createdAt)).limit(200),
   ]);
-
-  if (productResult.error || mediaResult.error) {
-    throw new Error("Unable to load the media library. Check the product-media migration and database permissions.");
-  }
-
-  const products = (productResult.data ?? []) as ProductOption[];
-  const rows = (mediaResult.data ?? []) as unknown as MediaRow[];
-  const media = await Promise.all(rows.map(async (row) => {
-    const { data } = await supabase.storage.from("product-media").createSignedUrl(row.storage_path, 900);
-    return { ...row, url: data?.signedUrl ?? null, product: relatedProduct(row.products) };
+  const productsList = productRows;
+  const media = mediaRows.map(row=>({
+    ...row,
+    url:getAdminMediaUrl(row.storage_path),
+    product:{id:row.product_id_ref,title:row.product_title,slug:row.product_slug,status:row.product_status},
+    created_at:row.created_at.toISOString(),
   }));
   const confirmedCount = media.filter((item) => item.rights_confirmed).length;
   const awaitingCount = media.length - confirmedCount;
@@ -98,7 +86,7 @@ export default async function AdminMediaPage() {
           <label>Product
             <select name="product_id" required defaultValue="">
               <option value="" disabled>Select a catalogue product</option>
-              {products.map((product) => <option key={product.id} value={product.id}>{product.title} · {product.status}</option>)}
+              {productsList.map((product) => <option key={product.id} value={product.id}>{product.title} · {product.status}</option>)}
             </select>
           </label>
           <label>Photograph
