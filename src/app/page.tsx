@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 
@@ -12,16 +12,10 @@ export default async function HomePage() {
   return (
     <div className="atelier-home">
       <section className="hero hero--atelier">
-        <Image
-          className="hero-image"
-          src="/images/textile-placeholder.svg"
-          alt=""
-          fill
-          priority
-          unoptimized
-          sizes="100vw"
-        />
-        <div className="atelier-hero-grain" aria-hidden="true" />
+        <div className="atelier-hero-art" aria-hidden="true">
+          <span className="atelier-hero-art-mark">DAG</span>
+          <span className="atelier-hero-art-caption">DESERT / 26</span>
+        </div>
         <div className="hero-content atelier-hero-content">
           <div className="eyebrow">A CURATED GALLERY · JAISALMER, RAJASTHAN</div>
           <h1>Objects with <em>stories.</em><br />Textiles with <em>character.</em></h1>
@@ -48,14 +42,11 @@ export default async function HomePage() {
 
       <section className="atelier-intro">
         <div className="atelier-intro-art">
-          <Image
-            src="/images/textile-placeholder.svg"
-            alt=""
-            fill
-            sizes="(max-width: 760px) 100vw, 48vw"
-            unoptimized
-          />
-          <span className="atelier-art-index">A STUDY IN MATERIAL · 01</span>
+          <div className="atelier-intro-artwork" role="img" aria-label="Abstract textile-inspired design study, not a product photograph">
+            <span className="atelier-intro-artwork-mark">D</span>
+            <span className="atelier-intro-artwork-caption">MATERIAL STUDY / 01</span>
+          </div>
+          <span className="atelier-art-index">A DESIGN STUDY · NOT PRODUCT PHOTOGRAPHY</span>
         </div>
         <div className="atelier-intro-copy">
           <div className="section-kicker">THE GALLERY&apos;S POINT OF VIEW</div>
@@ -83,8 +74,13 @@ export default async function HomePage() {
                 key={item.slug}
               >
                 <div className="atelier-collection-image">
-                  <Image src={item.image} alt="" fill sizes="(max-width: 760px) 75vw, 25vw" unoptimized />
-                  <span className="atelier-collection-index">0{index + 1}</span>
+                  {item.image === "/images/textile-placeholder.svg" ? (
+                    <div className={"atelier-collection-placeholder atelier-collection-placeholder--" + (index + 1)} aria-hidden="true">
+                      <span>0{index + 1}</span><strong>{item.name}</strong><i>GALLERY COLLECTION</i>
+                    </div>
+                  ) : (
+                    <Image src={item.image} alt="" fill sizes="(max-width: 760px) 75vw, 25vw" unoptimized />
+                  )}
                   <span className="atelier-collection-arrow" aria-hidden="true">↗</span>
                 </div>
                 <div className="atelier-collection-copy">
@@ -130,9 +126,9 @@ export default async function HomePage() {
           <p>Explore the gallery&apos;s approach to textiles, objects and the care taken when presenting the people and processes connected to them.</p>
           <Link className="atelier-light-link" href="/story">Read our story <span aria-hidden="true">↗</span></Link>
         </div>
-        <div className="atelier-story-image">
-          <Image src="/images/textile-placeholder.svg" alt="" fill sizes="(max-width: 760px) 100vw, 42vw" unoptimized />
-          <span>JAISALMER · RAJASTHAN</span>
+        <div className="atelier-story-image" role="img" aria-label="Abstract gallery design study, not product photography">
+          <div className="atelier-story-image-art" aria-hidden="true"><span>D</span></div>
+          <span>DESIGN STUDY · ORIGINAL PHOTOGRAPHY TO FOLLOW</span>
         </div>
       </section>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Search, UserRound, Heart, ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
@@ -8,10 +9,13 @@ import { useWishlist } from "@/components/WishlistProvider";
 import { primaryNavigation } from "@/lib/navigation";
 
 export function Header() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { lineCount, openDrawer } = useCart();
   const { count: wishlistCount } = useWishlist();
+
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <>

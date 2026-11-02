@@ -1,13 +1,19 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { footerNavigation } from "@/lib/navigation";
 
 export function Footer() {
+  const pathname = usePathname();
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <footer className="footer">
       <div className="footer-main">
         <div className="footer-brand">
           <Link href="/" className="footer-mark">DESERT ART GALLERY</Link>
-          <p>A textile-led gallery based in Jaisalmer, Rajasthan.</p>
+          <p>A considered gallery of textiles and objects based in Jaisalmer, Rajasthan.</p>
           <span>JAISALMER · RAJASTHAN · INDIA</span>
         </div>
         {footerNavigation.map((section) => (

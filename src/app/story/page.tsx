@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export const metadata = {
@@ -16,8 +15,11 @@ export default function StoryPage() {
       </header>
 
       <figure className="atelier-story-visual">
-        <Image src="/images/textile-placeholder.svg" alt="" fill sizes="100vw" unoptimized />
-        <figcaption><span>VISUAL STUDY · TEXTILE PATTERN</span><span>DESIGN PLACEHOLDER · NOT PRODUCT PHOTOGRAPHY</span></figcaption>
+        <div className="atelier-story-visual-art" role="img" aria-label="Textile-inspired geometric design study, not a product photograph">
+          <span className="atelier-story-visual-monogram">DAG</span>
+          <span className="atelier-story-visual-caption">MATERIAL · MEMORY · MAKING</span>
+        </div>
+        <figcaption><span>VISUAL STUDY · TEXTILE PATTERN</span><span>ORIGINAL GALLERY PHOTOGRAPHY TO BE ADDED</span></figcaption>
       </figure>
 
       <div className="atelier-story-content">
