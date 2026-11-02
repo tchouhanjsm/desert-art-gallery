@@ -1,10 +1,23 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { getMediaStorageRoot, safeStorageKey, createEditorialStorageKey, getEditorialMediaUrl } from "@/server/media/storage";
+import {
+  getMediaStorageRoot,
+  safeStorageKey,
+  createEditorialStorageKey,
+  getEditorialMediaUrl,
+  readEditorialMedia,
+  removeEditorialMedia,
+  storeEditorialMedia,
+} from "@/server/media/storage";
 
 const originalRoot = process.env.MEDIA_STORAGE_ROOT;
 const originalNodeEnv = process.env.NODE_ENV;
+const temporaryRoots: string[] = [];
 
-afterEach(() => {
+afterEach(async () => {
+  await Promise.all(temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
   if (originalRoot === undefined) delete process.env.MEDIA_STORAGE_ROOT;
   else process.env.MEDIA_STORAGE_ROOT = originalRoot;
   process.env.NODE_ENV = originalNodeEnv;

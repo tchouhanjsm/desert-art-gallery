@@ -348,17 +348,33 @@ export async function isPublicEditorialMedia(storageKey: string): Promise<boolea
   const db = getMySqlDb();
   const [home, collection, artisan, journal] = await Promise.all([
     db.select({ body: siteContent.body }).from(siteContent).where(and(eq(siteContent.contentKey, "homepage"), eq(siteContent.isPublished, true))).limit(1),
-    db.select({ id: collections.id }).from(collections).where(and(
-      eq(collections.heroImagePath, storageKey), eq(collections.heroImageRightsConfirmed, true),
+    db.select({
+      id: collections.id,
+      alt: collections.heroImageAlt,
+      evidence: collections.heroImageRightsEvidence,
+    }).from(collections).where(and(
+      eq(collections.heroImagePath, storageKey),
+      eq(collections.heroImageRightsConfirmed, true),
       eq(collections.isPublished, true),
     )).limit(1),
-    db.select({ id: artisanProfiles.id }).from(artisanProfiles).where(and(
-      eq(artisanProfiles.portraitPath, storageKey), eq(artisanProfiles.portraitRightsConfirmed, true),
+    db.select({
+      id: artisanProfiles.id,
+      alt: artisanProfiles.portraitAltText,
+      evidence: artisanProfiles.portraitRightsEvidence,
+    }).from(artisanProfiles).where(and(
+      eq(artisanProfiles.portraitPath, storageKey),
+      eq(artisanProfiles.portraitRightsConfirmed, true),
       eq(artisanProfiles.isPublished, true),
     )).limit(1),
-    db.select({ id: journalPosts.id }).from(journalPosts).where(and(
-      eq(journalPosts.coverImagePath, storageKey), eq(journalPosts.coverImageRightsConfirmed, true),
-      eq(journalPosts.status, "published"), isNotNull(journalPosts.publishedAt),
+    db.select({
+      id: journalPosts.id,
+      alt: journalPosts.coverImageAlt,
+      evidence: journalPosts.coverImageRightsEvidence,
+    }).from(journalPosts).where(and(
+      eq(journalPosts.coverImagePath, storageKey),
+      eq(journalPosts.coverImageRightsConfirmed, true),
+      eq(journalPosts.status, "published"),
+      isNotNull(journalPosts.publishedAt),
     )).limit(1),
   ]);
   const body = home[0]?.body;
@@ -367,11 +383,13 @@ export async function isPublicEditorialMedia(storageKey: string): Promise<boolea
     typeof body.hero_image_alt === "string" && body.hero_image_alt.trim().length > 0 &&
     typeof body.hero_image_rights_evidence === "string" && body.hero_image_rights_evidence.trim().length > 0;
   if (isHomepageMedia) return true;
+
   const [collectionRow] = collection;
+  if (collectionRow && collectionRow.alt.trim() && collectionRow.evidence.trim()) return true;
   const [artisanRow] = artisan;
+  if (artisanRow && artisanRow.alt.trim() && artisanRow.evidence.trim()) return true;
   const [journalRow] = journal;
-  if (collectionRow || artisanRow || journalRow) return true;
-  return false;
+  return Boolean(journalRow && journalRow.alt.trim() && journalRow.evidence.trim());
 }
 
 export async function getPublishedMediaReferences() {
