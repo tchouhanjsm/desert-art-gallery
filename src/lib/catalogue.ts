@@ -57,7 +57,16 @@ type CollectionRow = {
   slug: string;
   description: string;
   hero_image_path: string | null;
+  hero_image_alt: string;
   hero_image_rights_confirmed: boolean;
+};
+
+export type StorefrontCollection = {
+  name: string;
+  slug: string;
+  description: string;
+  image: string;
+  imageAlt: string;
 };
 
 function safePriceMinor(value: number | string | null): number | null {
@@ -159,13 +168,17 @@ export async function getStorefrontProducts(): Promise<Product[]> {
   return resolved.filter((product): product is Product => product !== null);
 }
 
-export async function getStorefrontCollections() {
+export async function getStorefrontCollections(): Promise<StorefrontCollection[]> {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return process.env.NODE_ENV === "development" ? previewCollections : [];
+  if (!supabase) {
+    return process.env.NODE_ENV === "development"
+      ? previewCollections.map((collection) => ({ ...collection, imageAlt: collection.name }))
+      : [];
+  }
 
   const { data, error } = await supabase
     .from("collections")
-    .select("id,name,slug,description,hero_image_path,hero_image_rights_confirmed")
+    .select("id,name,slug,description,hero_image_path,hero_image_alt,hero_image_rights_confirmed")
     .eq("is_published", true)
     .order("sort_order", { ascending: true })
     .limit(40);
@@ -175,13 +188,19 @@ export async function getStorefrontCollections() {
   const rows = (data ?? []) as unknown as CollectionRow[];
   return Promise.all(rows.map(async (row) => {
     let image = "/images/textile-placeholder.svg";
-    if (row.hero_image_path && row.hero_image_rights_confirmed) {
+    if (row.hero_image_path && row.hero_image_rights_confirmed && row.hero_image_alt?.trim()) {
       const { data: signed } = await supabase.storage
         .from("product-media")
         .createSignedUrl(row.hero_image_path, 60 * 60);
       if (signed?.signedUrl) image = signed.signedUrl;
     }
-    return { name: row.name, slug: row.slug, description: row.description, image };
+    return {
+      name: row.name,
+      slug: row.slug,
+      description: row.description,
+      image,
+      imageAlt: row.hero_image_alt?.trim() || row.name,
+    };
   }));
 }
 

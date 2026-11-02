@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
@@ -42,6 +43,11 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <p>{collection.description}</p>
         <Link className="text-link" href="/shop">Explore all pieces <span aria-hidden="true">↗</span></Link>
       </header>
+      {collection.image && collection.image !== "/images/textile-placeholder.svg" && (
+        <div className="atelier-collection-hero">
+          <Image src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="100vw" unoptimized />
+        </div>
+      )}
       {productsInCollection.length ? (
         <div className="atelier-product-grid">
           {productsInCollection.map((product) => <StorefrontProductCard key={product.slug} product={product} />)}
