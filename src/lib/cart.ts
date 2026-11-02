@@ -1,4 +1,4 @@
-import { normalizeVariantId } from "@/lib/variants";
+import { normalizeVariantId } from "./variants";
 
 export type CartLine = { slug: string; quantity: number; variantId?: string };
 

@@ -22,17 +22,38 @@ on public.product_variants(product_id, status, sort_order, created_at);
 create or replace function public.guard_product_variant_status()
 returns trigger
 language plpgsql
+security definer
 set search_path = pg_catalog, public
 as $variant_status$
 declare
   v_product_status text;
   v_base_price bigint;
+  v_active_reservations bigint;
 begin
+  if tg_op = 'UPDATE' and new.product_id is distinct from old.product_id then
+    raise exception 'A product variant cannot be moved to another product';
+  end if;
+
+  -- Serialize all variant edits with reservation and stock-adjustment locks.
+  select status, price_minor into v_product_status, v_base_price
+  from public.products where id = new.product_id for update;
+  if not found then raise exception 'Parent product was not found'; end if;
+
   if new.status = 'active' then
-    select status, price_minor into v_product_status, v_base_price
-    from public.products where id = new.product_id;
     if v_product_status is distinct from 'active' or v_base_price is null then
       raise exception 'A variant can be activated only for an active product with a verified base price';
+    end if;
+  end if;
+
+  if tg_op = 'UPDATE' and new.status is distinct from old.status then
+    select coalesce(sum(ri.quantity), 0) into v_active_reservations
+    from public.inventory_reservation_items ri
+    join public.inventory_reservations r on r.id = ri.reservation_id
+    where ri.product_id = new.product_id
+      and r.status = 'reserved'
+      and r.expires_at > now();
+    if v_active_reservations > 0 then
+      raise exception 'Active reservations prevent changing variant publication state';
     end if;
   end if;
   return new;
@@ -41,7 +62,7 @@ $variant_status$;
 
 drop trigger if exists guard_product_variant_status on public.product_variants;
 create trigger guard_product_variant_status
-before insert or update of status, product_id on public.product_variants
+before insert or update on public.product_variants
 for each row execute function public.guard_product_variant_status();
 
 create or replace function public.guard_product_variant_inventory_balance()

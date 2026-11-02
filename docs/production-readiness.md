@@ -170,3 +170,12 @@ Production activation requires merchant-authorized catalogue data and original p
 - Branch: `feat/luxury-storefront-foundation`; base remains `main`.
 - The source files and tests were read from the live branch before editing. Local clone/test execution is unavailable because this runtime cannot resolve `github.com`; GitHub Actions is required for final typecheck, unit tests, lint and build evidence.
 - Next engineering increment: order lifecycle and checkout preflight, but only after reservation expiry scheduling, guest reservation decision, shipping/tax configuration model and owner-approved fulfilment inputs are addressed. Do not add payment capture until order creation, reconciliation and signed webhook flows are complete.
+
+
+### Follow-up hardening — variant mutation concurrency
+
+- Variant mutations now lock the parent product row, using the same product-first lock order as reservations and stock adjustments.
+- Changing a variant's active/draft/archived state is rejected while any unexpired reservation exists for that product. This prevents a held variant line from being switched into product-level stock mode during the reservation window.
+- Variant records cannot be moved between products.
+- Changed the cart-domain helper to a relative import so Vitest can resolve it without relying on Next.js path-alias runtime behavior.
+- Verified the variant stock adjustment integer validation uses the same whole-number grammar as the existing product stock action.

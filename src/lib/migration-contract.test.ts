@@ -118,6 +118,8 @@ describe("variant and inventory reservation migration safety contract", () => {
     expect(variants).toContain("v_available < v_item.quantity");
     expect(variants).toContain("p_ttl_seconds not between 300 and 1800");
     expect(variants).toContain("pg_advisory_xact_lock");
+    expect(variants).toContain("Active reservations prevent changing variant publication state");
+    expect(variants).toContain("from public.products where id = new.product_id for update");
   });
 
   it("does not expose reservation writes directly to customer roles", () => {
