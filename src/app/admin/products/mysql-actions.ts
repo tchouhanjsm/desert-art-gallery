@@ -15,6 +15,31 @@ import {
 } from "@/server/media/product-storage";
 import type { EditorialImageMime } from "@/server/media/storage";
 
+function variantSku(formData: FormData): string | null {
+  const sku = textValue(formData, "sku", 100).toUpperCase() || null;
+  if (sku && !/^[A-Z0-9][A-Z0-9._/-]{0,99}$/.test(sku)) {
+    throw new Error("Variant SKU contains unsupported characters.");
+  }
+  return sku;
+}
+
+function parseVariantAttributes(raw: string): Record<string, string> {
+  if (!raw) return {};
+  if (raw.length > 3000) throw new Error("Variant attributes are too long.");
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
+    const entries = Object.entries(parsed);
+    if (entries.length > 30 || entries.some(([key, value]) =>
+      !key.trim() || key.length > 80 || typeof value !== "string" || value.length > 160)) {
+      throw new Error();
+    }
+    return Object.fromEntries(entries) as Record<string, string>;
+  } catch {
+    throw new Error("Variant attributes must be a JSON object containing short string values.");
+  }
+}
+
 export type CatalogueActionResult = { ok: true; id?: string } | { ok: false; error: string };
 
 async function requireCatalogueAdmin() {
