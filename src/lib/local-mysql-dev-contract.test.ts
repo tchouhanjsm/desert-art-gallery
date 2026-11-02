@@ -23,7 +23,8 @@ describe("project-local MySQL development contract", () => {
 
   it("keeps local credentials out of the tracked environment template", () => {
     expect(envExample).toContain("REPLACE_WITH_A_UNIQUE_48_CHARACTER_HEX_SECRET");
-    expect(envExample).not.toMatch(/(?:^|\n)(?:MYSQL_ROOT_PASSWORD|MYSQL_PASSWORD)=.{12,}(?:\n|$)/);
+    expect(envExample).toContain("MYSQL_ROOT_PASSWORD=REPLACE_WITH_A_UNIQUE_48_CHARACTER_HEX_SECRET");
+    expect(envExample).toContain("MYSQL_PASSWORD=REPLACE_WITH_ANOTHER_UNIQUE_48_CHARACTER_HEX_SECRET");
     expect(envExample).toContain("NEXT_PUBLIC_SITE_URL=http://localhost:3000");
     expect(envExample).not.toContain("desertartgallery.net");
   });
