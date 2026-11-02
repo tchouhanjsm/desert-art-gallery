@@ -31,6 +31,7 @@ export type LocalCatalogueImportRow = {
   currency: string;
   errors: string[];
   sourceSku: string | null;
+  sourceSkuDuplicated: boolean;
   tagCount: number;
   imageCount: number;
   warnings: string[];
@@ -119,6 +120,7 @@ export async function previewLocalCatalogueCsv(sourceName: string, bytes: Uint8A
     currency: row.currency,
     errors: [...row.errors],
     sourceSku: row.sourceSku,
+    sourceSkuDuplicated: row.sourceMetadata?.sourceSkuDuplicate === true,
     tagCount: row.tags.length,
     imageCount: row.sourceImageUrls.length,
     warnings: [...row.warnings],
@@ -177,7 +179,7 @@ export async function previewLocalCatalogueCsv(sourceName: string, bytes: Uint8A
     "Opening stock is recorded against a default Standard variant in the inventory movement ledger.",
   ];
   if (input.sourceType === "etsy") {
-    const duplicatedSkus = new Set(rows.filter((row) => row.sourceMetadata?.sourceSkuDuplicate === true).map((row) => row.sourceSku));
+    const duplicatedSkus = new Set(rows.filter((row) => row.sourceSkuDuplicated).map((row) => row.sourceSku));
     if (duplicatedSkus.size) warnings.push(duplicatedSkus.size + " SKU values are duplicated in this Etsy export; originals are preserved in source metadata but not assigned to the unique SKU field.");
     if (rows.some((row) => row.warnings.length)) warnings.push("Review row-level Etsy warnings before publication.");
   }
