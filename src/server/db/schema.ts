@@ -48,6 +48,17 @@ export const collections = mysqlTable("collections", {
   index("collections_public_order_idx").on(table.isPublished, table.sortOrder, table.name),
 ]);
 
+export const collectionProductLinks = mysqlTable("collection_product_links", {
+  id: char("id", { length: 36 }).primaryKey(),
+  collectionId: char("collection_id", { length: 36 }).notNull().references(() => collections.id, { onDelete: "cascade" }),
+  productSlug: varchar("product_slug", { length: 180 }).notNull(),
+  sortOrder: int("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+}, (table) => [
+  uniqueIndex("collection_product_links_pair_uq").on(table.collectionId, table.productSlug),
+  index("collection_product_links_product_idx").on(table.productSlug),
+]);
+
 export const artisanProfiles = mysqlTable("artisan_profiles", {
   id: char("id", { length: 36 }).primaryKey(),
   fullName: varchar("full_name", { length: 160 }).notNull(),

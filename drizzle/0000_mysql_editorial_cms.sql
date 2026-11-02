@@ -32,6 +32,19 @@ CREATE TABLE IF NOT EXISTS collections (
     CHECK (hero_image_rights_confirmed = FALSE OR (CHAR_LENGTH(TRIM(hero_image_rights_evidence)) > 0 AND CHAR_LENGTH(TRIM(hero_image_alt)) > 0))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS collection_product_links (
+  id CHAR(36) NOT NULL,
+  collection_id CHAR(36) NOT NULL,
+  product_slug VARCHAR(180) NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE KEY collection_product_links_pair_uq (collection_id, product_slug),
+  KEY collection_product_links_product_idx (product_slug),
+  CONSTRAINT collection_product_links_collection_fk
+    FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS artisan_profiles (
   id CHAR(36) NOT NULL,
   full_name VARCHAR(160) NOT NULL,
