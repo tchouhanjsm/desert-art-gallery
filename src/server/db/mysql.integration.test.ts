@@ -4,7 +4,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { closeMySqlPool, getMySqlDb } from "./index";
 import {
-  artisanProfiles, collections, inventoryMovements, inventoryReservationItems,
+  artisanProfiles, collectionProductLinks, collections, inventoryMovements, inventoryReservationItems,
   inventoryReservations, journalPosts, productCategories, productCategoryLinks,
   productMedia, products, productVariants, siteContent,
 } from "./schema";
