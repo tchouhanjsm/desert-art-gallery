@@ -29,10 +29,13 @@ const navigation = [
   { label: "Shipping & tax", href: "/admin/checkout", icon: Settings2, section: "SETTINGS" },
 ];
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({ children, mysqlMode = false }: { children: React.ReactNode; mysqlMode?: boolean }) {
   const pathname = usePathname();
+  const visibleNavigation = mysqlMode
+    ? navigation.filter((item) => item.href === "/admin/products")
+    : navigation;
   const [mobileOpen, setMobileOpen] = useState(false);
-  const active = navigation.find((item) =>
+  const active = visibleNavigation.find((item) =>
     item.href === "/admin"
       ? pathname === "/admin"
       : pathname === item.href || pathname.startsWith(item.href + "/"),
@@ -50,7 +53,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         />
       )}
       <aside className={mobileOpen ? "owner-sidebar is-open" : "owner-sidebar"}>
-        <Link className="owner-brand" href="/admin" onClick={() => setMobileOpen(false)}>
+        <Link className="owner-brand" href={mysqlMode ? "/admin/products" : "/admin"} onClick={() => setMobileOpen(false)}>
           <span className="owner-brand-monogram">D</span>
           <span><strong>DESERT ART GALLERY</strong><small>OWNER WORKSPACE</small></span>
         </Link>
@@ -58,14 +61,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="owner-workspace-card">
           <span>BUSINESS WORKSPACE</span>
           <strong>Desert Art Gallery</strong>
-          <small>Jaisalmer · Rajasthan</small>
+          <small>{mysqlMode ? "Local MySQL catalogue" : "Jaisalmer · Rajasthan"}</small>
         </div>
 
         <nav className="owner-navigation" aria-label="Owner workspace">
-          {(["WORKSPACE", "OPERATIONS", "SETTINGS"] as const).map((section) => (
+          {(mysqlMode ? ["WORKSPACE"] as const : ["WORKSPACE", "OPERATIONS", "SETTINGS"] as const).map((section) => (
             <div className="owner-navigation-section" key={section}>
               <span className="owner-navigation-label">{section}</span>
-              {navigation.filter((item) => item.section === section).map((item) => {
+              {visibleNavigation.filter((item) => item.section === section).map((item) => {
                 const Icon = item.icon;
                 const selected = active?.href === item.href;
                 return (
