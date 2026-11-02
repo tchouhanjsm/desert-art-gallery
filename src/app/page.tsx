@@ -2,27 +2,33 @@ import Link from "next/link";
 import Image from "next/image";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
+import { getPublishedHomepageContent } from "@/lib/site-content";
 
 export default async function HomePage() {
-  const [collections, products] = await Promise.all([
+  const [collections, products, homeContent] = await Promise.all([
     getStorefrontCollections(),
     getStorefrontProducts(),
+    getPublishedHomepageContent(),
   ]);
 
   return (
     <div className="atelier-home">
       <section className="hero hero--atelier">
-        <div className="atelier-hero-art" aria-hidden="true">
-          <span className="atelier-hero-art-mark">DAG</span>
-          <span className="atelier-hero-art-caption">DESERT / 26</span>
-        </div>
+        {homeContent?.heroImage ? (
+          <Image className="hero-image" src={homeContent.heroImage} alt={homeContent.heroImageAlt} fill priority unoptimized sizes="100vw" />
+        ) : (
+          <div className="atelier-hero-art" aria-hidden="true">
+            <span className="atelier-hero-art-mark">DAG</span>
+            <span className="atelier-hero-art-caption">DESERT / 26</span>
+          </div>
+        )}
         <div className="hero-content atelier-hero-content">
-          <div className="eyebrow">A CURATED GALLERY · JAISALMER, RAJASTHAN</div>
-          <h1>Objects with <em>stories.</em><br />Textiles with <em>character.</em></h1>
-          <p>Discover a considered collection of textiles and objects, presented with the detail and context each piece deserves.</p>
+          <div className="eyebrow">{homeContent?.eyebrow || "A CURATED GALLERY · JAISALMER, RAJASTHAN"}</div>
+          <h1>{homeContent?.lineOne || "Objects with"} <em>{homeContent?.accentOne || "stories."}</em><br />{homeContent?.lineTwo || "Textiles with"} <em>{homeContent?.accentTwo || "character."}</em></h1>
+          <p>{homeContent?.description || "Discover a considered collection of textiles and objects, presented with the detail and context each piece deserves."}</p>
           <div className="atelier-hero-actions">
-            <Link className="button-primary" href="/shop">Explore the collection <span aria-hidden="true">↗</span></Link>
-            <Link className="atelier-hero-secondary" href="/story">Our story <span aria-hidden="true">↗</span></Link>
+            <Link className="button-primary" href="/shop">{homeContent?.primaryCtaLabel || "Explore the collection"} <span aria-hidden="true">↗</span></Link>
+            <Link className="atelier-hero-secondary" href="/story">{homeContent?.secondaryCtaLabel || "Our story"} <span aria-hidden="true">↗</span></Link>
           </div>
           <div className="atelier-hero-foot">
             <span>DESERT ART GALLERY</span>
@@ -79,7 +85,7 @@ export default async function HomePage() {
                       <span>0{index + 1}</span><strong>{item.name}</strong><i>GALLERY COLLECTION</i>
                     </div>
                   ) : (
-                    <Image src={item.image} alt="" fill sizes="(max-width: 760px) 75vw, 25vw" unoptimized />
+                    <Image src={item.image} alt={item.imageAlt || item.name} fill sizes="(max-width: 760px) 75vw, 25vw" unoptimized />
                   )}
                   <span className="atelier-collection-arrow" aria-hidden="true">↗</span>
                 </div>
