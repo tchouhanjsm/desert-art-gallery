@@ -19,13 +19,15 @@ describe("legacy editorial import safety contract", () => {
     expect(importer).toContain("The MySQL editorial tables are not empty");
   });
 
-  it("copies only homepage, collections, maker profiles and journal content", () => {
-    for (const table of ["site_content", "collections", "artisan_profiles", "journal_posts"]) {
+  it("copies only editorial records and product slugs needed for collection curation", () => {
+    for (const table of ["site_content", "collections", "artisan_profiles", "journal_posts", "collection_products"]) {
       expect(importer).toContain('from("' + table + '")');
     }
-    expect(importer).not.toContain('from("products")');
-    expect(importer).not.toContain('from("orders")');
-    expect(importer).not.toContain('from("customers")');
+    expect(importer).toContain('from("products").select("id,slug")');
+    expect(importer).toContain("tx.insert(collectionProductLinks)");
+    expect(importer).not.toContain("tx.insert(products)");
+    expect(importer).not.toContain("tx.insert(orders)");
+    expect(importer).not.toContain("tx.insert(customers)");
   });
 
   it("validates media paths, image signatures and size before writing files", () => {

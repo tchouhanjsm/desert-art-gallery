@@ -11,13 +11,15 @@ const journal = readFileSync(
 );
 
 describe("MySQL editorial CMS migration contract", () => {
-  it("contains the four owner-managed editorial tables and their unique keys", () => {
-    for (const table of ["site_content", "collections", "artisan_profiles", "journal_posts"]) {
+  it("contains the owner-managed editorial tables and collection membership ledger", () => {
+    for (const table of ["site_content", "collections", "collection_product_links", "artisan_profiles", "journal_posts"]) {
       expect(migration).toContain("CREATE TABLE IF NOT EXISTS " + table);
     }
     expect(migration).toContain("site_content_key_uq");
     expect(migration).toContain("collections_slug_uq");
     expect(migration).toContain("journal_posts_slug_uq");
+    expect(migration).toContain("collection_product_links_pair_uq");
+    expect(migration).toContain("collection_product_links_collection_fk");
   });
 
   it("does not allow publishing rights-confirmed images without evidence and alt text", () => {

@@ -129,10 +129,12 @@ async function main() {
     supabase.from("collection_products").select("collection_id,product_id,sort_order").limit(maxRows),
     supabase.from("products").select("id,slug").limit(5000),
   ]);
-  for (const result of [homeResult, collectionResult, artisanResult, journalResult, productLinksResult, productsResult]) {
+  for (const result of [homeResult, collectionResult, artisanResult, journalResult, productLinksResult]) {
     if (result.error) throw new Error("Could not read all legacy editorial data: " + result.error.message);
     if ((result.data?.length ?? 0) >= maxRows) throw new Error("An editorial table reached the " + maxRows + " row safety limit. Raise the cap after reviewing the data volume.");
   }
+  if (productsResult.error) throw new Error("Could not read product slugs for collection assignments: " + productsResult.error.message);
+  if ((productsResult.data?.length ?? 0) >= 5000) throw new Error("The product lookup reached the 5,000 row safety limit. Raise the cap after reviewing the catalogue size.");
 
   const home = (homeResult.data ?? []) as unknown as SourceSiteContent[];
   const collectionRows = (collectionResult.data ?? []) as unknown as SourceCollection[];
@@ -146,6 +148,9 @@ async function main() {
     if (!collectionIds.has(link.collection_id) || !productSlug) return [];
     return [{ collectionId: link.collection_id, productSlug, sortOrder: link.sort_order ?? 0 }];
   });
+  if (collectionProductRows.length !== productLinks.length) {
+    throw new Error("Legacy collection product assignments contain a missing collection or product. Resolve the broken links before importing.");
+  }
   const entries = mediaEntries(home, collectionRows, artisanRows, journalRows);
   const uniqueEntries = [...new Map(entries.map((item) => [validateMediaReference(item), item])).values()];
   const summary = {

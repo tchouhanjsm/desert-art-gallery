@@ -269,14 +269,14 @@ export default async function AdminContentPage() {
                 <input type="hidden" name="collection_id" value={item.id} />
                 <div>
                   <strong>Products in this collection</strong>
-                  <small>{item.productSlugs.length} assigned · choose up to 200 active catalogue products</small>
+                  <small>{item.productSlugs?.length ?? 0} assigned · choose up to 200 active catalogue products</small>
                 </div>
                 {productOptionsError ? (
                   <p className="owner-inline-warning">The product catalogue could not be loaded. Refresh after checking the existing Supabase product service.</p>
                 ) : productOptions.length ? (
                   <label>
                     Active catalogue products
-                    <select name="product_slugs" multiple size={Math.min(Math.max(productOptions.length, 4), 10)} defaultValue={item.productSlugs}>
+                    <select name="product_slugs" multiple size={Math.min(Math.max(productOptions.length, 4), 10)} defaultValue={item.productSlugs ?? []}>
                       {productOptions.map((product) => <option key={product.slug} value={product.slug}>{product.title} · {product.slug}</option>)}
                     </select>
                     <small>Use Ctrl (Windows) or Command (Mac) to select multiple products.</small>
