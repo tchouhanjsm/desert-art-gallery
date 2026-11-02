@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { isMySqlCatalogueEnabled } from "@/server/db";
 import Link from "next/link";
 import { CatalogueImportForm } from "@/components/CatalogueImportForm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -13,6 +15,7 @@ type ImportBatch = {
 };
 
 export default async function AdminCatalogueImportPage() {
+  if (isMySqlCatalogueEnabled()) redirect("/admin/products");
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return <div className="page-shell"><div className="page-heading"><h1>Import catalogue</h1><p>Connect Supabase to activate secure catalogue imports.</p></div></div>;
