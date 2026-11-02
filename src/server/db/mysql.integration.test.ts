@@ -35,6 +35,7 @@ suite("real MySQL migration and catalogue integration", () => {
     const db = getMySqlDb();
     const id = randomUUID(), categoryId = randomUUID(), productId = randomUUID();
     const variantId = randomUUID(), reservationId = randomUUID();
+    const movementReferenceKey = "integration-" + randomUUID();
     try {
       await db.insert(siteContent).values({ id, contentKey: "integration-" + id, body: { heading: "Integration" }, isPublished: true });
       await db.insert(collections).values({ id, name: "Integration", slug: "integration-" + id, description: "", isPublished: true });
@@ -45,7 +46,7 @@ suite("real MySQL migration and catalogue integration", () => {
       await db.insert(productCategoryLinks).values({ productId, categoryId });
       await db.insert(productVariants).values({ id: variantId, productId, sku: "IT-" + variantId.slice(0, 8), label: "One size", attributes: {}, currency: "USD", stockQuantity: 4 });
       await db.insert(productMedia).values({ id: randomUUID(), productId, storageKey: "products/" + productId + "/" + randomUUID() + ".webp", altText: "Integration image", mimeType: "image/webp", byteSize: 10 });
-      await db.insert(inventoryMovements).values({ id: randomUUID(), variantId, quantityDelta: 4, reason: "Opening balance", referenceKey: "integration-" + randomUUID() });
+      await db.insert(inventoryMovements).values({ id: randomUUID(), variantId, quantityDelta: 4, reason: "Opening balance", referenceKey: movementReferenceKey });
       await db.insert(inventoryReservations).values({ id: reservationId, customerReference: "integration-customer", idempotencyKey: "integration-" + randomUUID(), expiresAt: new Date(Date.now() + 60_000) });
       await db.insert(inventoryReservationItems).values({ id: randomUUID(), reservationId, variantId, quantity: 1 });
       const [product] = await db.select().from(products).where(eq(products.id, productId));
@@ -54,7 +55,7 @@ suite("real MySQL migration and catalogue integration", () => {
     } finally {
       await db.delete(inventoryReservationItems).where(eq(inventoryReservationItems.reservationId, reservationId));
       await db.delete(inventoryReservations).where(eq(inventoryReservations.id, reservationId));
-      await db.delete(inventoryMovements).where(eq(inventoryMovements.referenceKey, "integration-never-match"));
+      await db.delete(inventoryMovements).where(eq(inventoryMovements.referenceKey, movementReferenceKey));
       await db.delete(productMedia).where(eq(productMedia.productId, productId));
       await db.delete(productVariants).where(eq(productVariants.productId, productId));
       await db.delete(productCategoryLinks).where(eq(productCategoryLinks.productId, productId));
@@ -357,7 +358,7 @@ suite("real MySQL migration and catalogue integration", () => {
     const sku = "CSV-" + id.slice(0, 8);
     const csv = [
       "slug,title,short_description,description,category_slug,price,currency,compare_at_price,sku,quantity_on_hand,materials,sizes,measurements,condition_notes,provenance,craft_story",
-      [slug, "Imported test textile", "Verified short detail", "Merchant supplied description", categorySlug, "12.50", "USD", "", sku, "3", "Cotton|Silk", "M|L", "{\"chest\":\"40 cm\"}", "Good condition", "Owner supplied provenance", "Merchant supplied story"].join(","),
+      [slug, "Imported test textile", "Verified short detail", "Merchant supplied description", categorySlug, "12.50", "USD", "", sku, "3", "Cotton|Silk", "M|L", '"{""chest"":""40 cm""}"', "Good condition", "Owner supplied provenance", "Merchant supplied story"].join(","),
     ].join("\n");
     const bytes = new TextEncoder().encode(csv);
     const sha = createHash("sha256").update(bytes).digest("hex");
