@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isAllowedEtsyImageUrl } from "@/lib/etsy-listings-import";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import { getMySqlDb, isMySqlCatalogueEnabled } from "@/server/db";
 import { inventoryMovements, productCategories, productCategoryLinks, productMedia, products, productVariants } from "@/server/db/schema";
@@ -74,6 +75,12 @@ export default async function EditAdminProductPage({ params }: { params: Promise
       position: item.position,
       isPrimary: item.isPrimary,
     }));
+    const rawSourceImageUrls = mysqlProduct.sourceMetadata?.imageUrls;
+    const sourceImages = Array.isArray(rawSourceImageUrls)
+      ? rawSourceImageUrls
+        .filter((url): url is string => typeof url === "string" && isAllowedEtsyImageUrl(url))
+        .map((url, position) => ({ url, position }))
+      : [];
     const initial = {
       id: mysqlProduct.id,
       title: mysqlProduct.title,
@@ -108,6 +115,7 @@ export default async function EditAdminProductPage({ params }: { params: Promise
         productId={id}
         productStatus={mysqlProduct.status}
         media={media}
+        sourceImages={sourceImages}
         variants={variantRows.map((variant) => ({
           id: variant.id, sku: variant.sku, label: variant.label,
           attributes: variant.attributes, stockQuantity: variant.stockQuantity,

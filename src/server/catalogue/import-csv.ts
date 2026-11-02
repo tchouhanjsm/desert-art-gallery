@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { basename } from "node:path";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { parseProductCsv, type ProductImportRow } from "../../lib/product-import";
+import { isEtsyListingsCsv, parseEtsyListingsCsv, type EtsyListingImportRow } from "../../lib/etsy-listings-import";
 import { getMySqlDb } from "../db";
 import { assertLocalMySqlTarget } from "../db/safety";
 import {
@@ -10,6 +11,14 @@ import {
 } from "../db/schema";
 
 const MAX_BYTES = 2 * 1024 * 1024;
+
+type CatalogueImportRow = ProductImportRow & {
+  tags: string[];
+  sourceSku: string | null;
+  sourceImageUrls: string[];
+  warnings: string[];
+  sourceMetadata: Record<string, unknown> | null;
+};
 
 export type LocalCatalogueImportRow = {
   line: number;
@@ -21,9 +30,14 @@ export type LocalCatalogueImportRow = {
   priceMinor: number | null;
   currency: string;
   errors: string[];
+  sourceSku: string | null;
+  tagCount: number;
+  imageCount: number;
+  warnings: string[];
 };
 
 export type LocalCatalogueImportPreview = {
+  sourceType: "template" | "etsy";
   sourceName: string;
   sourceSha256: string;
   totalRows: number;
@@ -55,7 +69,8 @@ function decodeCsv(bytes: Uint8Array): string {
 function validateInput(sourceName: string, bytes: Uint8Array): {
   sourceName: string;
   sourceSha256: string;
-  rows: ProductImportRow[];
+  rows: CatalogueImportRow[];
+  sourceType: "template" | "etsy";
   errors: string[];
 } {
   if (!(bytes instanceof Uint8Array) || bytes.byteLength < 1 || bytes.byteLength > MAX_BYTES) {
@@ -64,11 +79,27 @@ function validateInput(sourceName: string, bytes: Uint8Array): {
   const decodedName = basename(sourceName || "catalogue.csv").slice(0, 255);
   if (!decodedName.toLowerCase().endsWith(".csv")) throw new Error("The source file must have a .csv extension.");
   const sourceSha256 = createHash("sha256").update(bytes).digest("hex");
-  const parsed = parseProductCsv(decodeCsv(bytes));
+  const decoded = decodeCsv(bytes);
+  const sourceType = isEtsyListingsCsv(decoded) ? "etsy" : "template";
+  const parsed = sourceType === "etsy" ? parseEtsyListingsCsv(decoded) : parseProductCsv(decoded);
+  const rows: CatalogueImportRow[] = parsed.rows.map((row) => {
+    const etsyRow = row as ProductImportRow & Partial<EtsyListingImportRow>;
+    return {
+      ...row,
+      tags: etsyRow.tags ?? [],
+      sourceSku: etsyRow.sourceSku ?? row.sku,
+      sourceImageUrls: etsyRow.sourceImageUrls ?? [],
+      warnings: etsyRow.warnings ?? [],
+      sourceMetadata: etsyRow.sourceMetadata
+        ? { ...etsyRow.sourceMetadata, sourceName: decodedName }
+        : null,
+    };
+  });
   return {
     sourceName: decodedName,
     sourceSha256,
-    rows: parsed.rows,
+    sourceType,
+    rows,
     errors: [...parsed.errors],
   };
 }
@@ -87,6 +118,10 @@ export async function previewLocalCatalogueCsv(sourceName: string, bytes: Uint8A
     priceMinor: row.price_minor,
     currency: row.currency,
     errors: [...row.errors],
+    sourceSku: row.sourceSku,
+    tagCount: row.tags.length,
+    imageCount: row.sourceImageUrls.length,
+    warnings: [...row.warnings],
   }));
 
   for (const row of rows) {
@@ -132,10 +167,20 @@ export async function previewLocalCatalogueCsv(sourceName: string, bytes: Uint8A
   const [countRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(products);
   const productsInTarget = Number(countRow?.count ?? 0);
   const warnings = [
+    input.sourceType === "etsy"
+      ? "Etsy Listings Download format detected. Every source row remains a separate draft product."
+      : "Standard product-template CSV format detected.",
     "Imported products remain drafts and are not published automatically.",
-    "CSV import does not upload photographs; add original images and confirm usage rights in the owner workspace.",
+    input.sourceType === "etsy"
+      ? "Etsy image URLs are retained as private source references only; image bytes are not downloaded and image rights are not approved."
+      : "CSV import does not upload photographs; add authorized original images and confirm usage rights in the owner workspace.",
     "Opening stock is recorded against a default Standard variant in the inventory movement ledger.",
   ];
+  if (input.sourceType === "etsy") {
+    const duplicatedSkus = new Set(rows.filter((row) => row.sourceMetadata?.sourceSkuDuplicate === true).map((row) => row.sourceSku));
+    if (duplicatedSkus.size) warnings.push(duplicatedSkus.size + " SKU values are duplicated in this Etsy export; originals are preserved in source metadata but not assigned to the unique SKU field.");
+    if (rows.some((row) => row.warnings.length)) warnings.push("Review row-level Etsy warnings before publication.");
+  }
   if (productsInTarget > 0) warnings.push("The MySQL product table is not empty; commit is blocked to prevent a merge or overwrite.");
   if (duplicate.length) warnings.push("This exact CSV content has already been imported; commit is blocked by its source hash.");
   const validRows = rows.filter((row) => row.errors.length === 0).length;
@@ -143,6 +188,7 @@ export async function previewLocalCatalogueCsv(sourceName: string, bytes: Uint8A
   return {
     sourceName: input.sourceName,
     sourceSha256: input.sourceSha256,
+    sourceType: input.sourceType,
     totalRows: rows.length,
     validRows,
     productsInTarget,
@@ -214,6 +260,8 @@ export async function commitLocalCatalogueCsv(
         description: row.description || null,
         productType: "",
         materials: row.materials,
+        tags: row.tags.length ? row.tags : null,
+        sourceMetadata: row.sourceMetadata,
         sizes: row.sizes,
         measurements: row.measurements,
         conditionNotes: row.condition_notes || null,
@@ -269,6 +317,10 @@ export async function commitLocalCatalogueCsv(
         stock_units_added: stockUnitsAdded,
         status: "drafts_created",
         media_imported: false,
+        source_type: input.sourceType,
+        source_image_urls_staged: input.sourceType === "etsy",
+        source_images_downloaded: false,
+        image_rights_approved: false,
       },
     });
   });

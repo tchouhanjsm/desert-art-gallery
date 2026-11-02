@@ -410,6 +410,68 @@ suite("real MySQL migration and catalogue integration", () => {
     }
   }, 60_000);
 
+  it("imports native Etsy listings as distinct drafts with tags, source images and safe SKU handling", async () => {
+    const db = getMySqlDb();
+    const headers = ["TITLE", "DESCRIPTION", "PRICE", "CURRENCY_CODE", "QUANTITY", "TAGS", "MATERIALS", "IMAGE1", "SKU"];
+    const rows = [
+      ["One Of A Kind Tribal Jacket", "First piece description", "980.00", "USD", "1", "tribal jacket,mirror work", "Wool,Cotton,Mirror", "https://i.etsystatic.com/22307146/first.jpg", "DUP-51"],
+      ["One Of A Kind Tribal Jacket", "Second piece description", "880", "USD", "1", "folk jacket,handmade", "Wool,Cotton", "https://i.etsystatic.com/22307146/second.jpg", "DUP-51"],
+    ];
+    const quote = (value: string) => '"' + value.replace(/"/g, '""') + '"';
+    const bytes = new TextEncoder().encode([
+      headers.join(","),
+      ...rows.map((row) => row.map(quote).join(",")),
+    ].join("\r\n"));
+    const sha = createHash("sha256").update(bytes).digest("hex");
+    let importedSlugs: string[] = [];
+    try {
+      const preview = await previewLocalCatalogueCsv("EtsyListingsDownload.csv", bytes);
+      expect(preview.sourceType).toBe("etsy");
+      expect(preview.canCommit).toBe(true);
+      expect(preview.totalRows).toBe(2);
+      expect(preview.rows.every((row) => row.sku === null)).toBe(true);
+      expect(preview.rows.every((row) => row.imageCount === 1 && row.tagCount === 2)).toBe(true);
+      expect(preview.warnings.join(" ")).toContain("SKU values are duplicated");
+      importedSlugs = preview.rows.map((row) => row.slug);
+
+      const result = await commitLocalCatalogueCsv("EtsyListingsDownload.csv", bytes, "IMPORT_TO_LOCAL_MYSQL");
+      expect(result.productsCreated).toBe(2);
+      expect(result.stockUnitsAdded).toBe(2);
+      const imported = await db.select().from(products).where(inArray(products.slug, importedSlugs));
+      expect(imported).toHaveLength(2);
+      expect(imported.every((product) => product.status === "draft")).toBe(true);
+      expect(imported.every((product) => product.currency === "USD" && product.priceMinor > 0)).toBe(true);
+      expect(imported.every((product) => product.tags?.length === 2)).toBe(true);
+      expect(imported.every((product) => product.sourceMetadata?.provider === "etsy")).toBe(true);
+      expect(imported.every((product) => Array.isArray(product.sourceMetadata?.imageUrls))).toBe(true);
+      expect(imported.every((product) => product.sourceMetadata?.sourceName === "EtsyListingsDownload.csv")).toBe(true);
+      const variants = await db.select().from(productVariants)
+        .where(inArray(productVariants.productId, imported.map((product) => product.id)));
+      expect(variants).toHaveLength(2);
+      expect(variants.every((variant) => variant.sku === null && variant.stockQuantity === 1)).toBe(true);
+      expect(await db.select().from(productMedia)
+        .where(inArray(productMedia.productId, imported.map((product) => product.id)))).toHaveLength(0);
+      const [batch] = await db.select().from(catalogueImportBatches).where(eq(catalogueImportBatches.sourceSha256, sha));
+      expect(batch.rowCount).toBe(2);
+      expect((batch.report as Record<string, unknown>).source_type).toBe("etsy");
+    } finally {
+      if (importedSlugs.length) {
+        const imported = await db.select().from(products).where(inArray(products.slug, importedSlugs));
+        for (const product of imported) {
+          const variants = await db.select().from(productVariants).where(eq(productVariants.productId, product.id));
+          for (const variant of variants) {
+            await db.delete(inventoryMovements).where(eq(inventoryMovements.variantId, variant.id));
+          }
+          await db.delete(productCategoryLinks).where(eq(productCategoryLinks.productId, product.id));
+          await db.delete(productVariants).where(eq(productVariants.productId, product.id));
+          await db.delete(productMedia).where(eq(productMedia.productId, product.id));
+          await db.delete(products).where(eq(products.id, product.id));
+        }
+      }
+      await db.delete(catalogueImportBatches).where(eq(catalogueImportBatches.sourceSha256, sha));
+    }
+  }, 60_000);
+
   it("reopens the pool and reads previously committed content", async () => {
     const db = getMySqlDb();
     const id = randomUUID();

@@ -304,3 +304,12 @@
 .owner-cms-product-assignments button { justify-self: start; }
 .owner-cms-no-products { margin: 0; color: var(--owner-muted); font-size: 9px; line-height: 1.6; }
 @media(max-width:700px){.owner-cms-product-assignments select{min-height:190px;}}
+
+/* Private source-image references imported from Etsy listings. */
+.etsy-source-review>p { max-width: 760px; color: var(--owner-muted); font-size: 12px; line-height: 1.7; }
+.etsy-source-image-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(150px,1fr)); gap: 14px; margin-top: 16px; }
+.etsy-source-image-card { min-width: 0; padding: 10px; display: grid; align-content: start; gap: 8px; border: 1px solid var(--owner-line); background: #fffdfa; }
+.etsy-source-image-card img { width: 100%; aspect-ratio: 4/5; display: block; object-fit: cover; background: #eee7dc; }
+.etsy-source-image-card strong { color: var(--owner-ink); font-size: 10px; }
+.etsy-source-image-card a { color: var(--owner-ink); font-size: 9px; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+@media(max-width:520px){.etsy-source-image-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}

@@ -135,6 +135,8 @@ export const products = mysqlTable("products", {
   description: text("description"),
   productType: varchar("product_type", { length: 100 }).notNull().default(""),
   materials: json("materials").$type<string[] | null>(),
+  tags: json("tags").$type<string[] | null>(),
+  sourceMetadata: json("source_metadata").$type<Record<string, unknown> | null>(),
   sizes: json("sizes").$type<string[] | null>(),
   measurements: json("measurements").$type<Record<string, unknown> | null>(),
   conditionNotes: text("condition_notes"),

@@ -36,6 +36,8 @@ type Media = {
   isPrimary: boolean;
 };
 
+type SourceImage = { url: string; position: number };
+
 type Movement = {
   id: string;
   quantityDelta: number;
@@ -44,6 +46,27 @@ type Movement = {
   createdAt: string;
   variantLabel: string;
 };
+
+function EtsySourceImageReview({ images }: { images: SourceImage[] }) {
+  if (!images.length) return null;
+  return (
+    <section className="admin-media-section etsy-source-review">
+      <div className="section-kicker">ETSY LISTING SOURCE</div>
+      <h2>Imported listing photographs</h2>
+      <p>These are external image references retained from the Etsy export. They have not been copied into gallery storage and are not rights-approved. Download only images you are authorized to reuse, then upload the original file in the private media section below and record usage-rights evidence before publishing.</p>
+      <div className="etsy-source-image-grid">
+        {images.map((image) => (
+          <article className="etsy-source-image-card" key={image.url + image.position}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={image.url} alt={"Etsy source photograph " + (image.position + 1)} loading="lazy" referrerPolicy="no-referrer" />
+            <strong>Source image {image.position + 1}</strong>
+            <a href={image.url} target="_blank" rel="noreferrer noopener">Open original image ↗</a>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function ResultMessage({ state }: { state: CatalogueActionResult }) {
   if (state.ok === false) {
@@ -167,12 +190,14 @@ export function MySqlProductManagement({
   productId,
   productStatus,
   media,
+  sourceImages = [],
   variants,
   movements,
 }: {
   productId: string;
   productStatus: string;
   media: Media[];
+  sourceImages?: SourceImage[];
   variants: Variant[];
   movements: Movement[];
 }) {
@@ -188,6 +213,8 @@ export function MySqlProductManagement({
         <h3>Add an option</h3>
         <NewVariantForm productId={productId} />
       </section>
+
+      <EtsySourceImageReview images={sourceImages} />
 
       <section className="admin-media-section">
         <div className="section-kicker">PRODUCT PHOTOGRAPHY</div>

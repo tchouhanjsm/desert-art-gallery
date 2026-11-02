@@ -12,7 +12,7 @@ async function main() {
   const confirmed = args.includes("--confirm-local-import");
   const sourcePath = args.find((arg) => !arg.startsWith("--"));
   if (!sourcePath) {
-    throw new Error("Usage: npm run db:import-products -- ./catalogue.csv [--commit --confirm-local-import]");
+    throw new Error("Usage: npm run db:import-products -- ./EtsyListingsDownload.csv [--commit --confirm-local-import]");
   }
   if (commit && !confirmed) {
     throw new Error("Commit mode requires both --commit and --confirm-local-import.");
@@ -31,7 +31,7 @@ async function main() {
 
   const result = await commitLocalCatalogueCsv(sourceName, bytes, "IMPORT_TO_LOCAL_MYSQL");
   process.stdout.write(JSON.stringify(result, null, 2) + "\n");
-  process.stdout.write("\nImport committed. All imported products remain drafts and require owner review, original media and image-rights approval before publication.\n");
+  process.stdout.write("\nImport committed. Products remain drafts. Etsy image URLs are source references only; add authorized originals and confirm image rights before publication.\n");
 }
 
 main().catch((error: unknown) => {

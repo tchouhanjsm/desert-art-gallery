@@ -15,6 +15,13 @@
       "when": 1793603600000,
       "tag": "0001_mysql_catalogue_inventory",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793607200000,
+      "tag": "0002_etsy_listing_source",
+      "breakpoints": true
     }
   ]
 }
