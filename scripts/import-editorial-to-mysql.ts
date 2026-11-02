@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { eq } from "drizzle-orm";
 import { closeMySqlPool, getMySqlDb, pingMySql } from "@/server/db";
-import { artisanProfiles, collections, journalPosts, siteContent } from "@/server/db/schema";
+import { artisanProfiles, collectionProductLinks, collections, journalPosts, siteContent } from "@/server/db/schema";
 import { hasSupportedImageSignature } from "@/lib/image-signature";
 import {
   readEditorialMedia,
@@ -42,6 +42,7 @@ type SourceJournalPost = {
   cover_image_rights_evidence: string | null; status: "draft" | "published" | "archived";
   author_id: string | null; published_at: string | null; created_at: string | null; updated_at: string | null;
 };
+type SourceCollectionProduct = { collection_id: string; product_id: string; sort_order: number };
 
 const importMarker = "__legacy_supabase_editorial_import_v1";
 const commitMode = process.argv.includes("--commit");
@@ -119,13 +120,15 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 
-  const [homeResult, collectionResult, artisanResult, journalResult] = await Promise.all([
+  const [homeResult, collectionResult, artisanResult, journalResult, productLinksResult, productsResult] = await Promise.all([
     supabase.from("site_content").select("*").eq("content_key", "homepage").limit(maxRows),
     supabase.from("collections").select("*").limit(maxRows),
     supabase.from("artisan_profiles").select("*").limit(maxRows),
     supabase.from("journal_posts").select("*").limit(maxRows),
+    supabase.from("collection_products").select("collection_id,product_id,sort_order").limit(maxRows),
+    supabase.from("products").select("id,slug").limit(5000),
   ]);
-  for (const result of [homeResult, collectionResult, artisanResult, journalResult]) {
+  for (const result of [homeResult, collectionResult, artisanResult, journalResult, productLinksResult, productsResult]) {
     if (result.error) throw new Error("Could not read all legacy editorial data: " + result.error.message);
     if ((result.data?.length ?? 0) >= maxRows) throw new Error("An editorial table reached the " + maxRows + " row safety limit. Raise the cap after reviewing the data volume.");
   }
@@ -134,6 +137,14 @@ async function main() {
   const collectionRows = (collectionResult.data ?? []) as unknown as SourceCollection[];
   const artisanRows = (artisanResult.data ?? []) as unknown as SourceArtisan[];
   const journalRows = (journalResult.data ?? []) as unknown as SourceJournalPost[];
+  const productLinks = (productLinksResult.data ?? []) as unknown as SourceCollectionProduct[];
+  const productSlugById = new Map((productsResult.data ?? []).map((row) => [row.id, row.slug]));
+  const collectionIds = new Set(collectionRows.map((row) => row.id));
+  const collectionProductRows = productLinks.flatMap((link) => {
+    const productSlug = productSlugById.get(link.product_id);
+    if (!collectionIds.has(link.collection_id) || !productSlug) return [];
+    return [{ collectionId: link.collection_id, productSlug, sortOrder: link.sort_order ?? 0 }];
+  });
   const entries = mediaEntries(home, collectionRows, artisanRows, journalRows);
   const uniqueEntries = [...new Map(entries.map((item) => [validateMediaReference(item), item])).values()];
   const summary = {
@@ -141,6 +152,7 @@ async function main() {
     collections: collectionRows.length,
     makerProfiles: artisanRows.length,
     journalPosts: journalRows.length,
+    collectionProductAssignments: collectionProductRows.length,
     editorialMediaObjects: uniqueEntries.length,
     mode: commitMode ? "COMMIT" : "DRY RUN",
   };
@@ -156,13 +168,14 @@ async function main() {
     .where(eq(siteContent.contentKey, importMarker)).limit(1);
   if (marker) throw new Error("This legacy editorial import has already completed. Refusing to overwrite later owner edits.");
 
-  const [existingHome, existingCollections, existingArtisans, existingJournal] = await Promise.all([
+  const [existingHome, existingCollections, existingArtisans, existingJournal, existingLinks] = await Promise.all([
     db.select({ id: siteContent.id }).from(siteContent).limit(1),
     db.select({ id: collections.id }).from(collections).limit(1),
     db.select({ id: artisanProfiles.id }).from(artisanProfiles).limit(1),
     db.select({ id: journalPosts.id }).from(journalPosts).limit(1),
+    db.select({ id: collectionProductLinks.id }).from(collectionProductLinks).limit(1),
   ]);
-  if (existingHome.length || existingCollections.length || existingArtisans.length || existingJournal.length) {
+  if (existingHome.length || existingCollections.length || existingArtisans.length || existingJournal.length || existingLinks.length) {
     throw new Error("The MySQL editorial tables are not empty. This importer only seeds an empty editorial database; it will not merge or overwrite newer owner data.");
   }
 
@@ -210,6 +223,16 @@ async function main() {
           heroImageRightsConfirmed: confirmed, heroImageRightsEvidence: row.hero_image_rights_evidence ?? "",
           sortOrder: row.sort_order ?? 0, isPublished: Boolean(row.is_published),
           createdAt: asDate(row.created_at), updatedAt: asDate(row.updated_at),
+        });
+      }
+
+      for (const link of collectionProductRows) {
+        await tx.insert(collectionProductLinks).values({
+          id: randomUUID(),
+          collectionId: link.collectionId,
+          productSlug: link.productSlug,
+          sortOrder: link.sortOrder,
+          createdAt: new Date(),
         });
       }
 
