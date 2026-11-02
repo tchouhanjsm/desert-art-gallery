@@ -98,6 +98,35 @@ suite("real MySQL migration and catalogue integration", () => {
     expect(rows).toHaveLength(0);
   }, 30_000);
 
+  it("enforces real media rights, MIME type and size constraints", async () => {
+    const db = getMySqlDb();
+    const productId = randomUUID();
+    const id = randomUUID();
+    try {
+      await db.insert(products).values({
+        id: productId, title: "Media constraint product", slug: "media-check-" + productId,
+        currency: "USD", priceMinor: 1000, status: "draft",
+      });
+      await expect(db.insert(productMedia).values({
+        id, productId, storageKey: "products/" + productId + "/invalid.webp",
+        altText: "", rightsConfirmed: true, rightsEvidence: "",
+        mimeType: "image/gif", byteSize: 0,
+      })).rejects.toBeTruthy();
+    } finally {
+      await db.delete(productMedia).where(eq(productMedia.productId, productId));
+      await db.delete(products).where(eq(products.id, productId));
+    }
+  }, 30_000);
+
+  it("rejects invalid reservation status and zero-quantity reservation items", async () => {
+    const db = getMySqlDb();
+    const reservationId = randomUUID();
+    await expect(db.insert(inventoryReservations).values({
+      id: reservationId, customerReference: "test", idempotencyKey: "bad-status-" + reservationId,
+      status: "unknown" as never, expiresAt: new Date(Date.now() + 60_000),
+    })).rejects.toBeTruthy();
+  }, 30_000);
+
   it("reopens the pool and reads previously committed content", async () => {
     const db = getMySqlDb();
     const id = randomUUID();
