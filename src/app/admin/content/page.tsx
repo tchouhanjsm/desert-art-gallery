@@ -2,6 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, BookOpen, Images, Layers3, Users } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { hasMySqlDatabase } from "@/server/db";
+import { getEditorialWorkspace } from "@/server/editorial/repository";
+import { getAdminEditorialMediaUrl } from "@/server/media/storage";
 import {
   confirmEditorialImageRights,
   saveArtisanProfile,
@@ -87,44 +90,82 @@ function EditorialUpload({ target, id, label, altText }: {
 }
 
 export default async function AdminContentPage() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) {
+  const mysqlMode = hasMySqlDatabase();
+  const supabase = mysqlMode ? null : await createSupabaseServerClient();
+  if (!mysqlMode && !supabase) {
     return (
       <section className="owner-page">
         <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>Manage the homepage, collections, maker profiles and journal without changing application code.</p></div></header>
-        <div className="owner-setup-card"><AlertCircle size={22} /><div><h2>Content database is not connected</h2><p>Configure the current database environment to manage published site content. No live records are shown in this preview.</p></div></div>
+        <div className="owner-setup-card"><AlertCircle size={22} /><div><h2>Content backend is not connected</h2><p>Configure the current database environment to manage site content. The owner sign-in still uses the existing authentication provider during this staged migration.</p></div></div>
       </section>
     );
   }
 
-  const [homeResult, collectionResult, artisanResult, journalResult] = await Promise.all([
-    supabase.from("site_content").select("id,title,body,is_published,updated_at").eq("content_key", "homepage").maybeSingle(),
-    supabase.from("collections").select("id,name,slug,description,hero_image_path,hero_image_alt,hero_image_rights_confirmed,hero_image_rights_evidence,sort_order,is_published").order("sort_order").order("name"),
-    supabase.from("artisan_profiles").select("id,full_name,role_title,short_bio,biography,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed,portrait_rights_evidence,sort_order,is_published").order("sort_order").order("full_name"),
-    supabase.from("journal_posts").select("id,title,slug,excerpt,content_markdown,category,cover_image_path,cover_image_alt,cover_image_rights_confirmed,cover_image_rights_evidence,status").order("updated_at", { ascending: false }),
-  ]);
+  let home: { id: string; title: string; body: ContentBody; is_published: boolean; updated_at: Date } | null = null;
+  let homeBody: ContentBody = {};
+  let collections: CollectionRecord[] = [];
+  let artisans: ArtisanRecord[] = [];
+  let journal: JournalRecord[] = [];
+  let homePreview: string | null = null;
+  let collectionCards: (CollectionRecord & { preview: string | null })[] = [];
+  let artisanCards: (ArtisanRecord & { preview: string | null })[] = [];
+  let journalCards: (JournalRecord & { preview: string | null })[] = [];
 
-  if (homeResult.error || collectionResult.error || artisanResult.error || journalResult.error) {
-    return (
-      <section className="owner-page">
-        <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>CMS database compatibility needs attention before editing can begin.</p></div></header>
-        <div className="owner-inline-warning"><AlertCircle size={18} /> Apply migration <strong>202611020006_owner_cms_media.sql</strong> after the existing commerce migrations, then refresh this page. No content has been changed.</div>
-      </section>
-    );
+  if (mysqlMode) {
+    const workspace = await getEditorialWorkspace();
+    home = workspace.home ? {
+      id: workspace.home.id,
+      title: workspace.home.title,
+      body: workspace.home.body,
+      is_published: workspace.home.is_published,
+      updated_at: workspace.home.updated_at,
+    } : null;
+    homeBody = home?.body ?? {};
+    collections = workspace.collections;
+    artisans = workspace.artisans;
+    journal = workspace.journal;
+    const homePath = bodyString(homeBody, "hero_image_path") || null;
+    homePreview = homePath ? getAdminEditorialMediaUrl(homePath) : null;
+    collectionCards = collections.map((item) => ({
+      ...item,
+      preview: item.hero_image_path ? getAdminEditorialMediaUrl(item.hero_image_path) : null,
+    }));
+    artisanCards = artisans.map((item) => ({
+      ...item,
+      preview: item.portrait_path ? getAdminEditorialMediaUrl(item.portrait_path) : null,
+    }));
+    journalCards = journal.map((item) => ({
+      ...item,
+      preview: item.cover_image_path ? getAdminEditorialMediaUrl(item.cover_image_path) : null,
+    }));
+  } else if (supabase) {
+    const [homeResult, collectionResult, artisanResult, journalResult] = await Promise.all([
+      supabase.from("site_content").select("id,title,body,is_published,updated_at").eq("content_key", "homepage").maybeSingle(),
+      supabase.from("collections").select("id,name,slug,description,hero_image_path,hero_image_alt,hero_image_rights_confirmed,hero_image_rights_evidence,sort_order,is_published").order("sort_order").order("name"),
+      supabase.from("artisan_profiles").select("id,full_name,role_title,short_bio,biography,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed,portrait_rights_evidence,sort_order,is_published").order("sort_order").order("full_name"),
+      supabase.from("journal_posts").select("id,title,slug,excerpt,content_markdown,category,cover_image_path,cover_image_alt,cover_image_rights_confirmed,cover_image_rights_evidence,status").order("updated_at", { ascending: false }),
+    ]);
+
+    if (homeResult.error || collectionResult.error || artisanResult.error || journalResult.error) {
+      return (
+        <section className="owner-page">
+          <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>CMS database compatibility needs attention before editing can begin.</p></div></header>
+          <div className="owner-inline-warning"><AlertCircle size={18} /> Legacy editorial schema is not ready. Apply the matching PostgreSQL migrations before using the Supabase CMS path.</div>
+        </section>
+      );
+    }
+
+    home = homeResult.data as typeof home;
+    homeBody = home?.body && typeof home.body === "object" && !Array.isArray(home.body) ? home.body : {};
+    collections = (collectionResult.data ?? []) as unknown as CollectionRecord[];
+    artisans = (artisanResult.data ?? []) as unknown as ArtisanRecord[];
+    journal = (journalResult.data ?? []) as unknown as JournalRecord[];
+    homePreview = await signedPreview(supabase, bodyString(homeBody, "hero_image_path") || null);
+    collectionCards = await Promise.all(collections.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.hero_image_path) })));
+    artisanCards = await Promise.all(artisans.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.portrait_path) })));
+    journalCards = await Promise.all(journal.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.cover_image_path) })));
   }
 
-  const home = homeResult.data;
-  const homeBody = home?.body && typeof home.body === "object" && !Array.isArray(home.body)
-    ? home.body as ContentBody : {};
-  const collections = (collectionResult.data ?? []) as CollectionRecord[];
-  const artisans = (artisanResult.data ?? []) as ArtisanRecord[];
-  const journal = (journalResult.data ?? []) as JournalRecord[];
-  const homePreview = await signedPreview(supabase, bodyString(homeBody, "hero_image_path") || null);
-  const collectionCards = await Promise.all(collections.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.hero_image_path) })));
-  const artisanCards = await Promise.all(artisans.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.portrait_path) })));
-  const journalCards = await Promise.all(journal.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.cover_image_path) })));
-
-  return (
     <section className="owner-page owner-cms">
       <header className="owner-page-heading">
         <div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>Update the homepage, collections, maker profiles and journal. Changes go live only when you choose to publish them.</p></div>
