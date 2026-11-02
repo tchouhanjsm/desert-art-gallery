@@ -98,7 +98,7 @@ export async function saveHomepageContent(formData: FormData) {
   const oldBody = existing?.body && typeof existing.body === "object" && !Array.isArray(existing.body)
     ? existing.body as Record<string, unknown>
     : {};
-  const body = { ...oldBody, ...values };
+  const body: Record<string, unknown> = { ...oldBody, ...values };
   const isPublished = checked(formData, "is_published");
   if (isPublished && typeof body.hero_image_path === "string" && body.hero_image_path && body.hero_image_rights_confirmed !== true) {
     throw new Error("Confirm usage rights for the homepage photograph before publishing it.");

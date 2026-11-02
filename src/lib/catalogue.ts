@@ -61,6 +61,14 @@ type CollectionRow = {
   hero_image_rights_confirmed: boolean;
 };
 
+export type StorefrontCollection = {
+  name: string;
+  slug: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+};
+
 function safePriceMinor(value: number | string | null): number | null {
   if (value === null) return null;
   const amount = typeof value === "number" ? value : Number(value);
@@ -160,9 +168,13 @@ export async function getStorefrontProducts(): Promise<Product[]> {
   return resolved.filter((product): product is Product => product !== null);
 }
 
-export async function getStorefrontCollections() {
+export async function getStorefrontCollections(): Promise<StorefrontCollection[]> {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return process.env.NODE_ENV === "development" ? previewCollections : [];
+  if (!supabase) {
+    return process.env.NODE_ENV === "development"
+      ? previewCollections.map((collection) => ({ ...collection, imageAlt: collection.name }))
+      : [];
+  }
 
   const { data, error } = await supabase
     .from("collections")
