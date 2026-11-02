@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { isMySqlCatalogueEnabled } from "@/server/db";
 import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, BookOpen, Images, Layers3, Users } from "lucide-react";
@@ -93,6 +95,7 @@ function EditorialUpload({ target, id, label, altText }: {
 }
 
 export default async function AdminContentPage() {
+  if (isMySqlCatalogueEnabled()) redirect("/admin/products");
   const mysqlMode = hasMySqlDatabase();
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
