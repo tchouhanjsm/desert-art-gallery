@@ -18,7 +18,7 @@ export function MySqlCategoryForm() {
           <label className="admin-form-wide">Description<input name="description" maxLength={2000} /></label>
           <label>Display order<input name="sort_order" type="number" min="0" max="999999" step="1" defaultValue="0" /></label>
         </div>
-        {state.error && <p className="owner-inline-warning" role="alert">{state.error}</p>}
+        {state.ok === false && <p className="owner-inline-warning" role="alert">{state.error}</p>}
         {state.ok && <p className="catalogue-import-note" role="status">Category created.</p>}
         <div className="admin-form-actions">
           <button className="button-outline" type="submit" disabled={pending}>{pending ? "SAVING…" : "CREATE CATEGORY"}</button>
