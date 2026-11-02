@@ -2,13 +2,13 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupportedImageSignature } from "@/lib/image-signature";
 import { getMySqlDb, isMySqlCatalogueEnabled } from "@/server/db";
 import { adjustVariantInventory } from "@/server/catalogue/inventory";
 import {
-  productCategories, productMedia, products, productVariants,
+  productCategories, productCategoryLinks, productMedia, products, productVariants,
 } from "@/server/db/schema";
 import {
   createProductStorageKey, removeProductMedia, storeProductMedia,
@@ -103,7 +103,27 @@ function productInput(formData: FormData) {
     featured: textValue(formData, "featured", 5) === "yes",
     seoTitle: textValue(formData, "seo_title", 255),
     seoDescription: textValue(formData, "seo_description", 500),
+    categorySlugs: [...new Set(textValue(formData, "category_slugs", 2000).split(",").map((item) => slugify(item)).filter(Boolean))].slice(0, 20),
   };
+}
+
+async function replaceProductCategories(executor: {
+  delete: (...args: never[]) => unknown;
+}, productId: string, categorySlugs: string[]) {
+  const db = getMySqlDb();
+  const categories = categorySlugs.length
+    ? await db.select({ id: productCategories.id, slug: productCategories.slug })
+      .from(productCategories).where(and(inArray(productCategories.slug, categorySlugs), eq(productCategories.isActive, true)))
+    : [];
+  if (categories.length !== categorySlugs.length) {
+    throw new Error("One or more category slugs do not match active MySQL categories.");
+  }
+  await getMySqlDb().delete(productCategoryLinks).where(eq(productCategoryLinks.productId, productId));
+  if (categories.length) {
+    await getMySqlDb().insert(productCategoryLinks).values(categories.map((category) => ({
+      productId, categoryId: category.id,
+    })));
+  }
 }
 
 function parseVariantAttributes(raw: string): Record<string, string> {
@@ -151,6 +171,7 @@ export async function createMySqlDraftProduct(formData: FormData): Promise<Catal
         isActive: true,
         sortOrder: 0,
       });
+      await replaceProductCategories(getMySqlDb(), id, input.categorySlugs);
     });
     revalidatePath("/admin/products");
     return { ok: true, id };
@@ -168,7 +189,19 @@ export async function updateMySqlDraftProduct(formData: FormData): Promise<Catal
     const db = getMySqlDb();
     const [current] = await db.select().from(products).where(eq(products.id, id)).limit(1);
     if (!current || current.status === "archived") throw new Error("Product was not found or has been archived.");
-    await db.update(products).set(input).where(eq(products.id, id));
+    if (current.status === "published" && input.priceMinor < 1) throw new Error("Published products require a verified non-zero price.");
+    await db.transaction(async (tx) => {
+      await tx.update(products).set(input).where(eq(products.id, id));
+      const categories = input.categorySlugs.length
+        ? await tx.select({ id: productCategories.id, slug: productCategories.slug }).from(productCategories)
+          .where(and(inArray(productCategories.slug, input.categorySlugs), eq(productCategories.isActive, true)))
+        : [];
+      if (categories.length !== input.categorySlugs.length) {
+        throw new Error("One or more category slugs do not match active MySQL categories.");
+      }
+      await tx.delete(productCategoryLinks).where(eq(productCategoryLinks.productId, id));
+      if (categories.length) await tx.insert(productCategoryLinks).values(categories.map((category) => ({ productId: id, categoryId: category.id })));
+    });
     revalidatePath("/admin/products/" + id);
     revalidatePath("/admin/products");
     revalidatePath("/products/" + input.slug);
@@ -283,10 +316,17 @@ export async function updateMySqlProductVariant(formData: FormData): Promise<Cat
     const sku = variantSku(formData);
     const attributes = parseVariantAttributes(textValue(formData, "attributes", 3000));
     const active = textValue(formData, "is_active", 5) === "yes";
-    const [variant] = await getMySqlDb().select({ id: productVariants.id }).from(productVariants)
+    const db = getMySqlDb();
+    const [product] = await db.select().from(products).where(eq(products.id, productId)).limit(1);
+    const [variant] = await db.select({ id: productVariants.id, isActive: productVariants.isActive }).from(productVariants)
       .where(and(eq(productVariants.id, variantId), eq(productVariants.productId, productId))).limit(1);
-    if (!variant) throw new Error("Variant was not found for this product.");
-    await getMySqlDb().update(productVariants).set({ label, sku, attributes, isActive: active })
+    if (!product || !variant) throw new Error("Variant or product was not found.");
+    if (!active && product.status === "published" && variant.isActive) {
+      const [another] = await db.select({ id: productVariants.id }).from(productVariants)
+        .where(and(eq(productVariants.productId, productId), eq(productVariants.isActive, true), ne(productVariants.id, variantId))).limit(1);
+      if (!another) throw new Error("A published product must retain at least one active variant.");
+    }
+    await db.update(productVariants).set({ label, sku, attributes, isActive: active })
       .where(eq(productVariants.id, variantId));
     revalidatePath("/admin/products/" + productId);
     revalidatePath("/shop");
