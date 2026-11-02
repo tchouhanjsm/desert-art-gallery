@@ -3,6 +3,7 @@ import { basename } from "node:path";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { parseProductCsv, type ProductImportRow } from "../../lib/product-import";
 import { getMySqlDb } from "../db";
+import { assertLocalMySqlTarget } from "../db/safety";
 import {
   catalogueImportBatches, inventoryMovements, productCategories,
   productCategoryLinks, products, productVariants,
@@ -50,24 +51,6 @@ function decodeCsv(bytes: Uint8Array): string {
   }
 }
 
-function targetDatabaseName(): string {
-  const raw = process.env.DATABASE_URL?.trim();
-  if (!raw) throw new Error("DATABASE_URL is required.");
-  let url: URL;
-  try {
-    url = new URL(raw);
-  } catch {
-    throw new Error("DATABASE_URL must be a valid MySQL URL.");
-  }
-  if (url.protocol !== "mysql:" || !url.pathname || url.pathname === "/") {
-    throw new Error("DATABASE_URL must point to a named MySQL database.");
-  }
-  const database = decodeURIComponent(url.pathname.slice(1));
-  if (/(^|[-_])(prod|production|live|hostinger)([-_]|$)/i.test(database)) {
-    throw new Error("Product CSV import is blocked for production/live/Hostinger database names.");
-  }
-  return database;
-}
 
 function validateInput(sourceName: string, bytes: Uint8Array): {
   sourceName: string;
@@ -182,7 +165,7 @@ export async function commitLocalCatalogueCsv(
   if (process.env.NODE_ENV === "production") {
     throw new Error("CSV catalogue import is blocked when NODE_ENV=production.");
   }
-  targetDatabaseName();
+  assertLocalMySqlTarget();
   const preview = await previewLocalCatalogueCsv(sourceName, bytes);
   if (!preview.canCommit) {
     const details = [
