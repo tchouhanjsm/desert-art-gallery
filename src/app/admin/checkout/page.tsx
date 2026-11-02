@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { isMySqlCatalogueEnabled } from "@/server/db";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatMinorForInput } from "@/lib/checkout";
@@ -6,6 +8,7 @@ import { saveShippingRate, saveShippingZone, saveTaxRule } from "./actions";
 export const metadata = { title: "Shipping and tax configuration", robots: { index: false, follow: false } };
 
 export default async function AdminCheckoutSettingsPage() {
+  if (isMySqlCatalogueEnabled()) redirect("/admin/products");
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><h1>Checkout configuration</h1><p>Connect Supabase to manage shipping and tax rules.</p></div>;
   const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { isMySqlCatalogueEnabled } from "@/server/db";
 import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, Images, Package, ShieldCheck, Upload } from "lucide-react";
@@ -34,6 +36,7 @@ function relatedProduct(value: RelatedProduct): ProductOption | null {
 }
 
 export default async function AdminMediaPage() {
+  if (isMySqlCatalogueEnabled()) redirect("/admin/products");
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {

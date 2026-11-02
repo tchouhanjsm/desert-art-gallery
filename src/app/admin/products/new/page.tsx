@@ -1,10 +1,19 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createDraftProduct } from "../actions";
+import { isMySqlCatalogueEnabled } from "@/server/db";
+import { MySqlProductForm } from "../mysql-product-form";
 
 export const metadata = { title: "Create product" };
 
 export default async function NewAdminProductPage() {
+  if (isMySqlCatalogueEnabled()) {
+    return <div className="page-shell admin-editor">
+      <div className="breadcrumb"><Link href="/admin/products">PRODUCT CATALOGUE</Link> / NEW MYSQL PRODUCT</div>
+      <div className="page-heading"><div className="section-kicker">SELF-HOSTED CATALOGUE</div><h1>Create a product</h1><p>New records start as drafts. Add only verified product facts, merchant-supplied descriptions and approved pricing.</p></div>
+      <MySqlProductForm mode="create" />
+    </div>;
+  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><div className="page-heading"><h1>New product</h1><p>Connect Supabase to manage the catalogue.</p></div></div>;
 

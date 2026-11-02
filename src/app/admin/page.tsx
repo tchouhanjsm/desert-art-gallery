@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { isMySqlCatalogueEnabled } from "@/server/db";
 import { ArrowUpRight, Package, ShoppingBag, Users, Image as ImageIcon, AlertCircle, Clock3 } from "lucide-react";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -41,6 +43,7 @@ function MetricCard({
 }
 
 export default async function AdminDashboardPage() {
+  if (isMySqlCatalogueEnabled()) redirect("/admin/products");
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {

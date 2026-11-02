@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { isMySqlCatalogueEnabled } from "@/server/db";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { transitionOrder } from "../actions";
@@ -18,6 +19,7 @@ type OrderRow = {
 type ItemRow = { id: string; product_title: string; product_sku: string | null; variant_label: string | null; quantity: number; unit_price_minor: number; line_total_minor: number };
 
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  if (isMySqlCatalogueEnabled()) redirect("/admin/products");
   const { id } = await params;
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><div className="page-heading"><h1>Order details</h1><p>Connect Supabase to manage orders.</p></div></div>;

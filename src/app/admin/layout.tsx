@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { getCurrentLocalAdmin } from "@/server/auth/local-admin";
+import { isMySqlCatalogueEnabled } from "@/server/db";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <AdminShell>{children}</AdminShell>;
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const mysqlMode = isMySqlCatalogueEnabled();
+  if (mysqlMode) {
+    const admin = await getCurrentLocalAdmin();
+    if (!admin) redirect("/owner/login?next=/admin");
+  }
+  return <AdminShell mysqlMode={mysqlMode}>{children}</AdminShell>;
 }
