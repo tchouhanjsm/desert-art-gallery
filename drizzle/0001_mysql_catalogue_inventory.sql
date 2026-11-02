@@ -146,3 +146,35 @@ ALTER TABLE collection_product_links
   ADD CONSTRAINT collection_product_links_product_slug_fk
   FOREIGN KEY (product_slug) REFERENCES products(slug)
   ON DELETE CASCADE;
+
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS admin_users (
+  id CHAR(36) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  display_name VARCHAR(160) NOT NULL DEFAULT '',
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(16) NOT NULL DEFAULT 'owner',
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  failed_login_count INT NOT NULL DEFAULT 0,
+  locked_until DATETIME(3) NULL,
+  last_login_at DATETIME(3) NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE KEY admin_users_email_uq (email),
+  KEY admin_users_active_role_idx (is_active, role),
+  CONSTRAINT admin_users_role_check CHECK (role IN ('owner','admin')),
+  CONSTRAINT admin_users_failed_login_count_check CHECK (failed_login_count BETWEEN 0 AND 100)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  id CHAR(36) NOT NULL,
+  admin_user_id CHAR(36) NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at DATETIME(3) NOT NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE KEY admin_sessions_token_hash_uq (token_hash),
+  KEY admin_sessions_user_expiry_idx (admin_user_id, expires_at),
+  CONSTRAINT admin_sessions_user_fk FOREIGN KEY (admin_user_id) REFERENCES admin_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
