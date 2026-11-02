@@ -6,7 +6,7 @@ const databaseMocks = vi.hoisted(() => ({
   query: vi.fn(),
 }));
 
-vi.mock("@/server/db", () => ({
+vi.mock("../../../server/db", () => ({
   hasMySqlDatabase: databaseMocks.hasMySqlDatabase,
   pingMySql: databaseMocks.pingMySql,
   getMySqlPool: () => ({ query: databaseMocks.query }),
