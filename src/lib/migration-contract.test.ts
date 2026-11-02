@@ -73,6 +73,7 @@ describe("commerce migration safety contract", () => {
 
   it("requires descriptive rights-confirmed media before product publication", () => {
     expect(productMedia).toContain("product_images_one_primary_per_product_idx");
+    expect(productMedia).toContain("and pi.is_primary = true");
     expect(productMedia).toContain("length(btrim(pi.alt_text)) > 0");
     expect(productMedia).toContain("length(btrim(pi.rights_evidence)) > 0");
   });

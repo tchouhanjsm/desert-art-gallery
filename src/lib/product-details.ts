@@ -48,3 +48,16 @@ export function formatProductMeasurements(input: unknown): ProductMeasurement[] 
     return [{ label, value }];
   });
 }
+
+
+export type PresentableProductImage = {
+  storage_path?: string | null;
+  alt_text?: string | null;
+  rights_confirmed?: boolean | null;
+};
+
+export function isPresentableProductImage(image: PresentableProductImage): boolean {
+  return image.rights_confirmed === true
+    && Boolean(image.storage_path?.trim())
+    && Boolean(image.alt_text?.trim());
+}

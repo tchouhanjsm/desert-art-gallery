@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatProductMeasurements, sortProductImages } from "./product-details";
+import { formatProductMeasurements, isPresentableProductImage, sortProductImages } from "./product-details";
 
 describe("product detail presentation", () => {
   it("renders only supplied scalar measurements without inventing units", () => {
@@ -42,5 +42,31 @@ describe("product detail presentation", () => {
       "primary", "early", "tie-later", "late",
     ]);
     expect(images[0].id).toBe("late");
+  });
+});
+
+
+describe("public product image readiness", () => {
+  it("exposes only images with confirmed rights, owned storage paths and descriptive alt text", () => {
+    expect(isPresentableProductImage({
+      storage_path: "product-id/image.webp",
+      alt_text: "Front view of the listed textile",
+      rights_confirmed: true,
+    })).toBe(true);
+    expect(isPresentableProductImage({
+      storage_path: "product-id/image.webp",
+      alt_text: "   ",
+      rights_confirmed: true,
+    })).toBe(false);
+    expect(isPresentableProductImage({
+      storage_path: "product-id/image.webp",
+      alt_text: "Product image",
+      rights_confirmed: false,
+    })).toBe(false);
+    expect(isPresentableProductImage({
+      storage_path: " ",
+      alt_text: "Product image",
+      rights_confirmed: true,
+    })).toBe(false);
   });
 });

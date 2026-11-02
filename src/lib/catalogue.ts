@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { collections as previewCollections, products as previewProducts, type Product, type ProductImage } from "@/lib/products";
-import { sortProductImages } from "@/lib/product-details";
+import { isPresentableProductImage, sortProductImages } from "@/lib/product-details";
 
 type ProductImageRow = {
   id: string;
@@ -80,9 +80,7 @@ async function resolveProductImages(
   row: ProductRow,
 ): Promise<ProductImage[]> {
   const approved = sortProductImages(
-    (row.product_images ?? []).filter((image) =>
-      image.rights_confirmed && typeof image.storage_path === "string" && image.storage_path.trim().length > 0
-    ),
+    (row.product_images ?? []).filter(isPresentableProductImage),
   );
 
   const resolved = await Promise.all(approved.map(async (image): Promise<ProductImage | null> => {
@@ -119,7 +117,7 @@ export async function getStorefrontProducts(): Promise<Product[]> {
   const rows = (data ?? []) as unknown as ProductRow[];
   const resolved = await Promise.all(rows.map(async (row): Promise<Product | null> => {
     const approvedImages = sortProductImages(
-      (row.product_images ?? []).filter((image) => image.rights_confirmed),
+      (row.product_images ?? []).filter(isPresentableProductImage),
     );
     const primary = approvedImages[0];
     if (!primary?.storage_path) return null;

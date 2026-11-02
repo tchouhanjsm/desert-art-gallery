@@ -43,6 +43,7 @@ begin
       select 1
       from public.product_images pi
       where pi.product_id = new.id
+        and pi.is_primary = true
         and pi.rights_confirmed = true
         and length(btrim(pi.rights_evidence)) > 0
         and length(btrim(pi.alt_text)) > 0

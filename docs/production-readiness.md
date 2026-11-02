@@ -133,4 +133,12 @@ Production activation requires merchant-authorized catalogue data and original p
 - Root cause: the build depended on a live Google Fonts fetch at compile time. This is an external network dependency and can fail independently of application code.
 - Replaced next/font/google with pinned Fontsource variable-font packages for Cormorant Garamond and DM Sans. Font files are bundled and served by the application; production builds no longer need to contact Google Fonts.
 - Added the SIL Open Font License attribution register and a regression test that prevents reintroducing remote Google font imports or removing the self-hosted dependencies.
-- The exact-head build rerun is required before this increment is considered CI-green.
+- GitHub Actions run #56 passed on commit 89d908b31744fd51a4d9341349bcc343ac17d109: 12 test files / 61 tests, typecheck, ESLint and production build. The build compiled successfully and generated 26 static pages. Any later commit remains subject to the same exact-head checks.
+
+
+### 2026-11-02 — primary-image accessibility and CSS compatibility hardening
+- Public product cards and detail galleries now exclude media without a confirmed rights flag, an owned storage path and non-empty descriptive alt text. This also protects already-active records that predate the stricter publication trigger.
+- The publication guard now specifically requires the primary image to meet the rights, evidence and alt-text requirements; a secondary image can no longer satisfy the main-image publication gate.
+- Added regression coverage for missing alt text, missing storage paths and unconfirmed image rights.
+- Fixed the Autoprefixer warning on the admin image-order form by using the interoperable flex-end alignment value.
+- No production data was read or changed. The new migration remains unapplied pending owner authorization.

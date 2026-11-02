@@ -386,7 +386,7 @@ main{min-height:50vh}
 .product-measurements dt{color:var(--muted);font-size:10px}
 .product-measurements dd{margin:0}
 .admin-image-actions{display:grid;gap:10px;margin:12px 0}
-.admin-image-order-form{display:flex;align-items:end;gap:9px;flex-wrap:wrap}
+.admin-image-order-form{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap}
 .admin-image-order-form label{display:grid;gap:5px;color:var(--muted);font-size:9px;letter-spacing:.1em;text-transform:uppercase}
 .admin-image-order-form input{width:82px;min-height:34px;padding:6px 8px;border:1px solid var(--line);background:var(--ivory);color:var(--ink)}
 .admin-image-actions button{min-height:34px;padding:7px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:8px;letter-spacing:.1em}
