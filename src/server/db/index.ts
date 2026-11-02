@@ -13,6 +13,14 @@ export function hasMySqlDatabase(): boolean {
   return Boolean(process.env.DATABASE_URL?.trim());
 }
 
+export function isMySqlCatalogueEnabled(): boolean {
+  const enabled = process.env.MYSQL_CATALOGUE_ENABLED?.trim().toLowerCase() === "true";
+  if (enabled && !hasMySqlDatabase()) {
+    throw new Error("MYSQL_CATALOGUE_ENABLED requires DATABASE_URL to be configured.");
+  }
+  return enabled;
+}
+
 function databaseUrl(): URL {
   const raw = process.env.DATABASE_URL?.trim();
   if (!raw) throw new Error("DATABASE_URL is required for the MySQL editorial backend.");
