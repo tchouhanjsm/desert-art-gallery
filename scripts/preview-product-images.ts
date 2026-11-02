@@ -74,22 +74,22 @@ async function main() {
     }
   }
 
-  process.stdout.write("Product image intake preview (read-only)\\n");
-  process.stdout.write("Product folders: " + productFolders + "\\n");
-  process.stdout.write("Valid image files: " + validImages.length + "\\n");
-  for (const image of validImages) process.stdout.write("  " + image + "\\n");
+  process.stdout.write("Product image intake preview (read-only)\n");
+  process.stdout.write("Product folders: " + productFolders + "\n");
+  process.stdout.write("Valid image files: " + validImages.length + "\n");
+  for (const image of validImages) process.stdout.write("  " + image + "\n");
 
   if (problems.length) {
-    process.stderr.write("\\nItems requiring attention (" + problems.length + "):\\n");
-    for (const problem of problems) process.stderr.write("  - " + problem + "\\n");
+    process.stderr.write("\nItems requiring attention (" + problems.length + "):\n");
+    for (const problem of problems) process.stderr.write("  - " + problem + "\n");
     process.exitCode = 1;
     return;
   }
 
-  process.stdout.write("\\nAll files passed filename and signature checks. No files were uploaded, copied, published or written to MySQL.\\n");
+  process.stdout.write("\nAll files passed filename and signature checks. No files were uploaded, copied, published or written to MySQL.\n");
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write((error instanceof Error ? error.message : "Unable to preview product image intake.") + "\\n");
+  process.stderr.write((error instanceof Error ? error.message : "Unable to preview product image intake.") + "\n");
   process.exitCode = 1;
 });
