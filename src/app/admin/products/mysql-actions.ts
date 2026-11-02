@@ -436,6 +436,10 @@ export async function archiveMySqlProductState(_previous: CatalogueActionResult,
   return archiveMySqlProduct(formData);
 }
 
+export async function createMySqlCategoryState(_previous: CatalogueActionResult, formData: FormData) {
+  return createMySqlCategory(formData);
+}
+
 export async function createMySqlProductVariantState(_previous: CatalogueActionResult, formData: FormData) {
   return createMySqlProductVariant(formData);
 }
