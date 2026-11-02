@@ -7,7 +7,9 @@ export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const path = request.nextUrl.pathname;
-  const protectedRoute = path.startsWith("/admin") || path.startsWith("/account");
+  const mysqlAdminMode = process.env.MYSQL_CATALOGUE_ENABLED?.trim().toLowerCase() === "true";
+  if (mysqlAdminMode && path.startsWith("/admin")) return NextResponse.next({ request });
+  const protectedRoute = path.startsWith("/account") || path.startsWith("/admin");
 
   // Fail closed for protected pages when the configured identity provider is unavailable.
   if (!url || !anonKey) {
