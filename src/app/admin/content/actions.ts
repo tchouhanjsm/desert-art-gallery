@@ -13,6 +13,7 @@ import {
   saveHomepageRecord,
   saveJournalRecord,
   setEditorialImage,
+  replaceCollectionProductSlugs,
 } from "@/server/editorial/repository";
 import {
   createEditorialStorageKey,
@@ -144,6 +145,37 @@ export async function saveHomepageContent(formData: FormData) {
     updated_by: userId,
   }, { onConflict: "content_key" });
   if (error) throw new Error("Unable to save homepage content: " + error.message);
+  revalidateEditorial();
+}
+
+export async function saveCollectionProducts(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  if (!hasMySqlDatabase()) throw new Error("Product curation for MySQL collections is not enabled.");
+
+  const collectionId = field(formData, "collection_id", 80);
+  if (!collectionId) throw new Error("Choose a collection before assigning products.");
+  const submitted = formData.getAll("product_slugs");
+  if (submitted.length > 200 || submitted.some((value) => typeof value !== "string")) {
+    throw new Error("Choose no more than 200 products for one collection.");
+  }
+  const slugs = [...new Set(submitted.map((value) => String(value).trim()).filter(Boolean))];
+  if (slugs.some((slug) => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))) {
+    throw new Error("One or more selected product slugs are invalid.");
+  }
+
+  if (slugs.length) {
+    const { data, error } = await supabase.from("products")
+      .select("slug")
+      .eq("status", "active")
+      .in("slug", slugs);
+    if (error) throw new Error("Unable to verify selected catalogue products.");
+    const verified = new Set((data ?? []).map((row) => row.slug));
+    if (verified.size !== slugs.length) {
+      throw new Error("A selected product is no longer active. Refresh the page and review the collection assignments.");
+    }
+  }
+
+  await replaceCollectionProductSlugs(collectionId, slugs);
   revalidateEditorial();
 }
 
