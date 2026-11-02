@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatMoneyFromMinor } from "@/lib/money";
 import type { Product } from "@/lib/products";
 import { PreviewArtwork } from "@/components/PreviewArtwork";
+import { WishlistToggle } from "@/components/WishlistToggle";
 
 function previewVariant(category: string): "textile" | "embroidered" | "object" | "heritage" {
   const value = category.toLowerCase();
@@ -20,6 +21,9 @@ export function StorefrontProductCard({ product }: { product: Product }) {
 
   return (
     <article className="atelier-product-card">
+      <div className="atelier-product-card-wishlist">
+        <WishlistToggle slug={product.slug} compact />
+      </div>
       <Link className="atelier-product-link" href={"/products/" + product.slug}>
         <div className="atelier-product-media">
           {isPreview ? (

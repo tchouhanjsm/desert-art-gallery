@@ -986,3 +986,126 @@ main { min-height: 55vh; }
   line-height: .8;
 }
 .atelier-story-visual-art { width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; }
+
+
+/* Conversion UX refinement — card saving, direct image navigation and enquiry context. */
+.atelier-product-card { position: relative; }
+.atelier-product-card-wishlist {
+  position: absolute;
+  z-index: 4;
+  top: 11px;
+  right: 11px;
+}
+.wishlist-toggle--compact {
+  width: 39px;
+  height: 39px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(40,36,31,.12);
+  border-radius: 50%;
+  background: rgba(251,249,245,.94);
+  color: var(--atelier-ink);
+  box-shadow: 0 3px 14px rgba(40,32,24,.1);
+  transition: color .2s ease, background .2s ease, transform .2s ease;
+}
+.wishlist-toggle--compact:hover {
+  background: var(--atelier-ink);
+  color: #fff;
+  transform: translateY(-2px);
+}
+.wishlist-toggle--compact[aria-pressed="true"] {
+  background: var(--atelier-clay);
+  color: #fff;
+}
+.product-gallery-navigation {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  background: rgba(251,249,245,.94);
+  color: var(--atelier-ink);
+  box-shadow: 0 4px 18px rgba(40,32,24,.12);
+}
+.product-gallery-navigation button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.product-gallery-navigation button:hover { background: var(--atelier-stone); }
+.product-gallery-navigation button:focus-visible { outline-offset: -3px; }
+.product-gallery-navigation > span {
+  min-width: 48px;
+  color: var(--atelier-muted);
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: .13em;
+  text-align: center;
+}
+.atelier-product-details-pending {
+  padding: 26px 28px;
+  border: 1px solid var(--atelier-line);
+  background: #f0ebe3;
+}
+.atelier-product-details-pending p {
+  max-width: 720px;
+  margin: 0 0 9px;
+  color: var(--atelier-muted);
+  font-size: 12px;
+  line-height: 1.85;
+}
+.atelier-product-details-pending p:last-child { margin-bottom: 0; }
+.atelier-enquiry-context {
+  width: min(1050px, 100%);
+  margin: 0 auto 35px;
+  padding: clamp(22px, 3.5vw, 34px);
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 10px 24px;
+  border: 1px solid var(--atelier-line);
+  background: #eee8de;
+}
+.atelier-enquiry-context h2 {
+  margin: 8px 0 4px;
+  color: var(--atelier-ink);
+  font-family: var(--atelier-display);
+  font-size: clamp(27px, 3.2vw, 39px);
+  font-weight: 500;
+  line-height: 1.1;
+}
+.atelier-enquiry-context > div > p {
+  margin: 0;
+  color: var(--atelier-muted);
+  font-size: 10px;
+}
+.atelier-enquiry-context > a { white-space: nowrap; }
+.atelier-enquiry-status {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--atelier-line);
+  color: var(--atelier-muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+@media (max-width: 600px) {
+  .atelier-enquiry-context { grid-template-columns: 1fr; }
+  .atelier-enquiry-context > a { justify-self: start; }
+  .atelier-enquiry-status { grid-column: auto; }
+  .product-gallery-navigation { right: 9px; bottom: 9px; }
+  .product-gallery-navigation button { width: 35px; height: 35px; }
+  .wishlist-toggle--compact { width: 36px; height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wishlist-toggle--compact { transition: none; }
+}
