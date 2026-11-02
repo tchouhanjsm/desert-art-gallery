@@ -515,6 +515,7 @@ export async function updateProductImageOrder(formData: FormData) {
 
   if (error || !data) throw new Error("Unable to update this product image order.");
   revalidatePath("/admin/products/" + productId);
+  revalidatePath("/admin/media");
   revalidatePath("/products/" + product.slug);
 }
 

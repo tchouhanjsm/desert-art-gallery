@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   ArrowUpRight,
-  BarChart3,
   BookOpen,
   ChevronRight,
   LayoutDashboard,
