@@ -249,3 +249,33 @@ export const inventoryReservationItems = mysqlTable("inventory_reservation_items
   check("inventory_reservation_items_quantity_check", sql`${table.quantity} > 0`),
 ]);
 
+
+export const adminUsers = mysqlTable("admin_users", {
+  id: char("id", { length: 36 }).primaryKey(),
+  email: varchar("email", { length: 255 }).notNull(),
+  displayName: varchar("display_name", { length: 160 }).notNull().default(""),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  role: varchar("role", { length: 16 }).$type<"owner" | "admin">().notNull().default("owner"),
+  isActive: boolean("is_active").notNull().default(true),
+  failedLoginCount: int("failed_login_count").notNull().default(0),
+  lockedUntil: datetime("locked_until", { mode: "date", fsp: 3 }),
+  lastLoginAt: datetime("last_login_at", { mode: "date", fsp: 3 }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("admin_users_email_uq").on(table.email),
+  index("admin_users_active_role_idx").on(table.isActive, table.role),
+  check("admin_users_role_check", sql`${table.role} IN ('owner','admin')`),
+  check("admin_users_failed_login_count_check", sql`${table.failedLoginCount} BETWEEN 0 AND 100`),
+]);
+
+export const adminSessions = mysqlTable("admin_sessions", {
+  id: char("id", { length: 36 }).primaryKey(),
+  adminUserId: char("admin_user_id", { length: 36 }).notNull().references(() => adminUsers.id, { onDelete: "cascade" }),
+  tokenHash: char("token_hash", { length: 64 }).notNull(),
+  expiresAt: datetime("expires_at", { mode: "date", fsp: 3 }).notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  uniqueIndex("admin_sessions_token_hash_uq").on(table.tokenHash),
+  index("admin_sessions_user_expiry_idx").on(table.adminUserId, table.expiresAt),
+]);
