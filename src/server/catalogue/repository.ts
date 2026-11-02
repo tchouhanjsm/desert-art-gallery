@@ -130,7 +130,7 @@ export async function getProductById(id: string) {
 }
 export async function listAdminProducts() {
   return getMySqlDb().select({
-    id: products.id, title: products.title, slug: products.slug, status: products.status,
+    id: products.id, title: products.title, slug: products.slug, sku: products.sku, status: products.status,
     price_minor: products.priceMinor, currency: products.currency,
     quantity_on_hand: products.quantityOnHand, updated_at: products.updatedAt, category_name: categories.name,
   }).from(products).leftJoin(categories, eq(categories.id, products.categoryId))

@@ -1,16 +1,11 @@
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { listCategories } from "@/server/catalogue/repository";
 import { createDraftProduct } from "../actions";
 
 export const metadata = { title: "Create product" };
 
 export default async function NewAdminProductPage() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return <div className="page-shell"><div className="page-heading"><h1>New product</h1><p>Connect Supabase to manage the catalogue.</p></div></div>;
-
-  const { data: categories, error } = await supabase.from("categories")
-    .select("id,name").order("sort_order", { ascending: true });
-  if (error) throw new Error("Unable to load product categories.");
+  const categories = await listCategories();
 
   return <div className="page-shell admin-editor">
     <div className="breadcrumb"><Link href="/admin/products">PRODUCT CATALOGUE</Link> / NEW PRODUCT</div>

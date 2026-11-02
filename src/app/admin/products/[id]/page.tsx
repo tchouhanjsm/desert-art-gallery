@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { asc, desc, eq, isNull } from "drizzle-orm";
+import { getMySqlDb } from "@/server/db";
+import { inventoryMovements } from "@/server/db/schema";
+import { getProductById, listCategories } from "@/server/catalogue/repository";
+import { getAdminMediaUrl } from "@/server/media/storage";
 import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights, adjustProductInventory, updateProductImageOrder, setProductImagePrimary, createProductVariant, updateProductVariant, adjustProductVariantInventory } from "../actions";
 
 export const metadata = { title: "Edit product" };
@@ -30,27 +34,58 @@ function displayMoneyInput(value: number | null, currency: string) {
 
 export default async function EditAdminProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return <div className="page-shell"><div className="page-heading"><h1>Edit product</h1><p>Connect Supabase to manage the catalogue.</p></div></div>;
+  const raw = await getProductById(id);
+  if (!raw) notFound();
 
-  const [productResult, categoryResult, imageResult, movementResult, variantResult] = await Promise.all([
-    supabase.from("products").select("*").eq("id", id).maybeSingle(),
-    supabase.from("categories").select("id,name").order("sort_order", { ascending: true }),
-    supabase.from("product_images").select("id,storage_path,alt_text,rights_confirmed,rights_evidence,sort_order,is_primary,created_at").eq("product_id", id).order("is_primary", { ascending: false }).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
-    supabase.from("inventory_movements").select("id,quantity_delta,reason,reference,created_at").eq("product_id", id).is("variant_id", null).order("created_at", { ascending: false }).limit(25),
-    supabase.from("product_variants").select("id,sku,label,attributes,price_override_minor,quantity_on_hand,status").eq("product_id", id).order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
-  ]);
-  if (productResult.error || !productResult.data) notFound();
-  if (categoryResult.error || imageResult.error || variantResult.error) throw new Error("Unable to load product editor data.");
-  const product = productResult.data as ProductRow;
-  const imageRows = (imageResult.data ?? []) as ImageRow[];
-  const movements = (movementResult.data ?? []) as MovementRow[];
-  const variants = (variantResult.data ?? []) as VariantRow[];
-  const hasActiveVariants = variants.some((variant) => variant.status === "active");
-  const images = await Promise.all(imageRows.map(async (image) => {
-    const { data } = await supabase.storage.from("product-media").createSignedUrl(image.storage_path, 900);
-    return { ...image, url: data?.signedUrl ?? null };
+  const product: ProductRow = {
+    id: raw.id,
+    title: raw.title,
+    slug: raw.slug,
+    sku: raw.sku,
+    category_id: raw.categoryId,
+    short_description: raw.shortDescription,
+    description: raw.description,
+    currency: raw.currency,
+    price_minor: raw.priceMinor,
+    compare_at_price_minor: raw.compareAtPriceMinor,
+    quantity_on_hand: raw.quantityOnHand,
+    status: raw.status,
+    materials: raw.materials,
+    sizes: raw.sizes,
+    measurements: raw.measurements,
+    condition_notes: raw.conditionNotes,
+    provenance: raw.provenance,
+    craft_story: raw.craftStory,
+    seo_title: raw.seoTitle,
+    seo_description: raw.seoDescription,
+  };
+  const categoryRows = await listCategories();
+  const imageRows = raw.images as Array<{
+    id: string; storagePath: string; altText: string; rightsConfirmed: boolean;
+    rightsEvidence: string; sortOrder: number; isPrimary: boolean; createdAt: Date;
+  }>;
+  const images = imageRows.map(image => ({
+    id: image.id, storage_path: image.storagePath, alt_text: image.altText,
+    rights_confirmed: image.rightsConfirmed, rights_evidence: image.rightsEvidence,
+    sort_order: image.sortOrder, is_primary: image.isPrimary,
+    created_at: image.createdAt.toISOString(), url: getAdminMediaUrl(image.storagePath),
   }));
+  const [movementRows, variantRows] = await Promise.all([
+    getMySqlDb().select().from(inventoryMovements)
+      .where(and(eq(inventoryMovements.productId, id), isNull(inventoryMovements.variantId)))
+      .orderBy(desc(inventoryMovements.createdAt)).limit(25),
+    Promise.resolve(raw.variants),
+  ]);
+  const movements: MovementRow[] = movementRows.map(row => ({
+    id: row.id, quantity_delta: row.quantityDelta, reason: row.reason,
+    reference: row.reference, created_at: row.createdAt.toISOString(),
+  }));
+  const variants: VariantRow[] = variantRows.map(row => ({
+    id: row.id, sku: row.sku, label: row.label, attributes: row.attributes,
+    price_override_minor: row.priceOverrideMinor, quantity_on_hand: row.quantityOnHand,
+    status: row.status as VariantRow["status"],
+  }));
+  const hasActiveVariants = variants.some(variant => variant.status === "active");
 
   return <div className="page-shell admin-editor">
     <div className="breadcrumb"><Link href="/admin/products">PRODUCT CATALOGUE</Link> / EDIT PRODUCT</div>
@@ -62,7 +97,7 @@ export default async function EditAdminProductPage({ params }: { params: Promise
         <label>Product title<input name="title" required defaultValue={product.title} maxLength={180} /></label>
         <label>URL slug<input name="slug" required defaultValue={product.slug} maxLength={180} /></label>
         <label>SKU<input name="sku" defaultValue={product.sku ?? ""} maxLength={80} /></label>
-        <label>Category<select name="category_id" defaultValue={product.category_id ?? ""}><option value="">Unassigned</option>{(categoryResult.data ?? []).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
+        <label>Category<select name="category_id" defaultValue={product.category_id ?? ""}><option value="">Unassigned</option>{categoryRows.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
         <label>Currency<input name="currency" defaultValue={product.currency} pattern="[A-Za-z]{3}" maxLength={3} required /></label>
         <label>Price<input name="price" inputMode="decimal" defaultValue={displayMoneyInput(product.price_minor, product.currency)} /></label>
         <label>Compare-at price<input name="compare_at_price" inputMode="decimal" defaultValue={displayMoneyInput(product.compare_at_price_minor, product.currency)} /></label>
@@ -140,7 +175,7 @@ export default async function EditAdminProductPage({ params }: { params: Promise
       </form>}
       {hasActiveVariants && <p className="catalogue-import-note">Product-level stock adjustments are disabled while active variants exist. Use each variant&apos;s own ledger above.</p>}
       <h3>Recent product-level stock movements</h3>
-      {movementResult.error ? <p className="catalogue-import-note">Movement history is unavailable. Verify the catalogue inventory migration.</p> : movements.length ? (
+      {movements.length ? (
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead><tr><th>DATE</th><th>REASON</th><th>CHANGE</th><th>REFERENCE</th></tr></thead>

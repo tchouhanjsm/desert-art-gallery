@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CatalogueImportForm } from "@/components/CatalogueImportForm";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { desc } from "drizzle-orm";
+import { getMySqlDb } from "@/server/db";
+import { catalogueImportBatches } from "@/server/db/schema";
 
 export const metadata = { title: "Import product catalogue" };
 
@@ -13,16 +15,12 @@ type ImportBatch = {
 };
 
 export default async function AdminCatalogueImportPage() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) {
-    return <div className="page-shell"><div className="page-heading"><h1>Import catalogue</h1><p>Connect Supabase to activate secure catalogue imports.</p></div></div>;
-  }
-
-  const { data, error } = await supabase.from("catalogue_import_batches")
-    .select("id,row_count,products_created,stock_units_added,created_at")
-    .order("created_at", { ascending: false })
-    .limit(10);
-  const batches = (data ?? []) as ImportBatch[];
+  const data = await getMySqlDb().select().from(catalogueImportBatches)
+    .orderBy(desc(catalogueImportBatches.createdAt)).limit(10);
+  const batches: ImportBatch[] = data.map(row => ({
+    id: row.id, row_count: row.rowCount, products_created: row.productsCreated,
+    stock_units_added: row.stockUnitsAdded, created_at: row.createdAt.toISOString(),
+  }));
 
   return (
     <div className="page-shell admin-editor">
@@ -43,7 +41,7 @@ export default async function AdminCatalogueImportPage() {
       <section className="admin-media-section">
         <div className="section-kicker">AUDITABLE OPERATIONS</div>
         <h2>Recent import batches</h2>
-        {error ? <p className="catalogue-import-note">Import history is unavailable. Apply the catalogue import migration before using this register.</p> : batches.length ? (
+        {batches.length ? (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead><tr><th>IMPORTED</th><th>ROWS</th><th>DRAFTS CREATED</th><th>OPENING STOCK UNITS</th><th>BATCH</th></tr></thead>
