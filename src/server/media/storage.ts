@@ -39,9 +39,9 @@ export function safeStorageKey(key: string): string {
   if (segments.length < 4 || segments.some((segment) => !segment || segment === "." || segment === ".." || !/^[a-zA-Z0-9._-]+$/.test(segment))) {
     throw new Error("Media storage key is invalid.");
   }
-  if (segments[0] !== "editorial" || !["homepage", "collection", "artisan", "journal"].includes(segments[1])) {
-    throw new Error("Media storage key is outside the editorial media namespace.");
-  }
+  const editorial = segments[0] === "editorial" && ["homepage", "collection", "artisan", "journal"].includes(segments[1]);
+  const product = segments[0] === "product-media" && segments[1] === "products";
+  if (!editorial && !product) throw new Error("Media storage key is outside an allowed gallery media namespace.");
   return segments.join("/");
 }
 
@@ -50,13 +50,18 @@ export function createEditorialStorageKey(target: EditorialTarget, recordId: str
   return safeStorageKey("editorial/" + target + "/" + recordId + "/" + randomUUID() + "." + extensions[mimeType]);
 }
 
-export function getEditorialMediaUrl(key: string): string {
+export function createProductMediaStorageKey(productId: string, mimeType: EditorialImageMime): string {
+  if (!/^[0-9a-f-]{36}$/i.test(productId)) throw new Error("Product identifier is invalid.");
+  return safeStorageKey("product-media/products/" + productId + "/" + randomUUID() + "." + extensions[mimeType]);
+}
+export function getMediaUrl(key: string): string {
   return "/media/" + safeStorageKey(key).split("/").map(encodeURIComponent).join("/");
 }
-
-export function getAdminEditorialMediaUrl(key: string): string {
+export function getEditorialMediaUrl(key: string): string { return getMediaUrl(key); }
+export function getAdminMediaUrl(key: string): string {
   return "/api/admin/media/" + safeStorageKey(key).split("/").map(encodeURIComponent).join("/");
 }
+export function getAdminEditorialMediaUrl(key: string): string { return getAdminMediaUrl(key); }
 
 function absoluteMediaPath(key: string): string {
   const root = getMediaStorageRoot();
@@ -98,3 +103,7 @@ export async function readEditorialMedia(key: string): Promise<{ bytes: Buffer; 
 export async function removeEditorialMedia(key: string): Promise<void> {
   await rm(absoluteMediaPath(key), { force: true });
 }
+
+export const storeMedia = storeEditorialMedia;
+export const readMedia = readEditorialMedia;
+export const removeMedia = removeEditorialMedia;
