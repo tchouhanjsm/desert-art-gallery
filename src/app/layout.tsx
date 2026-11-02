@@ -3,6 +3,7 @@ import "@fontsource-variable/cormorant-garamond";
 import "@fontsource-variable/dm-sans";
 import "./globals.css";
 import "@/styles/theme.css";
+import "@/styles/admin-theme.css";
 import "@/styles/editorial.css";
 import { SiteChrome } from "@/components/SiteChrome";
 import { CartProvider } from "@/components/CartProvider";

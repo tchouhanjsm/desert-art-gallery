@@ -461,6 +461,8 @@ export async function uploadProductImage(formData: FormData) {
   }
 
   revalidatePath("/admin/products/" + productId);
+  revalidatePath("/admin/media");
+  revalidatePath("/");
 }
 
 export async function confirmProductImageRights(formData: FormData) {
@@ -480,6 +482,8 @@ export async function confirmProductImageRights(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/products/" + productId);
+  revalidatePath("/admin/media");
+  revalidatePath("/");
 }
 
 
@@ -538,6 +542,7 @@ export async function setProductImagePrimary(formData: FormData) {
   }
 
   revalidatePath("/admin/products/" + productId);
+  revalidatePath("/admin/media");
   revalidatePath("/products/" + product.slug);
   revalidatePath("/shop");
   revalidatePath("/");
