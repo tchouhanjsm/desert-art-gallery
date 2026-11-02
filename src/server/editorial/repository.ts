@@ -171,16 +171,17 @@ export async function getCollectionProductSlugsByCollection(collectionIds: strin
 export async function getProductCollectionSlugs(productSlugs: string[]): Promise<Map<string, string[]>> {
   if (!productSlugs.length) return new Map();
   const rows = await getMySqlDb().select({
-    collectionId: collectionProductLinks.collectionId,
     productSlug: collectionProductLinks.productSlug,
+    collectionSlug: collections.slug,
     sortOrder: collectionProductLinks.sortOrder,
   }).from(collectionProductLinks)
+    .innerJoin(collections, eq(collections.id, collectionProductLinks.collectionId))
     .where(inArray(collectionProductLinks.productSlug, productSlugs))
-    .orderBy(asc(collectionProductLinks.sortOrder), asc(collectionProductLinks.productSlug));
+    .orderBy(asc(collectionProductLinks.sortOrder), asc(collections.slug));
   const result = new Map<string, string[]>();
   for (const row of rows) {
     const values = result.get(row.productSlug) ?? [];
-    values.push(row.collectionId);
+    values.push(row.collectionSlug);
     result.set(row.productSlug, values);
   }
   return result;
