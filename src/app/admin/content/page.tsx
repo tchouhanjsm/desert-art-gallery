@@ -186,6 +186,7 @@ export default async function AdminContentPage() {
     journalCards = await Promise.all(journal.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.cover_image_path) })));
   }
 
+  return (
     <section className="owner-page owner-cms">
       <header className="owner-page-heading">
         <div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>Update the homepage, collections, maker profiles and journal. Changes go live only when you choose to publish them.</p></div>
