@@ -133,14 +133,11 @@ function slugify(value: string): string {
 }
 
 function stableHash(value: string): string {
-  let hash = 14695981039346656037n;
-  const prime = 1099511628211n;
-  const mask = (1n << 64n) - 1n;
+  let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
-    hash ^= BigInt(value.charCodeAt(index));
-    hash = (hash * prime) & mask;
+    hash = Math.imul(hash ^ value.charCodeAt(index), 16777619) >>> 0;
   }
-  return hash.toString(36).padStart(13, "0");
+  return hash.toString(36).padStart(7, "0");
 }
 
 function currencyDigits(currency: string): number {
