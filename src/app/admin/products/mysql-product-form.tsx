@@ -40,12 +40,11 @@ export function MySqlProductForm({
   mode: "create" | "edit";
   initial?: MySqlProductFormValues;
 }) {
-  const action = async (previous: CatalogueActionResult, formData: FormData) => {
-    return mode === "create"
-      ? createMySqlDraftProductState(previous, formData)
-      : updateMySqlDraftProductState(previous, formData);
-  };
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const [createState, createFormAction, createPending] = useActionState(createMySqlDraftProductState, initialState);
+  const [updateState, updateFormAction, updatePending] = useActionState(updateMySqlDraftProductState, initialState);
+  const state = mode === "create" ? createState : updateState;
+  const formAction = mode === "create" ? createFormAction : updateFormAction;
+  const pending = mode === "create" ? createPending : updatePending;
 
   return (
     <form action={formAction} className="admin-form">
