@@ -142,10 +142,8 @@ CREATE TABLE IF NOT EXISTS inventory_reservation_items (
   CONSTRAINT reservation_items_quantity_check CHECK (quantity > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 --> statement-breakpoint
-ALTER TABLE collection_product_links
-  ADD CONSTRAINT collection_product_links_product_slug_fk
-  FOREIGN KEY (product_slug) REFERENCES products(slug)
-  ON DELETE CASCADE;
+-- Legacy collection links may intentionally predate product migration.
+-- Keep this relation soft until the catalogue importer reconciles all existing slugs.
 
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS admin_users (
