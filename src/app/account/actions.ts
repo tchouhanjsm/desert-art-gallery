@@ -1,7 +1,12 @@
 "use server";
+
+import { randomUUID } from "node:crypto";
+import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getMySqlDb } from "@/server/db";
+import { addresses, users } from "@/server/db/schema";
+import { requireUser, signOutSession } from "@/server/auth/session";
 
 function field(formData: FormData, key: string, max = 300) {
   const value = formData.get(key);
@@ -12,29 +17,21 @@ function field(formData: FormData, key: string, max = 300) {
 }
 
 export async function updateProfile(formData: FormData) {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new Error("Account services are not configured.");
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login");
+  const user = await requireUser();
   const fullName = field(formData, "full_name", 160);
   const phone = field(formData, "phone", 40);
   if (!fullName) throw new Error("Please enter your name.");
-  const { error } = await supabase.from("profiles").update({ full_name: fullName, phone }).eq("id", user.id);
-  if (error) throw new Error("Unable to update your profile.");
+  await getMySqlDb().update(users).set({ fullName, phone, updatedAt: new Date() }).where(eq(users.id, user.id));
   revalidatePath("/account");
 }
 
 export async function signOutCustomer() {
-  const supabase = await createSupabaseServerClient();
-  if (supabase) await supabase.auth.signOut();
+  await signOutSession();
   redirect("/login");
 }
 
 export async function saveAddress(formData: FormData) {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new Error("Account services are not configured.");
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login");
+  const user = await requireUser();
   const rawId = field(formData, "id", 80);
   const recipientName = field(formData, "recipient_name", 160);
   const line1 = field(formData, "address_line_1", 240);
@@ -48,30 +45,32 @@ export async function saveAddress(formData: FormData) {
   if (!recipientName || !line1 || !city || !postalCode || !/^[A-Z]{2}$/.test(countryCode)) {
     throw new Error("Complete the required address fields and enter a two-letter country code.");
   }
-  const { error } = await supabase.rpc("save_customer_address", {
-    p_address_id: rawId || null,
-    p_recipient_name: recipientName,
-    p_address_line_1: line1,
-    p_address_line_2: line2 || null,
-    p_city: city,
-    p_region: region || null,
-    p_postal_code: postalCode,
-    p_country_code: countryCode,
-    p_phone: phone || null,
-    p_is_default_shipping: isDefault,
+  const db = getMySqlDb();
+  await db.transaction(async (tx) => {
+    if (isDefault) {
+      await tx.update(addresses).set({ isDefaultShipping: false, updatedAt: new Date() }).where(eq(addresses.userId, user.id));
+    }
+    const values = {
+      recipientName, addressLine1: line1, addressLine2: line2 || null, city,
+      region: region || null, postalCode, countryCode, phone: phone || null,
+      isDefaultShipping: isDefault, updatedAt: new Date(),
+    };
+    if (rawId) {
+      const [existing] = await tx.select({ id: addresses.id }).from(addresses)
+        .where(and(eq(addresses.id, rawId), eq(addresses.userId, user.id))).limit(1);
+      if (!existing) throw new Error("Address was not found.");
+      await tx.update(addresses).set(values).where(eq(addresses.id, rawId));
+    } else {
+      await tx.insert(addresses).values({ id: randomUUID(), userId: user.id, ...values, createdAt: new Date() });
+    }
   });
-  if (error) throw new Error("Unable to save this address. " + error.message);
   revalidatePath("/account");
 }
 
 export async function deleteAddress(formData: FormData) {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new Error("Account services are not configured.");
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login");
+  const user = await requireUser();
   const id = field(formData, "id", 80);
   if (!id) throw new Error("Address ID is required.");
-  const { error } = await supabase.from("addresses").delete().eq("id", id).eq("user_id", user.id);
-  if (error) throw new Error("Unable to delete this address.");
+  await getMySqlDb().delete(addresses).where(and(eq(addresses.id, id), eq(addresses.userId, user.id)));
   revalidatePath("/account");
 }
