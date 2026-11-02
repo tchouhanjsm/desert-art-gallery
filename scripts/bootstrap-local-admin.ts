@@ -3,6 +3,7 @@ import { count } from "drizzle-orm";
 import { closeMySqlPool, getMySqlDb } from "../src/server/db";
 import { adminUsers } from "../src/server/db/schema";
 import { hashOwnerPassword } from "../src/server/auth/password";
+import { assertLocalMySqlTarget } from "../src/server/db/safety";
 
 async function main() {
   const email = process.env.LOCAL_ADMIN_EMAIL?.trim().toLowerCase() ?? "";
@@ -14,6 +15,7 @@ async function main() {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) {
     throw new Error("LOCAL_ADMIN_EMAIL must be a valid email address of 255 characters or fewer.");
   }
+  assertLocalMySqlTarget();
   const passwordHash = hashOwnerPassword(password);
   const db = getMySqlDb();
   const [result] = await db.select({ total: count() }).from(adminUsers);
