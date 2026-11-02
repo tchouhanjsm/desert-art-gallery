@@ -146,3 +146,11 @@ describe("reservation transition and idempotency safeguards", () => {
     expect(variants).toContain("before insert or update on public.product_variants");
   });
 });
+
+
+describe("verified one-of-a-kind inventory contract", () => {
+  it("enforces the one-unit limit inside the reservation RPC", () => {
+    expect(variants).toContain("v_product.is_one_of_a_kind and v_item.quantity > 1");
+    expect(variants).toContain("A verified one-of-a-kind product is limited to one unit per reservation");
+  });
+});

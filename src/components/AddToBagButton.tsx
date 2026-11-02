@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useCart } from "@/components/CartProvider";
 import type { ProductVariant } from "@/lib/products";
-import { resolveVariantPriceMinor } from "@/lib/variants";
+import { capPurchasableQuantity, resolveVariantPriceMinor } from "@/lib/variants";
 import { formatMoneyFromMinor } from "@/lib/money";
 
 export function AddToBagButton({
@@ -11,19 +11,22 @@ export function AddToBagButton({
   variants = [],
   priceMinor,
   currency,
+  isOneOfAKind = false,
 }: {
   slug: string;
   quantityOnHand: number;
   variants?: ProductVariant[];
   priceMinor: number | null;
   currency: string;
+  isOneOfAKind?: boolean;
 }) {
   const { addItem } = useCart();
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [added, setAdded] = useState(false);
   const selectedVariant = variants.find((variant) => variant.id === selectedVariantId);
   const hasVariants = variants.length > 0;
-  const maximum = hasVariants ? selectedVariant?.quantityOnHand ?? 0 : quantityOnHand;
+  const rawMaximum = hasVariants ? selectedVariant?.quantityOnHand ?? 0 : quantityOnHand;
+  const maximum = capPurchasableQuantity(rawMaximum, isOneOfAKind);
   const selectedPrice = selectedVariant
     ? resolveVariantPriceMinor(selectedVariant.priceMinor, priceMinor)
     : priceMinor;

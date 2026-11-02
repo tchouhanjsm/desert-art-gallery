@@ -50,3 +50,8 @@ export function isVariantInStock(variant: { status: string; quantityOnHand: numb
     && Number.isSafeInteger(variant.quantityOnHand)
     && variant.quantityOnHand > 0;
 }
+
+export function capPurchasableQuantity(quantity: number, isOneOfAKind: boolean): number {
+  if (!Number.isSafeInteger(quantity) || quantity < 0) return 0;
+  return Math.min(isOneOfAKind ? 1 : 99, quantity);
+}

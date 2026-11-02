@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeCartLines } from "@/lib/cart";
+import { capPurchasableQuantity } from "@/lib/variants";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
     const rawQuantity = selectedVariant
       ? selectedVariant.quantity_on_hand
       : activeVariants.length === 0 && !line.variantId ? product.quantity_on_hand : 0;
-    const availableQuantity = Math.max(0, product.is_one_of_a_kind ? Math.min(1, rawQuantity ?? 0) : rawQuantity ?? 0);
+    const availableQuantity = capPurchasableQuantity(rawQuantity ?? 0, product.is_one_of_a_kind);
     const approvedImages = (product.product_images ?? [])
       .filter((image) => image.rights_confirmed && image.storage_path && image.alt_text?.trim())
       .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || (a.sort_order ?? 0) - (b.sort_order ?? 0));

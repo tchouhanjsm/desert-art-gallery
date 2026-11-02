@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cartLineKey, combineCartLines, normalizeCartLines, shouldMergeSavedCart } from "@/lib/cart";
-import { normalizeVariantId } from "@/lib/variants";
+import { capPurchasableQuantity, normalizeVariantId } from "@/lib/variants";
 import { isSameOriginRequest } from "@/lib/request-security";
 
 type ExistingCartRow = {
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     if (activeVariants.length > 0 && !selectedVariant) continue;
     if (requestLine.variantId && !selectedVariant) continue;
     const rawQuantity = selectedVariant?.quantity_on_hand ?? (activeVariants.length === 0 ? product.quantity_on_hand : 0);
-    const maximum = Math.max(0, product.is_one_of_a_kind ? Math.min(1, rawQuantity ?? 0) : Math.min(99, rawQuantity ?? 0));
+    const maximum = capPurchasableQuantity(rawQuantity ?? 0, product.is_one_of_a_kind);
     const quantity = Math.min(requestLine.quantity, maximum);
     if (quantity < 1) continue;
     upsertRows.push({
@@ -107,13 +107,14 @@ export async function POST(request: NextRequest) {
     const slug = row.products?.slug;
     return !slug || !validKeys.has(cartLineKey(slug, rowVariantId(row)));
   }).map((row) => row.id);
-  if (staleIds.length) {
-    const { error } = await supabase.from("cart_items").delete().eq("user_id", user.id).in("id", staleIds);
-    if (error) return NextResponse.json({ error: "Unable to remove unavailable saved bag items." }, { status: 502 });
-  }
+  // Persist the desired lines before pruning stale rows so a failed upsert never deletes the prior saved bag.
   if (upsertRows.length) {
     const { error } = await supabase.from("cart_items").upsert(upsertRows, { onConflict: "user_id,product_id,selected_options" });
     if (error) return NextResponse.json({ error: "Unable to save your bag to your account." }, { status: 502 });
+  }
+  if (staleIds.length) {
+    const { error } = await supabase.from("cart_items").delete().eq("user_id", user.id).in("id", staleIds);
+    if (error) return NextResponse.json({ error: "Unable to remove unavailable saved bag items." }, { status: 502 });
   }
 
   const mergedLines = upsertRows.flatMap((row) => {

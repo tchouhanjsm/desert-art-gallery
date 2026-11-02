@@ -108,6 +108,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               variants={variants}
               priceMinor={product.priceMinor}
               currency={product.currency}
+              isOneOfAKind={product.isOneOfAKind ?? false}
             />}
           <WishlistToggle slug={product.slug} />
           <a

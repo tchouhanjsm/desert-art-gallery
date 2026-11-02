@@ -37,3 +37,14 @@ describe("product variant domain rules", () => {
     expect(isVariantInStock({ status: "active", quantityOnHand: 0 })).toBe(false);
   });
 });
+
+
+describe("one-of-a-kind quantity policy", () => {
+  it("caps verified one-of-a-kind products at one unit across every option", async () => {
+    const { capPurchasableQuantity } = await import("./variants");
+    expect(capPurchasableQuantity(7, true)).toBe(1);
+    expect(capPurchasableQuantity(7, false)).toBe(7);
+    expect(capPurchasableQuantity(-1, false)).toBe(0);
+    expect(capPurchasableQuantity(Number.MAX_SAFE_INTEGER + 1, false)).toBe(0);
+  });
+});

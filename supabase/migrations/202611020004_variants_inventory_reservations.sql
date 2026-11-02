@@ -394,6 +394,9 @@ begin
     if not found or v_product.status <> 'active' or v_product.price_minor is null then
       raise exception 'A selected product is no longer available for reservation';
     end if;
+    if v_product.is_one_of_a_kind and v_item.quantity > 1 then
+      raise exception 'A verified one-of-a-kind product is limited to one unit per reservation';
+    end if;
 
     select exists (
       select 1 from public.product_variants

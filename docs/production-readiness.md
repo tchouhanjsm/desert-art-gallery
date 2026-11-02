@@ -189,3 +189,10 @@ Production activation requires merchant-authorized catalogue data and original p
 - Added unit coverage for first-account merge, same-account replacement and account-switch merge.
 - Reservation API now returns 201 for a new hold, 200 for an active idempotent replay, and 409 when the reused key points to an expired or released hold.
 - Variant activation now rejects active product-level holds, and all variant mutations use the parent product lock. This closes the race between switching a product from product-level stock to variant-level stock.
+
+
+### Follow-up — stock truth and cart persistence safety
+
+- Applied the same one-of-a-kind quantity cap at product selection, cart preview, authenticated cart synchronization and the database reservation boundary. The cap is activated only by the record's explicit `is_one_of_a_kind` flag; no catalogue claim is inferred.
+- Reordered authenticated cart persistence so valid upserts complete before stale rows are pruned. If an upsert fails, the previously saved cart remains intact instead of being deleted first.
+- Added regression coverage for the one-unit cap and retained server-side reservation enforcement as the final authority.
