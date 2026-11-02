@@ -12,7 +12,8 @@
     "test:db": "vitest run src/server/db/mysql.integration.test.ts",
     "db:migrate": "node --import=tsx scripts/migrate-mysql.ts",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
-    "db:import-editorial": "node --env-file=.env --import=tsx scripts/import-editorial-to-mysql.ts"
+    "db:import-editorial": "node --env-file=.env --import=tsx scripts/import-editorial-to-mysql.ts",
+    "db:bootstrap-admin": "node --import=tsx scripts/bootstrap-local-admin.ts"
   },
   "dependencies": {
     "next": "^15.1.6",
