@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
-import mysql, { type RowDataPacket } from "mysql2/promise";
+import mysql from "mysql2/promise";
+import type { RowDataPacket } from "mysql2";
 import { isSupportedMySqlServer, parseLocalMySqlConnectionUrl } from "../src/lib/local-mysql-runtime";
 
 if (existsSync(".env")) {
@@ -33,7 +34,7 @@ async function main() {
     const pingOnly = process.argv.includes("--ping");
     if (pingOnly) {
       await connection.query("SELECT 1 AS ok");
-      process.stdout.write("MySQL connection: reachable (local loopback)\\n");
+      process.stdout.write("MySQL connection: reachable (local loopback)\n");
       return;
     }
 
@@ -43,8 +44,8 @@ async function main() {
     const server = serverRows[0];
     if (!server) throw new Error("MySQL returned no server identity.");
 
-    process.stdout.write("Database: connected (" + server.database_name + ")\\n");
-    process.stdout.write("Server: " + server.server_version + " — " + server.server_comment + "\\n");
+    process.stdout.write("Database: connected (" + server.database_name + ")\n");
+    process.stdout.write("Server: " + server.server_version + " — " + server.server_comment + "\n");
 
     if (!isSupportedMySqlServer(server.server_version, server.server_comment)) {
       throw new Error("This project requires Oracle MySQL 8.0.16 or newer. MariaDB and older MySQL versions are not accepted by the current schema contract.");
@@ -56,7 +57,7 @@ async function main() {
     const journalExists = Number(journalRows[0]?.total ?? 0) > 0;
 
     if (!journalExists) {
-      process.stdout.write("Migrations: pending (migration journal not found; run npm run db:migrate)\\n");
+      process.stdout.write("Migrations: pending (migration journal not found; run npm run db:migrate)\n");
       process.exitCode = 2;
       return;
     }
@@ -66,12 +67,12 @@ async function main() {
     );
     const migrationCount = Number(migrationRows[0]?.total ?? 0);
     if (migrationCount < 1) {
-      process.stdout.write("Migrations: pending (journal is empty; run npm run db:migrate)\\n");
+      process.stdout.write("Migrations: pending (journal is empty; run npm run db:migrate)\n");
       process.exitCode = 2;
       return;
     }
 
-    process.stdout.write("Migrations: applied (" + migrationCount + " journal entries)\\n");
+    process.stdout.write("Migrations: applied (" + migrationCount + " journal entries)\n");
   } finally {
     await connection.end();
   }
@@ -100,6 +101,6 @@ main().catch((error: unknown) => {
   ].some((prefix) => error.message.startsWith(prefix))
     ? error
     : safeConnectionError(error);
-  process.stderr.write(safeError.message + "\\n");
+  process.stderr.write(safeError.message + "\n");
   if (process.exitCode === undefined || process.exitCode === 0) process.exitCode = 1;
 });
