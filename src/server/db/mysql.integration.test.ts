@@ -4,6 +4,13 @@ import { afterAll, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { closeMySqlPool, getMySqlDb } from "./index";
 import {
+  expireVariantStockReservations, reserveVariantStock,
+  releaseVariantStockReservation, consumeVariantStockReservation, adjustVariantInventory,
+} from "@/server/catalogue/inventory";
+import {
+  getAvailableVariantQuantity, getPublishedProductBySlug, isPublicProductMedia, listPublishedProducts,
+} from "@/server/catalogue/repository";
+import {
   artisanProfiles, collectionProductLinks, collections, inventoryMovements, inventoryReservationItems,
   inventoryReservations, journalPosts, productCategories, productCategoryLinks,
   productMedia, products, productVariants, siteContent,
@@ -144,6 +151,153 @@ suite("real MySQL migration and catalogue integration", () => {
       yearsExperience: 101,
     })).rejects.toBeTruthy();
   }, 30_000);
+
+
+  it("reads only published MySQL products with rights-approved images and ordered variants", async () => {
+    const db = getMySqlDb();
+    const id = randomUUID();
+    const categoryId = randomUUID();
+    const variantId = randomUUID();
+    const imageId = randomUUID();
+    const slug = "published-mysql-" + id;
+    const storageKey = "products/" + id + "/" + randomUUID() + ".webp";
+    try {
+      await db.insert(products).values({
+        id, title: "Published MySQL piece", slug, shortDescription: "A verified short description",
+        description: "Product details", currency: "USD", priceMinor: 2500,
+        status: "published", materials: ["Cotton"], sizes: ["M"], measurements: { chest: "40 cm" },
+        conditionNotes: "Good condition", provenance: "Gallery-supplied provenance", craftStory: "Merchant-supplied story",
+      });
+      await db.insert(productCategories).values({ id: categoryId, name: "Textiles", slug: "textiles-" + id });
+      await db.insert(productCategoryLinks).values({ productId: id, categoryId });
+      await db.insert(productVariants).values({
+        id: variantId, productId: id, sku: "READ-" + id.slice(0, 8), label: "Medium",
+        attributes: { size: "M" }, currency: "USD", stockQuantity: 3, isActive: true,
+      });
+      await db.insert(productMedia).values({
+        id: imageId, productId: id, storageKey, altText: "Front view of verified textile",
+        rightsConfirmed: true, rightsEvidence: "Owner photo permission confirmed in test fixture",
+        mimeType: "image/webp", byteSize: 1200, position: 0, isPrimary: true,
+      });
+      const listed = await listPublishedProducts({ search: "Published MySQL", categorySlug: "textiles-" + id, limit: 10 });
+      expect(listed).toHaveLength(1);
+      expect(listed[0].slug).toBe(slug);
+      expect(listed[0].priceMinor).toBe(2500);
+      expect(listed[0].materials).toEqual(["Cotton"]);
+      expect(listed[0].variants?.[0]?.id).toBe(variantId);
+      expect(listed[0].image).toBe("/product-media/" + storageKey);
+      const detail = await getPublishedProductBySlug(slug);
+      expect(detail?.name).toBe("Published MySQL piece");
+      expect(await isPublicProductMedia(storageKey)).toBe(true);
+      await db.update(productMedia).set({ rightsConfirmed: false, rightsEvidence: "" }).where(eq(productMedia.id, imageId));
+      expect(await isPublicProductMedia(storageKey)).toBe(false);
+      await db.update(products).set({ status: "draft" }).where(eq(products.id, id));
+      expect(await getPublishedProductBySlug(slug)).toBeNull();
+    } finally {
+      await db.delete(productMedia).where(eq(productMedia.productId, id));
+      await db.delete(productVariants).where(eq(productVariants.productId, id));
+      await db.delete(productCategoryLinks).where(eq(productCategoryLinks.productId, id));
+      await db.delete(products).where(eq(products.id, id));
+      await db.delete(productCategories).where(eq(productCategories.id, categoryId));
+    }
+  }, 45_000);
+
+  it("reserves stock idempotently, prevents overselling, consumes once and releases stock", async () => {
+    const db = getMySqlDb();
+    const productId = randomUUID();
+    const variantId = randomUUID();
+    const slug = "reservation-" + productId;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 30 * 60 * 1000);
+    const key = "reservation-idem-" + randomUUID();
+    const request = {
+      customerReference: "mysql-integration-customer",
+      idempotencyKey: key,
+      items: [{ variantId, quantity: 4 }],
+      expiresAt,
+    };
+    try {
+      await db.insert(products).values({
+        id: productId, title: "Reservation product", slug, currency: "USD",
+        priceMinor: 500, status: "published",
+      });
+      await db.insert(productVariants).values({
+        id: variantId, productId, sku: "RES-" + productId.slice(0, 8),
+        label: "Standard", attributes: {}, currency: "USD", stockQuantity: 5, isActive: true,
+      });
+      const reservation = await reserveVariantStock(request, now);
+      const sameReservation = await reserveVariantStock(request, now);
+      expect(sameReservation.reservationId).toBe(reservation.reservationId);
+      expect(await getAvailableVariantQuantity(variantId)).toBe(1);
+      await expect(reserveVariantStock({
+        ...request, idempotencyKey: key + "-oversell", items: [{ variantId, quantity: 2 }],
+      }, now)).rejects.toThrow("Insufficient available stock");
+      await expect(adjustVariantInventory({
+        variantId, quantityDelta: -2, reason: "stocktake",
+        referenceKey: "cannot-cross-reservation-" + productId, actorId: null,
+      }, now)).rejects.toThrow("reserved quantity");
+
+      expect(await releaseVariantStockReservation(reservation.reservationId, now)).toBe("released");
+      expect(await getAvailableVariantQuantity(variantId)).toBe(5);
+      const consumeRequest = {
+        ...request, idempotencyKey: key + "-consume", items: [{ variantId, quantity: 5 }],
+      };
+      const consumeReservation = await reserveVariantStock(consumeRequest, now);
+      expect(await consumeVariantStockReservation(consumeReservation.reservationId, now)).toBe("consumed");
+      expect(await consumeVariantStockReservation(consumeReservation.reservationId, now)).toBe("consumed");
+      const [variant] = await db.select().from(productVariants).where(eq(productVariants.id, variantId));
+      expect(variant.stockQuantity).toBe(0);
+      const movements = await db.select().from(inventoryMovements)
+        .where(eq(inventoryMovements.variantId, variantId));
+      expect(movements.filter((movement) => movement.reason === "Reservation consumed")).toHaveLength(1);
+    } finally {
+      await db.delete(inventoryReservationItems).where(eq(inventoryReservationItems.variantId, variantId));
+      await db.delete(inventoryReservations).where(eq(inventoryReservations.customerReference, "mysql-integration-customer"));
+      await db.delete(inventoryMovements).where(eq(inventoryMovements.variantId, variantId));
+      await db.delete(productVariants).where(eq(productVariants.id, variantId));
+      await db.delete(products).where(eq(products.id, productId));
+    }
+  }, 45_000);
+
+  it("serializes concurrent stock reservations and expires old holds", async () => {
+    const db = getMySqlDb();
+    const productId = randomUUID();
+    const variantId = randomUUID();
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
+    try {
+      await db.insert(products).values({
+        id: productId, title: "Concurrent reservation product",
+        slug: "concurrent-reservation-" + productId,
+        currency: "USD", priceMinor: 1000, status: "published",
+      });
+      await db.insert(productVariants).values({
+        id: variantId, productId, sku: "CON-" + productId.slice(0, 8),
+        label: "One size", attributes: {}, currency: "USD", stockQuantity: 5, isActive: true,
+      });
+      const results = await Promise.allSettled([1, 2].map((index) => reserveVariantStock({
+        customerReference: "concurrent-customer-" + index,
+        idempotencyKey: "concurrent-idempotency-" + productId + "-" + index,
+        items: [{ variantId, quantity: 4 }],
+        expiresAt,
+      }, now)));
+      expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+      expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+
+      const shortHold = await reserveVariantStock({
+        customerReference: "expiry-customer",
+        idempotencyKey: "expiry-idempotency-" + productId,
+        items: [{ variantId, quantity: 1 }],
+        expiresAt,
+      }, now).catch(() => null);
+      expect(shortHold).toBeNull();
+    } finally {
+      await db.delete(inventoryReservationItems).where(eq(inventoryReservationItems.variantId, variantId));
+      await db.delete(inventoryReservations).where(sql`idempotency_key LIKE ${"concurrent-idempotency-" + productId + "%"}`);
+      await db.delete(productVariants).where(eq(productVariants.id, variantId));
+      await db.delete(products).where(eq(products.id, productId));
+    }
+  }, 45_000);
 
   it("reopens the pool and reads previously committed content", async () => {
     const db = getMySqlDb();
