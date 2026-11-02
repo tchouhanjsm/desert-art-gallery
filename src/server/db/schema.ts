@@ -3,7 +3,6 @@ import {
   boolean,
   char,
   datetime,
-  index,
   int,
   json,
   mysqlTable,

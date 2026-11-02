@@ -400,3 +400,18 @@ export async function getPublishedMediaReferences() {
   }
   return [...new Set(keys)];
 }
+
+export async function isEditorialMediaAttached(storageKey: string): Promise<boolean> {
+  const db = getMySqlDb();
+  const [home, collection, artisan, journal] = await Promise.all([
+    db.select({ body: siteContent.body }).from(siteContent).where(eq(siteContent.contentKey, "homepage")).limit(1),
+    db.select({ id: collections.id }).from(collections).where(eq(collections.heroImagePath, storageKey)).limit(1),
+    db.select({ id: artisanProfiles.id }).from(artisanProfiles).where(eq(artisanProfiles.portraitPath, storageKey)).limit(1),
+    db.select({ id: journalPosts.id }).from(journalPosts).where(eq(journalPosts.coverImagePath, storageKey)).limit(1),
+  ]);
+  const body = home[0]?.body;
+  return Boolean(
+    (body && body.hero_image_path === storageKey) ||
+    collection[0] || artisan[0] || journal[0]
+  );
+}

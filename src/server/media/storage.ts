@@ -54,6 +54,10 @@ export function getEditorialMediaUrl(key: string): string {
   return "/media/" + safeStorageKey(key).split("/").map(encodeURIComponent).join("/");
 }
 
+export function getAdminEditorialMediaUrl(key: string): string {
+  return "/api/admin/media/" + safeStorageKey(key).split("/").map(encodeURIComponent).join("/");
+}
+
 function absoluteMediaPath(key: string): string {
   const root = getMediaStorageRoot();
   const fullPath = path.resolve(root, ...safeStorageKey(key).split("/"));
