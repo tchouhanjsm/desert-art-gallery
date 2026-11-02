@@ -1,127 +1,63 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { and, eq, gt, inArray } from "drizzle-orm";
 import { cartLineKey, combineCartLines, normalizeCartLines, shouldMergeSavedCart } from "@/lib/cart";
-import { capPurchasableQuantity, normalizeVariantId } from "@/lib/variants";
+import { capPurchasableQuantity } from "@/lib/variants";
 import { isSameOriginRequest } from "@/lib/request-security";
+import { getCurrentUser } from "@/server/auth/session";
+import { getMySqlDb } from "@/server/db";
+import { cartItems, inventoryReservationItems, inventoryReservations, products, productVariants } from "@/server/db/schema";
 
-type ExistingCartRow = {
-  id: string;
-  product_id: string;
-  quantity: number;
-  selected_options: Record<string, unknown> | null;
-  products: { slug: string } | null;
-};
-type ProductVariantRow = { id: string; status: string; quantity_on_hand: number };
-type ProductRow = {
-  id: string;
-  slug: string;
-  quantity_on_hand: number;
-  is_one_of_a_kind: boolean;
-  product_variants: ProductVariantRow[] | null;
-};
+export const dynamic="force-dynamic";
 
-function rowVariantId(row: ExistingCartRow): string | undefined {
-  const value = row.selected_options?.variant_id;
-  return normalizeVariantId(value) ?? undefined;
-}
-
-export async function POST(request: NextRequest) {
-  if (!isSameOriginRequest(request)) {
-    return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403, headers: { "Cache-Control": "no-store" } });
-  }
-  let body: unknown;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid cart request." }, { status: 400 }); }
-  const payload = body as { lines?: unknown; syncedUserId?: unknown } | null;
-  const guestLines = normalizeCartLines(payload?.lines);
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return NextResponse.json({ authenticated: false, lines: guestLines });
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ authenticated: false, lines: guestLines });
-
-  const { data: existingData, error: existingError } = await supabase.from("cart_items")
-    .select("id,product_id,quantity,selected_options,products(slug)")
-    .eq("user_id", user.id);
-  if (existingError) return NextResponse.json({ error: "Unable to load your saved bag." }, { status: 502 });
-  const existing = (existingData ?? []) as unknown as ExistingCartRow[];
-  const mergeSaved = shouldMergeSavedCart(payload?.syncedUserId, user.id);
-  const allSlugs = Array.from(new Set([
-    ...guestLines.map((line) => line.slug),
-    ...existing.flatMap((row) => row.products ? [row.products.slug] : []),
-  ]));
-
-  if (!allSlugs.length) return NextResponse.json({ authenticated: true, userId: user.id, lines: [] });
-
-  const { data: productData, error: productError } = await supabase.from("products")
-    .select("id,slug,quantity_on_hand,is_one_of_a_kind,product_variants(id,status,quantity_on_hand)")
-    .eq("status", "active")
-    .in("slug", allSlugs);
-  if (productError) return NextResponse.json({ error: "Unable to refresh saved bag items." }, { status: 502 });
-  const products = (productData ?? []) as unknown as ProductRow[];
-  const productsBySlug = new Map(products.map((product) => [product.slug, product]));
-  const requests = new Map<string, { slug: string; variantId?: string; quantity: number }>();
-
-  const addRequest = (slug: string, quantity: number, variantId?: string) => {
-    const key = cartLineKey(slug, variantId);
-    const current = requests.get(key);
-    requests.set(key, { slug, ...(variantId ? { variantId } : {}), quantity: Math.min(99, (current?.quantity ?? 0) + quantity) });
-  };
-  const savedLines = existing.flatMap((row) => row.products?.slug
-    ? [{ slug: row.products.slug, ...(rowVariantId(row) ? { variantId: rowVariantId(row) } : {}), quantity: row.quantity }]
-    : []);
-  const requestedLines = combineCartLines(savedLines, guestLines, mergeSaved);
-  for (const line of requestedLines) addRequest(line.slug, line.quantity, line.variantId);
-
-  const upsertRows: {
-    user_id: string;
-    product_id: string;
-    quantity: number;
-    selected_options: Record<string, string>;
-  }[] = [];
-  for (const requestLine of Array.from(requests.values()).slice(0, 30)) {
-    const product = productsBySlug.get(requestLine.slug);
-    if (!product) continue;
-    const activeVariants = (product.product_variants ?? []).filter((variant) => variant.status === "active");
-    const selectedVariant = requestLine.variantId
-      ? activeVariants.find((variant) => variant.id === requestLine.variantId)
-      : undefined;
-    if (activeVariants.length > 0 && !selectedVariant) continue;
-    if (requestLine.variantId && !selectedVariant) continue;
-    const rawQuantity = selectedVariant?.quantity_on_hand ?? (activeVariants.length === 0 ? product.quantity_on_hand : 0);
-    const maximum = capPurchasableQuantity(rawQuantity ?? 0, product.is_one_of_a_kind);
-    const quantity = Math.min(requestLine.quantity, maximum);
-    if (quantity < 1) continue;
-    upsertRows.push({
-      user_id: user.id,
-      product_id: product.id,
-      quantity,
-      selected_options: requestLine.variantId ? { variant_id: requestLine.variantId } : {},
-    });
-  }
-
-  const validKeys = new Set(upsertRows.map((row) => {
-    const product = products.find((item) => item.id === row.product_id);
-    const variantId = normalizeVariantId(row.selected_options.variant_id) ?? undefined;
-    return product ? cartLineKey(product.slug, variantId) : "";
-  }));
-  const staleIds = existing.filter((row) => {
-    const slug = row.products?.slug;
-    return !slug || !validKeys.has(cartLineKey(slug, rowVariantId(row)));
-  }).map((row) => row.id);
-  // Persist the desired lines before pruning stale rows so a failed upsert never deletes the prior saved bag.
-  if (upsertRows.length) {
-    const { error } = await supabase.from("cart_items").upsert(upsertRows, { onConflict: "user_id,product_id,selected_options" });
-    if (error) return NextResponse.json({ error: "Unable to save your bag to your account." }, { status: 502 });
-  }
-  if (staleIds.length) {
-    const { error } = await supabase.from("cart_items").delete().eq("user_id", user.id).in("id", staleIds);
-    if (error) return NextResponse.json({ error: "Unable to remove unavailable saved bag items." }, { status: 502 });
-  }
-
-  const mergedLines = upsertRows.flatMap((row) => {
-    const product = products.find((item) => item.id === row.product_id);
-    if (!product) return [];
-    const variantId = normalizeVariantId(row.selected_options.variant_id);
-    return [{ slug: product.slug, ...(variantId ? { variantId } : {}), quantity: row.quantity }];
-  });
-  return NextResponse.json({ authenticated: true, userId: user.id, lines: mergedLines }, { headers: { "Cache-Control": "no-store" } });
+export async function POST(request:NextRequest){
+ if(!isSameOriginRequest(request))return NextResponse.json({error:"Cross-origin request rejected."},{status:403,headers:{"Cache-Control":"no-store"}});
+ let body:unknown;try{body=await request.json();}catch{return NextResponse.json({error:"Invalid cart request."},{status:400});}
+ const payload=body&&typeof body==="object"?body as {lines?:unknown;syncedUserId?:unknown}:{};
+ const guest=normalizeCartLines(payload.lines);
+ const user=await getCurrentUser();
+ if(!user)return NextResponse.json({authenticated:false,lines:guest},{headers:{"Cache-Control":"no-store"}});
+ const db=getMySqlDb();
+ const savedRows=await db.select({
+  slug:products.slug,productId:cartItems.productId,variantId:cartItems.variantId,quantity:cartItems.quantity,
+ }).from(cartItems).innerJoin(products,eq(products.id,cartItems.productId)).where(eq(cartItems.userId,user.id));
+ const saved=savedRows.map(row=>({slug:row.slug,...(row.variantId?{variantId:row.variantId}:{}),quantity:row.quantity}));
+ const requested=combineCartLines(saved,guest,shouldMergeSavedCart(payload.syncedUserId,user.id));
+ const slugs=[...new Set(requested.map(line=>line.slug))];
+ if(!slugs.length){
+  await db.delete(cartItems).where(eq(cartItems.userId,user.id));
+  return NextResponse.json({authenticated:true,userId:user.id,lines:[]},{headers:{"Cache-Control":"no-store"}});
+ }
+ const productRows=await db.select().from(products).where(and(inArray(products.slug,slugs),eq(products.status,"active")));
+ const bySlug=new Map(productRows.map(row=>[row.slug,row]));
+ const productIds=productRows.map(row=>row.id);
+ const variantRows=productIds.length?await db.select().from(productVariants)
+  .where(and(inArray(productVariants.productId,productIds),eq(productVariants.status,"active"))):[];
+ const variantsByProduct=new Map<string,typeof variantRows>();
+ for(const row of variantRows)variantsByProduct.set(row.productId,[...(variantsByProduct.get(row.productId)??[]),row]);
+ const holdRows=productIds.length?await db.select({
+  productId:inventoryReservationItems.productId,variantId:inventoryReservationItems.variantId,quantity:inventoryReservationItems.quantity,
+ }).from(inventoryReservationItems).innerJoin(inventoryReservations,eq(inventoryReservations.id,inventoryReservationItems.reservationId))
+ .where(and(inArray(inventoryReservationItems.productId,productIds),eq(inventoryReservations.status,"reserved"),gt(inventoryReservations.expiresAt,new Date()))):[];
+ const holds=new Map<string,number>();for(const row of holdRows){const key=row.productId+"::"+(row.variantId??"");holds.set(key,(holds.get(key)??0)+row.quantity);}
+ const valid:{productId:string;variantId:string|null;quantity:number}[]=[];
+ for(const line of requested.slice(0,30)){
+  const product=bySlug.get(line.slug);if(!product)continue;
+  const active=variantsByProduct.get(product.id)??[];
+  const selected=line.variantId?active.find(v=>v.id===line.variantId):undefined;
+  if(active.length&&!selected)continue;if(line.variantId&&!selected)continue;
+  const key=product.id+"::"+(selected?.id??"");
+  const available=capPurchasableQuantity((selected?.quantityOnHand??product.quantityOnHand)-(holds.get(key)??0),product.isOneOfAKind);
+  const quantity=Math.min(line.quantity,available);if(quantity<1)continue;
+  valid.push({productId:product.id,variantId:selected?.id??null,quantity});
+ }
+ await db.transaction(async tx=>{
+  await tx.delete(cartItems).where(eq(cartItems.userId,user.id));
+  if(valid.length)await tx.insert(cartItems).values(valid.map(line=>({
+   id:crypto.randomUUID(),userId:user.id,productId:line.productId,variantId:line.variantId,
+   quantity:line.quantity,createdAt:new Date(),updatedAt:new Date(),
+  })));
+ });
+ const slugById=new Map(productRows.map(row=>[row.id,row.slug]));
+ const lines=valid.flatMap(row=>slugById.get(row.productId)?[{slug:slugById.get(row.productId) as string,...(row.variantId?{variantId:row.variantId}:{}),quantity:row.quantity}]:[]);
+ return NextResponse.json({authenticated:true,userId:user.id,lines},{headers:{"Cache-Control":"no-store"}});
 }

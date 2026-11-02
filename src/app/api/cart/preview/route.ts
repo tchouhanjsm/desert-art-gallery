@@ -1,107 +1,43 @@
+import { and, eq, gt, inArray } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isSameOriginRequest } from "@/lib/request-security";
 import { normalizeCartLines } from "@/lib/cart";
-import { capPurchasableQuantity } from "@/lib/variants";
+import { capPurchasableQuantity, resolveVariantPriceMinor } from "@/lib/variants";
+import { getPublishedProduct } from "@/server/catalogue/repository";
+import { getMySqlDb } from "@/server/db";
+import { inventoryReservationItems, inventoryReservations } from "@/server/db/schema";
 
-export const dynamic = "force-dynamic";
+export const dynamic="force-dynamic";
 
-type ProductImage = {
-  storage_path: string;
-  alt_text: string | null;
-  sort_order: number | null;
-  is_primary: boolean;
-  rights_confirmed: boolean;
-};
-type ProductVariantRow = {
-  id: string;
-  label: string;
-  price_override_minor: number | string | null;
-  quantity_on_hand: number;
-  status: string;
-};
-type ProductRow = {
-  id: string;
-  slug: string;
-  title: string;
-  currency: string;
-  price_minor: number | string | null;
-  quantity_on_hand: number;
-  is_one_of_a_kind: boolean;
-  product_images: ProductImage[] | null;
-  product_variants: ProductVariantRow[] | null;
-};
-
-function safeMinor(value: number | string | null): number | null {
-  if (value === null) return null;
-  const amount = typeof value === "number" ? value : Number(value);
-  return Number.isSafeInteger(amount) && amount >= 0 ? amount : null;
-}
-
-export async function POST(request: NextRequest) {
-  let body: unknown;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid cart request." }, { status: 400 }); }
-  const payload = body as { lines?: unknown } | null;
-  const lines = normalizeCartLines(payload?.lines);
-  if (!lines.length) return NextResponse.json({ items: [] });
-
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return NextResponse.json({ error: "The live catalogue is not configured." }, { status: 503 });
-
-  const { data, error } = await supabase.from("products")
-    .select("id,slug,title,currency,price_minor,quantity_on_hand,is_one_of_a_kind,product_images(storage_path,alt_text,sort_order,is_primary,rights_confirmed),product_variants(id,label,price_override_minor,quantity_on_hand,status)")
-    .eq("status", "active")
-    .in("slug", lines.map((line) => line.slug));
-
-  if (error) return NextResponse.json({ error: "Unable to refresh current product details." }, { status: 502 });
-  const products = (data ?? []) as unknown as ProductRow[];
-  const bySlug = new Map(products.map((product) => [product.slug, product]));
-
-  const items = await Promise.all(lines.map(async (line) => {
-    const product = bySlug.get(line.slug);
-    if (!product) return {
-      slug: line.slug, variantId: line.variantId ?? null, variantLabel: null,
-      name: "This piece is no longer available", quantityRequested: line.quantity,
-      availableQuantity: 0, available: false, priceMinor: null, currency: null, image: null, imageAlt: "",
-    };
-
-    const activeVariants = (product.product_variants ?? []).filter((variant) => variant.status === "active");
-    const selectedVariant = line.variantId
-      ? activeVariants.find((variant) => variant.id === line.variantId) ?? null
-      : null;
-    const invalidSelection = activeVariants.length > 0
-      ? !selectedVariant
-      : Boolean(line.variantId);
-    const rawPrice = selectedVariant
-      ? selectedVariant.price_override_minor ?? product.price_minor
-      : activeVariants.length === 0 && !line.variantId ? product.price_minor : null;
-    const priceMinor = safeMinor(rawPrice);
-    const rawQuantity = selectedVariant
-      ? selectedVariant.quantity_on_hand
-      : activeVariants.length === 0 && !line.variantId ? product.quantity_on_hand : 0;
-    const availableQuantity = capPurchasableQuantity(rawQuantity ?? 0, product.is_one_of_a_kind);
-    const approvedImages = (product.product_images ?? [])
-      .filter((image) => image.rights_confirmed && image.storage_path && image.alt_text?.trim())
-      .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || (a.sort_order ?? 0) - (b.sort_order ?? 0));
-    const primary = approvedImages[0];
-    let image: string | null = null;
-    if (primary) {
-      const { data: signed } = await supabase.storage.from("product-media").createSignedUrl(primary.storage_path, 900);
-      image = signed?.signedUrl ?? null;
-    }
-    return {
-      slug: product.slug,
-      variantId: line.variantId ?? null,
-      variantLabel: selectedVariant?.label ?? (invalidSelection ? "Select an option on the product page" : null),
-      name: product.title,
-      quantityRequested: line.quantity,
-      availableQuantity,
-      available: !invalidSelection && availableQuantity >= line.quantity && priceMinor !== null,
-      priceMinor,
-      currency: priceMinor === null ? null : product.currency,
-      image,
-      imageAlt: primary?.alt_text?.trim() ?? "",
-    };
-  }));
-
-  return NextResponse.json({ items }, { headers: { "Cache-Control": "no-store" } });
+export async function POST(request:NextRequest){
+ if(!isSameOriginRequest(request))return NextResponse.json({error:"Cross-origin request rejected."},{status:403});
+ let body:unknown;try{body=await request.json();}catch{return NextResponse.json({error:"Invalid cart request."},{status:400});}
+ const lines=normalizeCartLines(body&&typeof body==="object"?(body as {lines?:unknown}).lines:undefined);
+ if(!lines.length)return NextResponse.json({items:[]},{headers:{"Cache-Control":"no-store"}});
+ const products=await Promise.all(lines.map(line=>getPublishedProduct(line.slug)));
+ const ids=products.flatMap(p=>p?[p.id]:[]);
+ const activeHolds=ids.length?await getMySqlDb().select({
+  productId:inventoryReservationItems.productId,variantId:inventoryReservationItems.variantId,quantity:inventoryReservationItems.quantity,
+ }).from(inventoryReservationItems).innerJoin(inventoryReservations,eq(inventoryReservations.id,inventoryReservationItems.reservationId))
+ .where(and(inArray(inventoryReservationItems.productId,ids),eq(inventoryReservations.status,"reserved"),gt(inventoryReservations.expiresAt,new Date()))):[];
+ const holds=new Map<string,number>();
+ for(const row of activeHolds){const k=row.productId+"::"+(row.variantId??"");holds.set(k,(holds.get(k)??0)+row.quantity);}
+ const items=lines.map((line,index)=>{
+  const product=products[index];
+  if(!product)return {slug:line.slug,variantId:line.variantId??null,variantLabel:null,name:"This piece is no longer available",quantityRequested:line.quantity,availableQuantity:0,available:false,priceMinor:null,currency:null,image:null,imageAlt:""};
+  const activeVariants=product.variants.filter(v=>v.status==="active");
+  const selected=line.variantId?activeVariants.find(v=>v.id===line.variantId)??null:null;
+  const invalid=activeVariants.length>0?!selected:Boolean(line.variantId&&!selected);
+  const stock=selected?.quantityOnHand??(activeVariants.length===0?product.quantityOnHand:0);
+  const available=capPurchasableQuantity(stock-(holds.get(product.id+"::"+(selected?.id??""))??0),product.isOneOfAKind);
+  const price=selected?resolveVariantPriceMinor(selected.priceMinor,product.priceMinor):activeVariants.length===0&&!line.variantId?product.priceMinor:null;
+  return {
+   slug:product.slug,variantId:line.variantId??null,variantLabel:selected?.label??(invalid?"Select an option on the product page":null),
+   name:product.name,quantityRequested:line.quantity,availableQuantity:available,
+   available:!invalid&&available>=line.quantity&&price!==null,
+   priceMinor:price,currency:price===null?null:product.currency,
+   image:product.image||null,imageAlt:product.imageAlt||"",
+  };
+ });
+ return NextResponse.json({items},{headers:{"Cache-Control":"no-store"}});
 }
