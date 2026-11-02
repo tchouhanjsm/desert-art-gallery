@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { collections as previewCollections, products as previewProducts, type Product, type ProductImage, type ProductVariant } from "@/lib/products";
 import { isPresentableProductImage, sortProductImages } from "@/lib/product-details";
 import { hasMySqlDatabase } from "@/server/db";
-import { getPublishedCollections } from "@/server/editorial/repository";
+import { getProductCollectionSlugs, getPublishedCollections } from "@/server/editorial/repository";
 import { getEditorialMediaUrl } from "@/server/media/storage";
 
 type ProductImageRow = {
@@ -139,6 +139,9 @@ export async function getStorefrontProducts(): Promise<Product[]> {
   if (error) throw new Error("Unable to load the published catalogue: " + error.message);
 
   const rows = (data ?? []) as unknown as ProductRow[];
+  const mysqlCollectionLinks = hasMySqlDatabase()
+    ? await getProductCollectionSlugs(rows.map((row) => row.slug))
+    : null;
   const resolved = await Promise.all(rows.map(async (row): Promise<Product | null> => {
     const approvedImages = sortProductImages(
       (row.product_images ?? []).filter(isPresentableProductImage),
@@ -164,7 +167,9 @@ export async function getStorefrontProducts(): Promise<Product[]> {
       currency: safeCurrency(row.currency),
       quantityOnHand: safeQuantity(row.quantity_on_hand),
       isOneOfAKind: row.is_one_of_a_kind,
-      collectionSlugs: (row.collection_products ?? []).flatMap((item) => item.collections ? [item.collections.slug] : []),
+      collectionSlugs: mysqlCollectionLinks
+        ? mysqlCollectionLinks.get(row.slug) ?? []
+        : (row.collection_products ?? []).flatMap((item) => item.collections ? [item.collections.slug] : []),
     };
   }));
 
