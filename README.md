@@ -13,6 +13,12 @@ Do not publish guessed prices, measurements, stock, artisan biographies, shippin
 
 See `data/product-import-template.csv` and `docs/production-readiness.md` for catalogue and launch requirements.
 
+## Site URL and contact identity
+
+Local development uses `http://localhost:3000` as the default site origin. The `NEXT_PUBLIC_SITE_URL` setting drives metadata, robots and sitemap URLs. Before any production deployment, set it to the gallery's verified official HTTPS origin. Do not use an unconfirmed domain as a canonical URL.
+
+The public contact page intentionally does not display an email address until the gallery's official contact channel has been confirmed.
+
 ## Self-hosted MySQL owner workspace
 
 The MySQL/Drizzle editorial cutover and one-time legacy content import are documented in [MySQL Editorial CMS Cutover — Phase 4](docs/MYSQL-EDITORIAL-CUTOVER-PHASE-4.md).

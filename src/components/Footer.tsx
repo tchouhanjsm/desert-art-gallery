@@ -26,7 +26,7 @@ export function Footer() {
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} DESERT ART GALLERY</span>
         <span>BASED IN JAISALMER, RAJASTHAN</span>
-        <a className="footer-email" href="mailto:hello@desertartgallery.net">EMAIL THE GALLERY</a>
+        <Link className="footer-email" href="/contact">CONTACT THE GALLERY</Link>
       </div>
     </footer>
   );

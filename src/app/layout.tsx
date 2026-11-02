@@ -8,9 +8,10 @@ import "@/styles/editorial.css";
 import { SiteChrome } from "@/components/SiteChrome";
 import { CartProvider } from "@/components/CartProvider";
 import { WishlistProvider } from "@/components/WishlistProvider";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://desertartgallery.net"),
+  metadataBase: getSiteUrl(),
   title: {
     default: "Desert Art Gallery — Textiles, Objects & Stories",
     template: "%s | Desert Art Gallery",
