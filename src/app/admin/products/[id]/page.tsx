@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import { getMySqlDb, isMySqlCatalogueEnabled } from "@/server/db";
-import { inventoryMovements, productMedia, products, productVariants } from "@/server/db/schema";
+import { inventoryMovements, productCategories, productCategoryLinks, productMedia, products, productVariants } from "@/server/db/schema";
 import { getProductMediaUrl } from "@/server/media/product-storage";
 import { MySqlProductForm } from "../mysql-product-form";
 import { MySqlProductManagement } from "../mysql-product-management";
@@ -41,11 +41,15 @@ export default async function EditAdminProductPage({ params }: { params: Promise
     const db = getMySqlDb();
     const [mysqlProduct] = await db.select().from(products).where(eq(products.id, id)).limit(1);
     if (!mysqlProduct) notFound();
-    const [variantRows, mediaRows] = await Promise.all([
+    const [variantRows, mediaRows, categoryRows] = await Promise.all([
       db.select().from(productVariants).where(eq(productVariants.productId, id))
         .orderBy(asc(productVariants.sortOrder), asc(productVariants.createdAt)),
       db.select().from(productMedia).where(eq(productMedia.productId, id))
         .orderBy(asc(productMedia.position), asc(productMedia.createdAt)),
+      db.select({ slug: productCategories.slug }).from(productCategoryLinks)
+        .innerJoin(productCategories, eq(productCategories.id, productCategoryLinks.categoryId))
+        .where(eq(productCategoryLinks.productId, id))
+        .orderBy(asc(productCategories.sortOrder), asc(productCategories.name)),
     ]);
     const variantIds = variantRows.map((variant) => variant.id);
     const movementRows = variantIds.length
@@ -78,8 +82,9 @@ export default async function EditAdminProductPage({ params }: { params: Promise
       price: displayMoneyInput(mysqlProduct.priceMinor, mysqlProduct.currency),
       compareAtPrice: displayMoneyInput(mysqlProduct.compareAtPriceMinor, mysqlProduct.currency),
       shortDescription: mysqlProduct.shortDescription,
-      description: mysqlProduct.description,
+      description: mysqlProduct.description ?? "",
       productType: mysqlProduct.productType,
+      categorySlugs: categoryRows.map((category) => category.slug),
       materials: mysqlProduct.materials ?? [],
       sizes: mysqlProduct.sizes ?? [],
       measurements: mysqlProduct.measurements,
