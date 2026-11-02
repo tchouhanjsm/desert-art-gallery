@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "vitest run src/server/db/mysql.integration.test.ts",
-    "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
+    "db:migrate": "node --import=tsx scripts/migrate-mysql.ts",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
     "db:import-editorial": "node --env-file=.env --import=tsx scripts/import-editorial-to-mysql.ts"
   },
