@@ -2,7 +2,8 @@ import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { collections as previewCollections, products as previewProducts, type Product, type ProductImage, type ProductVariant } from "@/lib/products";
 import { isPresentableProductImage, sortProductImages } from "@/lib/product-details";
-import { hasMySqlDatabase } from "@/server/db";
+import { hasMySqlDatabase, isMySqlCatalogueEnabled } from "@/server/db";
+import { getPublishedProductBySlug, listPublishedProducts } from "@/server/catalogue/repository";
 import { getProductCollectionSlugs, getPublishedCollections } from "@/server/editorial/repository";
 import { getEditorialMediaUrl } from "@/server/media/storage";
 
@@ -126,6 +127,7 @@ async function resolveProductImages(
 }
 
 export async function getStorefrontProducts(): Promise<Product[]> {
+  if (isMySqlCatalogueEnabled()) return listPublishedProducts();
   const supabase = await createSupabaseServerClient();
   if (!supabase) return process.env.NODE_ENV === "development" ? previewProducts : [];
 
@@ -233,6 +235,7 @@ export async function getStorefrontCollections(): Promise<StorefrontCollection[]
  * render one product detail page.
  */
 export const getStorefrontProduct = cache(async (slug: string): Promise<Product | null> => {
+  if (isMySqlCatalogueEnabled()) return getPublishedProductBySlug(slug);
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return process.env.NODE_ENV === "development"
