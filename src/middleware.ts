@@ -6,7 +6,19 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return NextResponse.next({ request });
+  const path = request.nextUrl.pathname;
+  const protectedRoute = path.startsWith("/admin") || path.startsWith("/account");
+
+  // Fail closed for protected pages when the configured identity provider is unavailable.
+  if (!url || !anonKey) {
+    if (!protectedRoute) return NextResponse.next({ request });
+    const target = request.nextUrl.clone();
+    target.pathname = "/login";
+    target.search = "";
+    target.searchParams.set("error", "auth_unavailable");
+    target.searchParams.set("next", path);
+    return NextResponse.redirect(target);
+  }
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, anonKey, {
@@ -22,9 +34,7 @@ export async function middleware(request: NextRequest) {
 
   // getUser() validates the access token against Supabase Auth; do not trust getSession() alone.
   const { data: { user } } = await supabase.auth.getUser();
-  const path = request.nextUrl.pathname;
-
-  if ((path.startsWith("/admin") || path.startsWith("/account")) && !user) {
+  if (protectedRoute && !user) {
     const target = request.nextUrl.clone();
     target.pathname = "/login";
     target.searchParams.set("next", path);

@@ -5,7 +5,6 @@ import { closeMySqlPool, getMySqlDb, pingMySql } from "@/server/db";
 import { artisanProfiles, collections, journalPosts, siteContent } from "@/server/db/schema";
 import { hasSupportedImageSignature } from "@/lib/image-signature";
 import {
-  createEditorialStorageKey,
   readEditorialMedia,
   removeEditorialMedia,
   safeStorageKey,

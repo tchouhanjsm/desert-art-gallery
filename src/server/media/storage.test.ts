@@ -50,4 +50,22 @@ describe("editorial media storage paths", () => {
     delete process.env.MEDIA_STORAGE_ROOT;
     expect(getMediaStorageRoot()).toMatch(/\.local-data[\/]media$/);
   });
+
+  it("writes media atomically, reads it with the expected MIME type and removes it", async () => {
+    const root = await mkdtemp(join(tmpdir(), "desert-art-gallery-media-"));
+    temporaryRoots.push(root);
+    process.env.MEDIA_STORAGE_ROOT = root;
+    process.env.NODE_ENV = "test";
+
+    const key = createEditorialStorageKey("collection", "a8f9df07-6f01-4f8b-a74d-90d49db01852", "image/webp");
+    const bytes = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00]);
+    await storeEditorialMedia(key, bytes);
+
+    const saved = await readEditorialMedia(key);
+    expect(saved?.mimeType).toBe("image/webp");
+    expect(saved?.bytes).toEqual(Buffer.from(bytes));
+
+    await removeEditorialMedia(key);
+    expect(await readEditorialMedia(key)).toBeNull();
+  });
 });
