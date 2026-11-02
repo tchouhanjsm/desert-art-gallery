@@ -38,8 +38,9 @@ export async function getPublishedHomepageContent(): Promise<PublishedHomepageCo
   let heroImage: string | null = null;
   const path = typeof body.hero_image_path === "string" ? body.hero_image_path : "";
   const rightsConfirmed = body.hero_image_rights_confirmed === true;
-  const alt = textValue(body, "hero_image_alt", "Desert Art Gallery homepage photograph");
-  if (path && rightsConfirmed && alt) {
+  const alt = textValue(body, "hero_image_alt", "");
+  const rightsEvidence = textValue(body, "hero_image_rights_evidence", "");
+  if (path && rightsConfirmed && alt && rightsEvidence) {
     const { data: signed } = await supabase.storage.from("product-media").createSignedUrl(path, 60 * 60);
     heroImage = signed?.signedUrl ?? null;
   }

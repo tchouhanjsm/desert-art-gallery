@@ -11,6 +11,16 @@ alter table public.artisan_profiles
 alter table public.journal_posts
   add column if not exists cover_image_alt text not null default '';
 
+-- Existing collection image approvals predate the evidence column. Fail closed by
+-- removing approval from legacy rows without a recorded evidence reference or alt text.
+update public.collections
+set hero_image_rights_confirmed = false
+where hero_image_rights_confirmed = true
+  and (
+    length(btrim(hero_image_rights_evidence)) = 0
+    or length(btrim(hero_image_alt)) = 0
+  );
+
 alter table public.collections
   drop constraint if exists collection_hero_rights_evidence_required;
 alter table public.collections

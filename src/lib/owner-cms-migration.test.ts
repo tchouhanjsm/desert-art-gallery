@@ -14,6 +14,15 @@ describe("owner CMS media migration contract", () => {
     expect(migration).toContain("add column if not exists cover_image_alt");
   });
 
+  it("revokes legacy collection image approvals that lack alt text or rights evidence before adding the constraint", () => {
+    const backfill = migration.indexOf("update public.collections");
+    const constraint = migration.indexOf("add constraint collection_hero_rights_evidence_required");
+    expect(backfill).toBeGreaterThanOrEqual(0);
+    expect(constraint).toBeGreaterThan(backfill);
+    expect(migration).toContain("length(btrim(hero_image_rights_evidence)) = 0");
+    expect(migration).toContain("length(btrim(hero_image_alt)) = 0");
+  });
+
   it("requires rights evidence when a collection hero image is approved", () => {
     expect(migration).toContain("collection_hero_rights_evidence_required");
     expect(migration).toContain("not hero_image_rights_confirmed or length(btrim(hero_image_rights_evidence)) > 0");

@@ -12,6 +12,7 @@ type ArtisanRow = {
   full_name: string;
   role_title: string;
   short_bio: string;
+  biography: string;
   craft_specialties: string[];
   years_experience: number | null;
   portrait_path: string | null;
@@ -39,7 +40,7 @@ export default async function ArtisansPage() {
   }
 
   const { data, error } = await supabase.from("artisan_profiles")
-    .select("id,full_name,role_title,short_bio,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed")
+    .select("id,full_name,role_title,short_bio,biography,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed")
     .eq("is_published", true).order("sort_order", { ascending: true });
   if (error) throw new Error("Unable to load maker profiles.");
 
@@ -74,6 +75,7 @@ export default async function ArtisansPage() {
               <div className="section-kicker">{artisan.role_title}</div>
               <h2>{artisan.full_name}</h2>
               {artisan.short_bio && <p>{artisan.short_bio}</p>}
+              {artisan.biography && <p className="artisan-biography">{artisan.biography}</p>}
               {artisan.years_experience !== null && <small>{artisan.years_experience} YEARS OF EXPERIENCE</small>}
               {!!artisan.craft_specialties.length && (
                 <div className="artisan-specialties">

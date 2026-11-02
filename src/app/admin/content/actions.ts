@@ -64,9 +64,11 @@ function splitList(value: string) {
 }
 
 function revalidateEditorial() {
-  for (const path of ["/", "/shop", "/collections", "/artisans", "/journal", "/admin", "/admin/content", "/admin/media"]) {
+  for (const path of ["/", "/shop", "/artisans", "/journal", "/admin", "/admin/content", "/admin/media"]) {
     revalidatePath(path);
   }
+  revalidatePath("/collections/[slug]", "page");
+  revalidatePath("/journal/[slug]", "page");
 }
 
 export async function saveHomepageContent(formData: FormData) {
@@ -252,9 +254,13 @@ export async function uploadEditorialImage(formData: FormData) {
   const signature = new Uint8Array(await file.slice(0, 64).arrayBuffer());
   if (!hasSupportedImageSignature(file.type, signature)) throw new Error("The image contents do not match the selected file type.");
 
+  let homepageBody: Record<string, unknown> | null = null;
   if (target === "homepage") {
     const { data, error } = await supabase.from("site_content").select("id,body").eq("id", id).maybeSingle();
     if (error || !data) throw new Error("Homepage content record was not found.");
+    homepageBody = data.body && typeof data.body === "object" && !Array.isArray(data.body)
+      ? data.body as Record<string, unknown>
+      : {};
   } else if (target === "collection") {
     const { data, error } = await supabase.from("collections").select("id").eq("id", id).maybeSingle();
     if (error || !data) throw new Error("Collection was not found.");
@@ -275,28 +281,29 @@ export async function uploadEditorialImage(formData: FormData) {
 
   let updateError: { message: string } | null = null;
   if (target === "homepage") {
-    const { data } = await supabase.from("site_content").select("body").eq("id", id).maybeSingle();
-    const body = data?.body && typeof data.body === "object" && !Array.isArray(data.body)
-      ? data.body as Record<string, unknown> : {};
-    const { error } = await supabase.from("site_content").update({
-      body: { ...body, hero_image_path: path, hero_image_alt: altText, hero_image_rights_confirmed: false, hero_image_rights_evidence: "" },
-    }).eq("id", id);
-    updateError = error;
+    if (!homepageBody) {
+      updateError = { message: "Homepage content was not available for the image update." };
+    } else {
+      const { data, error } = await supabase.from("site_content").update({
+        body: { ...homepageBody, hero_image_path: path, hero_image_alt: altText, hero_image_rights_confirmed: false, hero_image_rights_evidence: "" },
+      }).eq("id", id).select("id").maybeSingle();
+      updateError = error || (!data ? { message: "Homepage content was removed before the image update completed." } : null);
+    }
   } else if (target === "collection") {
-    const { error } = await supabase.from("collections").update({
+    const { data, error } = await supabase.from("collections").update({
       hero_image_path: path, hero_image_alt: altText, hero_image_rights_confirmed: false, hero_image_rights_evidence: "",
-    }).eq("id", id);
-    updateError = error;
+    }).eq("id", id).select("id").maybeSingle();
+    updateError = error || (!data ? { message: "Collection was removed before the image update completed." } : null);
   } else if (target === "artisan") {
-    const { error } = await supabase.from("artisan_profiles").update({
+    const { data, error } = await supabase.from("artisan_profiles").update({
       portrait_path: path, portrait_alt_text: altText, portrait_rights_confirmed: false, portrait_rights_evidence: "",
-    }).eq("id", id);
-    updateError = error;
+    }).eq("id", id).select("id").maybeSingle();
+    updateError = error || (!data ? { message: "Maker profile was removed before the image update completed." } : null);
   } else {
-    const { error } = await supabase.from("journal_posts").update({
+    const { data, error } = await supabase.from("journal_posts").update({
       cover_image_path: path, cover_image_alt: altText, cover_image_rights_confirmed: false, cover_image_rights_evidence: "",
-    }).eq("id", id);
-    updateError = error;
+    }).eq("id", id).select("id").maybeSingle();
+    updateError = error || (!data ? { message: "Journal story was removed before the image update completed." } : null);
   }
   if (updateError) {
     await supabase.storage.from("product-media").remove([path]);
