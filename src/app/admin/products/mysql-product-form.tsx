@@ -72,7 +72,7 @@ export function MySqlProductForm({
         <label className="owner-confirm-check"><input name="featured" type="checkbox" value="yes" defaultChecked={initial?.featured ?? false} /> Feature in curated highlights</label>
       </div>
 
-      {state.error && <p className="owner-inline-warning" role="alert">{state.error}</p>}
+      {state.ok === false && <p className="owner-inline-warning" role="alert">{state.error}</p>}
       {state.ok && <p className="catalogue-import-note" role="status">Product details saved successfully.</p>}
       <div className="admin-form-actions">
         <button className="button-primary dark-button" type="submit" disabled={pending}>
