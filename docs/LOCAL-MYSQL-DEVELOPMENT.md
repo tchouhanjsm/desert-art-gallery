@@ -1,119 +1,176 @@
-# Local MySQL development setup
+# Native local MySQL development setup
 
-This project supports a local-first MySQL environment. The optional Compose service keeps the database's physical files inside the repository's ignored .local-data/mysql directory. Code, migrations and the environment template remain tracked; secrets, database files, private images, exports and backups do not.
+This project uses native Oracle MySQL, not Docker or Compose, on the developer device. The application connects through DATABASE_URL and Drizzle migrations. The required baseline is Oracle MySQL 8.0.16 or newer because the schema relies on enforced CHECK constraints. MariaDB and older MySQL versions are not accepted by the current support contract.
 
-## Requirements
+Node.js 22 is the CI baseline. Use a Node release supported by the installed Next.js toolchain.
 
-- Docker Desktop, or Docker Engine with the Compose plugin.
-- Node.js 22 or a compatible supported Node release.
-- npm.
-- A host MySQL client is optional; the Compose service provides MySQL and its health check.
+## 1. Inspect the actual device before installing MySQL
 
-## 1. Create the private local workspace
-
-Run from the repository root:
+Do not install or upgrade a database server until the device's OS, CPU architecture and existing MySQL service are known. Run:
 
 ~~~bash
-mkdir -p .local-data/mysql .local-data/media .local-data/imports .local-data/backups
-cp .env.example .env
+sw_vers
+uname -m
+node --version
+npm --version
+command -v brew || true
+brew --version 2>/dev/null | head -1 || true
+command -v mysql || true
+mysql --version 2>/dev/null || true
+command -v mysqld || true
+mysqld --version 2>/dev/null || true
+command -v mysqladmin || true
+lsof -nP -iTCP:3306 -sTCP:LISTEN || true
 ~~~
 
-The repository .gitignore excludes .env and all of .local-data/.
+Use a native MySQL distribution compatible with the exact macOS release and CPU architecture. The service start/stop command depends on the distribution (for example, a Homebrew service versus the Oracle MySQL installer). Do not run a guessed Homebrew formula or service command. Confirm the actual server binary and version first.
 
-## 2. Set unique local database credentials
+The app-level diagnostic rejects remote hosts, production-looking database names, MariaDB and MySQL versions older than 8.0.16. It does not print connection credentials.
 
-Generate two separate high-entropy hexadecimal secrets:
+## 2. Prepare private project directories
+
+From the repository root:
 
 ~~~bash
-openssl rand -hex 24
+npm run local:prepare
+~~~
+
+The script creates:
+
+~~~text
+.local-data/
+  mysql/                         # reserved for a dedicated native MySQL data directory
+  media/                         # application-managed private media
+  imports/
+    etsy/
+    product-images/
+  backups/
+    mysql/
+    media/
+~~~
+
+The repository .gitignore excludes .env and all of .local-data/. Directories are created with owner-only permissions where supported.
+
+Important: the script does not initialize MySQL, modify an existing server, move data or change the server's data directory. The native server may currently use an OS-managed data directory. To satisfy a project-contained database-data requirement, configure a separate, newly initialized MySQL instance to use .local-data/mysql only after checking the exact server distribution, permissions and existing data. Never repoint, delete or reinitialize an existing data directory. The owner must approve any move of existing database files.
+
+## 3. Create a dedicated local database and application user
+
+Use the native MySQL administrative method for the installed distribution. The application user should be scoped to the project database, not granted global privileges.
+
+For a new local MySQL 8 instance, the intended database and grants are:
+
+~~~sql
+CREATE DATABASE desert_art_gallery
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_0900_ai_ci;
+
+CREATE USER 'dag_local'@'127.0.0.1'
+  IDENTIFIED BY 'USE_A_NEW_RANDOM_LOCAL_PASSWORD';
+
+GRANT ALL PRIVILEGES ON desert_art_gallery.*
+  TO 'dag_local'@'127.0.0.1';
+
+FLUSH PRIVILEGES;
+~~~
+
+Replace the sample password with a unique local secret. Do not paste it into chat, source control, screenshots or shell history. Use a secure local MySQL administration session and the server's supported credential-handling method. Do not use the root account as the application's DATABASE_URL user.
+
+If a database with this name already exists, stop and inspect it rather than dropping or overwriting it.
+
+## 4. Configure the application environment
+
+Preserve an existing .env file. Only copy the template when there is no local file:
+
+~~~bash
+test -f .env || cp .env.example .env
 openssl rand -hex 24
 ~~~
 
-Edit .env and replace the two secret placeholders. Use the first value for MYSQL_ROOT_PASSWORD; use the second for MYSQL_PASSWORD and the password portion of DATABASE_URL.
+Put a unique generated password in DATABASE_URL and use the same password for the dag_local database user. Hexadecimal secrets need no URL encoding:
 
 ~~~dotenv
-MYSQL_ROOT_PASSWORD=YOUR_FIRST_48_CHARACTER_HEX_SECRET
-MYSQL_DATABASE=desert_art_gallery
-MYSQL_USER=dag_local
-MYSQL_PASSWORD=YOUR_SECOND_48_CHARACTER_HEX_SECRET
-MYSQL_HOST_PORT=3306
-DATABASE_URL=mysql://dag_local:YOUR_SECOND_48_CHARACTER_HEX_SECRET@127.0.0.1:3306/desert_art_gallery
+DATABASE_URL=mysql://dag_local:YOUR_48_CHARACTER_SECRET@127.0.0.1:3306/desert_art_gallery
 MEDIA_STORAGE_ROOT=
 MYSQL_CATALOGUE_ENABLED=false
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ~~~
 
-Hexadecimal passwords contain no URL-reserved characters, so they can be copied into DATABASE_URL without additional encoding. Node's .env parser does not interpolate one variable into another: update DATABASE_URL explicitly rather than writing $MYSQL_PASSWORD there.
+Keep the actual .env private and ignored. Leave MEDIA_STORAGE_ROOT empty for local development; application-managed editorial and product media default to .local-data/media. Do not put the password in a public frontend variable.
 
-Leave MEDIA_STORAGE_ROOT empty for local development. The application stores editorial and product images under .local-data/media automatically. If set explicitly, it must be an absolute path.
+## 5. Verify native MySQL and apply migrations
 
-If port 3306 is already in use, set MYSQL_HOST_PORT=3307 and change DATABASE_URL to use port 3307. Compose binds only to 127.0.0.1, not to the public network.
-
-## 3. Start and inspect MySQL
+Start the installed native MySQL service using the service manager for the distribution actually installed on this device. Then run:
 
 ~~~bash
-npm run db:up
+npm run db:ping
 npm run db:status
-npm run db:logs
-~~~
-
-Wait until MySQL reports healthy. The first start initializes .local-data/mysql; later restarts reuse the same database directory.
-
-Stop MySQL without deleting its data:
-
-~~~bash
-npm run db:stop
-~~~
-
-Do not delete .local-data/mysql unless you intentionally want to destroy this local database. Do not use destructive volume/prune commands as a routine stop procedure.
-
-## 4. Apply the database migrations
-
-~~~bash
 npm run db:migrate
+npm run db:status
 ~~~
 
-The migration script loads .env when it exists. CI or a deployment environment can continue to inject DATABASE_URL directly without needing an .env file.
+- db:ping checks a local loopback connection with SELECT 1.
+- db:status reports the database name, server version and Drizzle migration journal state.
+- db:status exits with code 2 when the database is reachable but migrations are pending.
+- db:migrate applies the tracked Drizzle migrations.
 
-After starting the application, check its local HTTP and MySQL readiness without exposing credentials:
+The diagnostics reject remote database targets and never print usernames, passwords or the complete DATABASE_URL. Use a compatible Oracle MySQL 8.0.16+ server. GitHub CI uses its own hosted MySQL service and does not require Docker on the local device.
+
+After starting the application:
 
 ~~~bash
+npm run dev
 curl -i http://localhost:3000/api/health
 ~~~
 
-A ready local MySQL application returns HTTP 200 with application, database and migration checks all healthy. HTTP 503 means the database is not configured, is unavailable, or migrations have not been applied. The response deliberately omits database hostnames, credentials and raw SQL errors.
+A ready application returns HTTP 200 with application, database and migration checks all healthy. HTTP 503 means the database is not configured, is unavailable or migrations are not applied.
 
-## 5. Create the local owner
+## 6. Create the local owner
 
-Set LOCAL_ADMIN_EMAIL, LOCAL_ADMIN_PASSWORD (12–256 characters) and optionally LOCAL_ADMIN_NAME in .env. Then run once:
+Set LOCAL_ADMIN_EMAIL, LOCAL_ADMIN_PASSWORD (12–256 characters) and optionally LOCAL_ADMIN_NAME in .env. Run once:
 
 ~~~bash
 npm run db:bootstrap-admin
 ~~~
 
-The script refuses to create another owner if an owner record already exists. Remove LOCAL_ADMIN_PASSWORD from .env immediately after successful bootstrap.
+The script refuses to create another owner if an account already exists. Remove LOCAL_ADMIN_PASSWORD from .env immediately after successful bootstrap.
 
-Only after migrations and owner bootstrap, set MYSQL_CATALOGUE_ENABLED=true in .env and restart the development server.
+Only after migrations and owner bootstrap, set MYSQL_CATALOGUE_ENABLED=true in .env and restart the development server. Sign in at /owner/login.
 
-## 6. Keep Etsy source files private and preview first
+## 7. Prepare and preview product photographs
 
-Copy the export into the ignored local workspace:
+Run:
 
 ~~~bash
-cp /path/to/EtsyListingsDownload.csv .local-data/imports/EtsyListingsDownload.csv
-npm run db:import-products -- ./.local-data/imports/EtsyListingsDownload.csv
+npm run local:prepare
 ~~~
 
-This is a read-only preview. Review all 527 rows, warnings, source SKU collisions, draft counts and image references before any explicit local import. The importer requires both --commit and --confirm-local-import to write, and blocks remote/production-looking targets, an existing product catalogue and repeated source hashes. Do not add those flags until the preview is reviewed and the local database is confirmed disposable.
+Place merchant-authorized originals under .local-data/imports/product-images/<verified-product-slug>/. Follow docs/PRODUCT-IMAGE-INTAKE.md and then run:
+
+~~~bash
+npm run media:preview
+~~~
+
+The preview is read-only. It checks product-folder slugs, image naming, duplicate sequence numbers, 12 MB size limit and supported file signatures. It does not write to MySQL, upload or publish images.
+
+## 8. Preview Etsy source data privately
+
+Copy the Etsy export into the ignored workspace:
+
+~~~bash
+cp /path/to/EtsyListingsDownload.csv .local-data/imports/etsy/EtsyListingsDownload.csv
+npm run db:import-products -- ./.local-data/imports/etsy/EtsyListingsDownload.csv
+~~~
+
+This is a read-only preview. Review row counts, warnings, source SKU collisions, draft counts and photo references before any explicit local import. The importer requires both --commit and --confirm-local-import to write, and blocks remote/production-looking targets, an existing product catalogue and repeated source hashes. Do not add those flags until the preview is reviewed and the destination is confirmed disposable.
 
 ## Storage map
 
 | Path | Purpose | Git |
 | --- | --- | --- |
 | .env | Local credentials and feature flags | Ignored |
-| .local-data/mysql/ | MySQL physical database files | Ignored |
-| .local-data/media/ | Editorial and product image files | Ignored |
-| .local-data/imports/ | Etsy and other source exports | Ignored |
-| .local-data/backups/ | Local backup files | Ignored |
+| .local-data/mysql/ | Reserved native MySQL data directory | Ignored |
+| .local-data/media/ | Application-managed private media | Ignored |
+| .local-data/imports/ | Private CSV and original photo intake | Ignored |
+| .local-data/backups/ | Reserved database and media backups | Ignored |
 
-The Compose definition itself is version-controlled and contains no credentials or database contents. Hostinger deployment, production data migration and durable hosted media remain out of scope until local acceptance and backup/restore tests are complete.
+A directory existing does not mean the database or backup process uses it. Confirm the native MySQL server's actual data directory and complete a tested backup/restore before treating this workstation as a verified data store. Production hosting, migrations and durable hosted media remain out of scope until local acceptance is complete.
