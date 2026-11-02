@@ -1,47 +1,34 @@
 "use server";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/server/auth/session";
+import { getMySqlDb } from "@/server/db";
+import { orders } from "@/server/db/schema";
 
-function textField(formData: FormData, key: string, maxLength: number) {
-  const value = formData.get(key);
-  if (typeof value !== "string") return "";
-  const trimmed = value.trim();
-  if (trimmed.length > maxLength) throw new Error(key + " is too long.");
-  return trimmed;
-}
+function field(formData:FormData,key:string,max=300){const raw=formData.get(key);if(typeof raw!=="string")return "";const value=raw.trim();if(value.length>max)throw new Error(key+" is too long.");return value;}
 
-export async function transitionOrder(formData: FormData) {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new Error("Order management is not configured.");
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) throw new Error("Administrator sign-in is required.");
-  const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profileError || !profile || !["admin", "owner"].includes(profile.role)) throw new Error("Administrator permissions are required.");
-
-  const id = textField(formData, "id", 80);
-  const nextStatus = textField(formData, "next_status", 24);
-  const carrier = textField(formData, "tracking_carrier", 100);
-  const number = textField(formData, "tracking_number", 160);
-  const rawUrl = textField(formData, "tracking_url", 1000);
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) throw new Error("A valid order is required.");
-  if (!["processing", "shipped", "delivered"].includes(nextStatus)) throw new Error("The requested fulfilment step is not allowed.");
-  let trackingUrl: string | null = null;
-  if (rawUrl) {
-    try { const parsed = new URL(rawUrl); if (parsed.protocol !== "https:") throw new Error(); trackingUrl = parsed.toString(); }
-    catch { throw new Error("Tracking URL must be a valid HTTPS link."); }
-  }
-  if (nextStatus === "shipped" && (!carrier || !number)) throw new Error("Carrier and tracking number are required before shipment.");
-
-  const { error } = await supabase.rpc("transition_order_fulfilment", {
-    p_order_id: id,
-    p_next_status: nextStatus,
-    p_tracking_carrier: carrier || null,
-    p_tracking_number: number || null,
-    p_tracking_url: trackingUrl,
-  });
-  if (error) throw new Error("Unable to update fulfilment. Confirm the order is at the preceding state and try again.");
-  revalidatePath("/admin/orders");
-  revalidatePath("/admin/orders/" + id);
-  revalidatePath("/account");
-  revalidatePath("/account/orders/" + id);
+export async function transitionOrder(formData:FormData){
+ await requireAdmin();
+ const id=field(formData,"id",80);const next=field(formData,"next_status",24);
+ const carrier=field(formData,"tracking_carrier",120);const number=field(formData,"tracking_number",160);const rawUrl=field(formData,"tracking_url",1000);
+ if(!/^[0-9a-f-]{36}$/i.test(id))throw new Error("A valid order is required.");
+ if(!["processing","shipped","delivered"].includes(next))throw new Error("The requested fulfilment step is not allowed.");
+ let trackingUrl:string|null=null;
+ if(rawUrl){try{const url=new URL(rawUrl);if(url.protocol!=="https:")throw new Error();trackingUrl=url.toString();}catch{throw new Error("Tracking URL must be a valid HTTPS link.");}}
+ if(next==="shipped"&&(!carrier||!number))throw new Error("Carrier and tracking number are required before shipment.");
+ const db=getMySqlDb();const now=new Date();
+ await db.transaction(async tx=>{
+  const [order]=await tx.select().from(orders).where(eq(orders.id,id)).for("update").limit(1);
+  if(!order)throw new Error("Order was not found.");
+  const valid=order.status==="paid"&&next==="processing"||order.status==="processing"&&next==="shipped"||order.status==="shipped"&&next==="delivered";
+  if(!valid)throw new Error("The order is not at the preceding fulfilment state. Payment and refund statuses cannot be changed here.");
+  await tx.update(orders).set({
+   status:next,trackingCarrier:carrier||order.trackingCarrier,
+   trackingNumber:number||order.trackingNumber,trackingUrl:trackingUrl||order.trackingUrl,
+   shippedAt:next==="shipped"?now:order.shippedAt,
+   deliveredAt:next==="delivered"?now:order.deliveredAt,
+   updatedAt:now,
+  }).where(eq(orders.id,id));
+ });
+ for(const path of ["/admin/orders","/admin/orders/"+id,"/account","/account/orders/"+id])revalidatePath(path);
 }
