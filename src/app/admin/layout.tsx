@@ -9,9 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  if (isMySqlCatalogueEnabled()) {
+  const mysqlMode = isMySqlCatalogueEnabled();
+  if (mysqlMode) {
     const admin = await getCurrentLocalAdmin();
     if (!admin) redirect("/owner/login?next=/admin");
   }
-  return <AdminShell>{children}</AdminShell>;
+  return <AdminShell mysqlMode={mysqlMode}>{children}</AdminShell>;
 }
