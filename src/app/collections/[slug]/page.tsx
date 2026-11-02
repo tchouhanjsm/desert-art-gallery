@@ -1,11 +1,21 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 import { collections } from "@/lib/products";
 
 export function generateStaticParams() {
   return process.env.NODE_ENV === "development" ? collections.map((collection) => ({ slug: collection.slug })) : [];
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const publishedCollections = await getStorefrontCollections();
+  const collection = publishedCollections.find((item) => item.slug === slug);
+  return collection ? {
+    title: collection.name,
+    description: collection.description,
+  } : {};
 }
 
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -24,17 +34,26 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
     return product.category === "Vintage Textiles";
   });
 
-  return <div className="page-shell">
-    <div className="page-heading">
-      <div className="section-kicker">CURATED COLLECTION</div>
-      <h1>{collection.name}</h1>
-      <p>{collection.description}</p>
+  return (
+    <div className="page-shell atelier-page-shell">
+      <header className="atelier-page-heading atelier-collection-heading">
+        <div className="section-kicker">A CURATED PATH THROUGH THE GALLERY</div>
+        <h1>{collection.name}<em>.</em></h1>
+        <p>{collection.description}</p>
+        <Link className="text-link" href="/shop">Explore all pieces <span aria-hidden="true">↗</span></Link>
+      </header>
+      {productsInCollection.length ? (
+        <div className="atelier-product-grid">
+          {productsInCollection.map((product) => <StorefrontProductCard key={product.slug} product={product} />)}
+        </div>
+      ) : (
+        <div className="atelier-empty-catalogue">
+          <span className="atelier-empty-mark" aria-hidden="true">✳</span>
+          <h2>This collection is being curated.</h2>
+          <p>Contact the gallery for current pieces and availability.</p>
+          <Link className="button-outline" href="/contact">Contact the gallery</Link>
+        </div>
+      )}
     </div>
-    {productsInCollection.length ? <div className="product-grid">{productsInCollection.map((product) =>
-      <Link className="product-card" href={`/products/${product.slug}`} key={product.slug}>
-        <div className="product-image-wrap"><Image src={product.image} alt={product.imageAlt} fill sizes="(max-width:700px) 48vw, 24vw" unoptimized/></div>
-        <div className="product-meta"><h2 className="product-name">{product.name}</h2><div className="product-availability">ENQUIRE FOR DETAILS</div></div>
-      </Link>
-    )}</div> : <div className="empty-note">This collection is being curated. Contact the gallery for current pieces.</div>}
-  </div>;
+  );
 }

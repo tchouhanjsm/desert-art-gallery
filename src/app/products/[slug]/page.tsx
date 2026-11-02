@@ -76,24 +76,33 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   );
 
   return (
-    <div className="page-shell">
-      <div className="breadcrumb">
-        <Link href="/shop">SHOP</Link>
-        {product.category ? " / " + product.category.toUpperCase() : ""}
+    <div className="page-shell atelier-page-shell">
+      <div className="breadcrumb atelier-breadcrumb">
+        <Link href="/shop">THE GALLERY</Link>
+        {product.category ? <><span aria-hidden="true">/</span><span>{product.category}</span></> : null}
+        <span aria-hidden="true">/</span>
+        <span>{product.name}</span>
       </div>
-      <div className="product-detail">
-        <ProductGallery images={galleryImages} title={product.name} />
-        <div className="detail-copy">
-          {product.category && <div className="section-kicker">{product.category}</div>}
+      <div className="product-detail atelier-product-detail">
+        <div className="atelier-product-gallery-wrap">
+          <ProductGallery images={galleryImages} title={product.name} />
+          {!product.id && <p className="atelier-image-disclaimer">Development preview · original product photography awaits gallery approval.</p>}
+        </div>
+        <div className="detail-copy atelier-detail-copy">
+          <div className="section-kicker">{product.category || "FROM THE GALLERY"}</div>
           <h1 className="section-title">{product.name}</h1>
           {product.note && <div className="detail-note">{product.note}</div>}
-          <div className="detail-price">{priceLabel}</div>
-          <div className="product-availability">
+          <div className="atelier-product-price-panel">
+            <div className="detail-price">{priceLabel}</div>
+            <span>{product.priceMinor != null ? "Price shown for this listing" : "Ask the gallery for current pricing"}</span>
+          </div>
+          <div className="atelier-stock-note">
+            <span className="atelier-stock-dot" />
             {product.id && !hasAvailableStock
-              ? "NO CURRENT STOCK RECORDED — CONTACT THE GALLERY"
+              ? "No current stock recorded — contact the gallery"
               : product.id
-                ? "AVAILABILITY SUBJECT TO FINAL CONFIRMATION"
-                : "CONTACT THE GALLERY TO CONFIRM AVAILABILITY"}
+                ? "Availability is subject to final confirmation"
+                : "Preview listing — contact the gallery to confirm details"}
           </div>
           <p className="product-purchase-guidance">
             Review the information supplied for this listing. Contact the gallery if you need clarification before making a purchase decision.
@@ -115,7 +124,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             className="button-outline enquiry-button"
             href={"mailto:hello@desertartgallery.net?subject=" + encodeURIComponent("Enquiry: " + product.name)}
           >
-            ENQUIRE ABOUT THIS PIECE
+            Enquire about this piece <span aria-hidden="true">↗</span>
           </a>
           <div className="detail-footnote">
             Desert Art Gallery · Jaisalmer, Rajasthan, India<br />
@@ -125,41 +134,26 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       {hasProductInformation && (
-        <section className="product-information" aria-labelledby="product-information-heading">
-          <div className="section-kicker">LISTING INFORMATION</div>
-          <h2 id="product-information-heading" className="section-title">Product details</h2>
+        <section className="product-information atelier-product-information" aria-labelledby="product-information-heading">
+          <div className="section-kicker">THE DETAILS</div>
+          <h2 id="product-information-heading" className="section-title">More about this <em>piece.</em></h2>
           {product.description && <p className="product-long-description">{product.description}</p>}
           <dl className="product-attribute-list">
-            {materials.length > 0 && (
-              <div><dt>Materials</dt><dd>{materials.join(", ")}</dd></div>
-            )}
-            {sizes.length > 0 && (
-              <div><dt>Sizes</dt><dd>{sizes.join(", ")}</dd></div>
-            )}
+            {materials.length > 0 && <div><dt>Materials</dt><dd>{materials.join(", ")}</dd></div>}
+            {sizes.length > 0 && <div><dt>Sizes</dt><dd>{sizes.join(", ")}</dd></div>}
             {measurements.length > 0 && (
               <div>
                 <dt>Measurements</dt>
-                <dd>
-                  <dl className="product-measurements">
-                    {measurements.map((measurement) => (
-                      <div key={measurement.label}>
-                        <dt>{measurement.label}</dt>
-                        <dd>{measurement.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </dd>
+                <dd><dl className="product-measurements">
+                  {measurements.map((measurement) => (
+                    <div key={measurement.label}><dt>{measurement.label}</dt><dd>{measurement.value}</dd></div>
+                  ))}
+                </dl></dd>
               </div>
             )}
-            {product.conditionNotes && (
-              <div><dt>Condition notes</dt><dd>{product.conditionNotes}</dd></div>
-            )}
-            {product.provenance && (
-              <div><dt>Provenance</dt><dd>{product.provenance}</dd></div>
-            )}
-            {product.craftStory && (
-              <div><dt>Additional story</dt><dd>{product.craftStory}</dd></div>
-            )}
+            {product.conditionNotes && <div><dt>Condition notes</dt><dd>{product.conditionNotes}</dd></div>}
+            {product.provenance && <div><dt>Provenance</dt><dd>{product.provenance}</dd></div>}
+            {product.craftStory && <div><dt>Additional story</dt><dd>{product.craftStory}</dd></div>}
           </dl>
         </section>
       )}
