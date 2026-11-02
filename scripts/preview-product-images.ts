@@ -1,6 +1,7 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import {
+  MAX_PRODUCT_IMAGE_BYTES,
   parseProductImageName,
   validateProductImageBytes,
 } from "../src/lib/product-image-intake";
@@ -60,7 +61,14 @@ async function main() {
       sequences.add(parsed.sequence);
       if (parsed.role === "primary") primaryCount += 1;
 
-      const bytes = await readFile(path.join(folder, child.name));
+      const filePath = path.join(folder, child.name);
+      const fileStats = await stat(filePath);
+      if (fileStats.size > MAX_PRODUCT_IMAGE_BYTES) {
+        problems.push(entry.name + "/" + child.name + ": image exceeds the 12 MB upload limit.");
+        continue;
+      }
+
+      const bytes = await readFile(filePath);
       const validation = validateProductImageBytes(child.name, bytes);
       if (!validation.valid) {
         problems.push(entry.name + "/" + child.name + ": " + validation.reason);
