@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMySqlPool, hasMySqlDatabase, pingMySql } from "@/server/db";
+import { getMySqlPool, hasMySqlDatabase, pingMySql } from "../../../server/db";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
