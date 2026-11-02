@@ -25,6 +25,6 @@ export default async function AdminDashboardPage() {
     <div className="admin-metrics">
       {[["Catalogue records", products], ["Orders", orders], ["Customer profiles", customers]].map(([label,value])=><div className="admin-metric" key={String(label)}><span>{label}</span><strong>{value === null ? "Unavailable" : value}</strong></div>)}
     </div>
-    <div className="admin-links"><Link href="/admin/products">Product catalogue</Link><Link href="/admin/orders">Orders</Link><Link href="/admin/customers">Customers</Link><Link href="/admin/content">Site content</Link></div>
+    <div className="admin-links"><Link href="/admin/products">Product catalogue</Link><Link href="/admin/orders">Orders</Link><Link href="/admin/customers">Customers</Link><Link href="/admin/content">Site content</Link><Link href="/admin/checkout">Shipping & tax</Link></div>
   </section>;
 }

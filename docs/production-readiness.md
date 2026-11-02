@@ -50,11 +50,15 @@ This register separates code present in the repository from integrations that ha
 - [ ] Replace the local textile placeholder with merchant-authorized original photography in owned storage after rights review; confirm rights for every product, collection, editorial and artisan image.
 - [ ] Add customer registration/email verification and approved staff/owner provisioning.
 - [ ] Import the merchant-approved catalogue and complete image association, media optimization and rights evidence review.
-- [ ] Add a verified product-variant model and server-side inventory reservation/atomic stock decrement for checkout.
+- [x] Add merchant-managed product variants, per-variant inventory movements and authenticated server-side inventory reservations (live database execution remains unverified).
 - [ ] Complete product, customer, order, promotion, editorial and reporting CRUD, including explicit admin audit review UI.
-- [ ] Implement order creation, checkout, idempotency, payment-provider sandbox integration, signed webhook processing and reconciliation.
+- [x] Implement authenticated order-draft creation from active reservations, immutable reservation price/variant snapshots, checkout idempotency, destination-specific shipping/tax validation and an admin-only fulfilment state machine (code only; no payment is initiated).
+- [ ] Configure and verify the trusted scheduled invocation for reservation expiry; the service-role-only expiry RPC exists but is not scheduled.
+- [ ] Implement payment-provider sandbox integration, signed webhook processing, reconciliation and order payment-state transitions.
 - [ ] Configure Razorpay for eligible Indian transactions and an approved international payment provider. Never collect or store raw card data.
-- [ ] Configure merchant-approved shipping zones/rates, taxes/duties disclosures, carrier tracking and transactional email.
+- [x] Add owner-only shipping-zone, shipping-rate and destination tax-rule management; checkout requires explicit active records and snapshots the entered duties/tax disclosures.
+- [ ] Verify the configured shipping/tax rules with the merchant's tax adviser and fulfilment partners; the current tax engine supports additive basis-point components only and does not calculate customs duties.
+- [ ] Integrate carrier tracking events and transactional email.
 - [ ] Implement newsletter double opt-in/unsubscribe endpoints and consent-aware analytics; current mailto fallback is not a subscription system.
 - [ ] Add accessible browser E2E coverage, security testing, dependency remediation, image transformation/CDN delivery and Core Web Vitals monitoring.
 - [ ] Approve legal seller identity, privacy/terms/returns/shipping policies, domain/hosting and production deployment runbooks.
@@ -196,3 +200,21 @@ Production activation requires merchant-authorized catalogue data and original p
 - Applied the same one-of-a-kind quantity cap at product selection, cart preview, authenticated cart synchronization and the database reservation boundary. The cap is activated only by the record's explicit `is_one_of_a_kind` flag; no catalogue claim is inferred.
 - Reordered authenticated cart persistence so valid upserts complete before stale rows are pruned. If an upsert fails, the previously saved cart remains intact instead of being deleted first.
 - Added regression coverage for the one-unit cap and retained server-side reservation enforcement as the final authority.
+
+
+## Dated handoff — 2026-11-02 07:22 IST
+
+### Current increment: order drafts, checkout preflight and fulfilment controls
+
+- Starting verified PR head: `ffa53b2e41ea6d7c1a129d41265d635e772a4cec`; base `main`: `9d6ad54e0cb1a3337e25e431b4fc55a5857f4845`.
+- Added migration `202611020005_order_checkout_lifecycle.sql`: immutable order snapshots from an active inventory reservation, reservation-scoped and request-scoped idempotency, expiring unpaid draft orders, owner-only tax/shipping configuration policies, direct order/order-item write revocation, admin-only fulfilment transitions plus reservation release/expiry propagation to unpaid order drafts.
+- Added an authenticated same-origin checkout API and customer delivery form. It accepts no client price, requires one currency, validates the delivery address, and only prepares an unpaid draft when exactly one active shipping zone matches and an active rate plus explicit tax rule exist for the destination/currency.
+- Added owner-only shipping-zone, shipping-rate and tax-rule create/update/activate/deactivate management. Rates require a merchant-entered duties disclosure; tax requires an explicit disclosure, including an explicit zero-rate record when no tax applies. No sample prices, zones, tax rates or delivery promises are seeded.
+- Checkout creates a draft only. It does not create a payment session, collect card data, or mark an order paid. The order snapshots reservation title/SKU/variant/attributes/price, shipping option, tax components and disclosure text.
+- Replaced direct admin order updates with a row-locked fulfilment RPC that only permits paid → processing → shipped → delivered. Carrier and tracking number are required before marking shipped. Payment/refund states remain outside this action.
+- Added currency-specific decimal parsing and bounded address/country validation tests. Added migration-contract coverage for idempotency, fail-closed shipping/tax configuration, immutable snapshots, RLS/grants, fulfilment transitions and expiry.
+- **Not run locally:** repository clone failed because this runtime could not resolve github.com; no local typecheck, unit tests, lint, build or browser E2E was claimed. GitHub Actions must run against the new exact PR head after the commit is pushed.
+- **Not verified:** the migration has not been applied to a merchant Supabase project; no live RLS/RPC/concurrency test, scheduled expiry invocation, shipping/tax/legal review, browser accessibility/E2E or production deployment was performed.
+- **Owner inputs still required:** approved Supabase project and migration authorization; actual country coverage, shipping rates, delivery windows and duties wording; tax adviser-approved tax components/disclosures; canonical seller/legal policies; payment accounts and webhook secrets; transactional email and hosting/scheduler approval.
+- **Tax limitation:** the implemented quote uses additive basis-point components against item subtotal plus shipping where explicitly configured. It is not a jurisdiction-complete tax engine and does not calculate customs duties, import VAT, tax-on-tax or carrier brokerage. Do not activate a destination until the owner/accountant confirms the configured model is legally appropriate.
+- **Next engineering increment:** payment-session abstraction and signed webhook/reconciliation boundary in sandbox-only mode, after verifying order-draft and expiry behavior against an approved Supabase test project. Keep real payment capture disabled.

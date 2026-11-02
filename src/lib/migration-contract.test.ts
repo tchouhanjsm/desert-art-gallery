@@ -17,6 +17,10 @@ const variants = readFileSync(
   new URL("../../supabase/migrations/202611020004_variants_inventory_reservations.sql", import.meta.url),
   "utf8",
 );
+const checkout = readFileSync(
+  new URL("../../supabase/migrations/202611020005_order_checkout_lifecycle.sql", import.meta.url),
+  "utf8",
+);
 
 describe("commerce migration safety contract", () => {
   it("does not declare duplicate named constraints within a table", () => {
@@ -152,5 +156,75 @@ describe("verified one-of-a-kind inventory contract", () => {
   it("enforces the one-unit limit inside the reservation RPC", () => {
     expect(variants).toContain("v_product.is_one_of_a_kind and v_item.quantity > 1");
     expect(variants).toContain("A verified one-of-a-kind product is limited to one unit per reservation");
+  });
+});
+
+
+describe("order draft and checkout lifecycle contract", () => {
+  it("creates one expiring unpaid order draft per active reservation", () => {
+    expect(checkout).toContain("create or replace function public.create_order_from_reservation");
+    expect(checkout).toContain("orders_reservation_unique_idx");
+    expect(checkout).toContain("orders_checkout_idempotency_unique_idx");
+    expect(checkout).toContain("for update");
+    expect(checkout).toContain("v_reservation.status <> 'reserved'");
+    expect(checkout).toContain("v_reservation.expires_at");
+    expect(checkout).toContain("v_request_hash");
+    expect(checkout).toContain("v_existing.expires_at <= now()");
+    expect(checkout).toContain("v_reservation.status = 'released'");
+    expect(checkout).toContain("'draft'");
+    expect(checkout).toContain("v_reservation.expires_at, p_shipping_rate_id");
+  });
+
+  it("snapshots reserved product, SKU, variant, attributes, quantity and database price", () => {
+    expect(checkout).toContain("insert into public.order_items");
+    expect(checkout).toContain("from public.inventory_reservation_items");
+    expect(checkout).toContain("selected_options, variant_id, variant_label");
+    expect(checkout).toContain("unit_price_minor, quantity::bigint * unit_price_minor");
+  });
+
+  it("fails closed without one matching shipping zone, a configured rate and explicit tax policy", () => {
+    expect(checkout).toContain("v_zone_count <> 1");
+    expect(checkout).toContain("r.is_active");
+    expect(checkout).toContain("length(btrim(coalesce(r.duties_disclosure, ''))) between 1 and 2000");
+    expect(checkout).toContain("v_tax_count < 1");
+    expect(checkout).toContain("checkout_tax_rules");
+    expect(checkout).toContain("rate_basis_points");
+    expect(checkout).toContain("An explicit active zero-rate rule is required when no tax applies");
+  });
+
+  it("limits financial configuration writes to the owner and exposes only active tax rules publicly", () => {
+    expect(checkout).toContain("create policy shipping_zones_owner_all");
+    expect(checkout).toContain("using (public.is_owner()) with check (public.is_owner())");
+    expect(checkout).toContain("create policy shipping_rates_owner_all");
+    expect(checkout).toContain("create policy checkout_tax_rules_public_read");
+    expect(checkout).toContain("using (is_active)");
+    expect(checkout).toContain("create policy checkout_tax_rules_owner_all");
+  });
+
+  it("revokes direct order and order-line writes and keeps fulfilment transitions admin-only", () => {
+    expect(checkout).toContain("revoke insert, update, delete on public.orders from anon, authenticated");
+    expect(checkout).toContain("revoke insert, update, delete on public.order_items from anon, authenticated");
+    expect(checkout).toContain("create or replace function public.transition_order_fulfilment");
+    expect(checkout).toContain("if not public.is_admin()");
+    expect(checkout).toContain("v_order.status = 'paid' and p_next_status = 'processing'");
+    expect(checkout).toContain("v_order.status = 'processing' and p_next_status = 'shipped'");
+    expect(checkout).toContain("v_order.status = 'shipped' and p_next_status = 'delivered'");
+    expect(checkout).not.toMatch(/set status\s*=\s*'paid'/i);
+    expect(checkout).not.toMatch(/set status\s*=\s*'refunded'/i);
+  });
+
+  it("cancels or expires an unpaid draft when its reservation is released", () => {
+    expect(checkout).toContain("create or replace function public.release_inventory_reservation");
+    expect(checkout).toContain("update public.orders set status = 'cancelled'");
+    expect(checkout).toContain("update public.orders set status = 'expired'");
+    expect(checkout).toContain("grant execute on function public.release_inventory_reservation(uuid) to authenticated");
+  });
+
+  it("expires unpaid drafts with their reservations through the service-role-only cleanup function", () => {
+    expect(checkout).toContain("create or replace function public.expire_inventory_reservations()");
+    expect(checkout).toContain("where status = 'draft' and expires_at <= now()");
+    expect(checkout).toContain("set status = 'expired'");
+    expect(checkout).toContain("grant execute on function public.expire_inventory_reservations() to service_role");
+    expect(checkout).toContain("revoke all on function public.expire_inventory_reservations() from public, anon, authenticated");
   });
 });

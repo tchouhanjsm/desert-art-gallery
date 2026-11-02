@@ -7,7 +7,7 @@ import { isSameOriginRequest } from "@/lib/request-security";
 export const dynamic = "force-dynamic";
 
 type VariantRow = { id: string; status: string };
-type ProductRow = { id: string; slug: string; product_variants: VariantRow[] | null };
+type ProductRow = { id: string; slug: string; currency: string; product_variants: VariantRow[] | null };
 
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request)) {
@@ -32,12 +32,16 @@ export async function POST(request: NextRequest) {
   if (authError || !user) return NextResponse.json({ error: "Sign in before reserving inventory." }, { status: 401 });
 
   const { data, error } = await supabase.from("products")
-    .select("id,slug,product_variants(id,status)")
+    .select("id,slug,currency,product_variants(id,status)")
     .eq("status", "active")
     .in("slug", lines.map((line) => line.slug));
   if (error) return NextResponse.json({ error: "Unable to validate current catalogue items." }, { status: 502 });
   const products = (data ?? []) as unknown as ProductRow[];
   const bySlug = new Map(products.map((product) => [product.slug, product]));
+  const currencies = new Set(lines.map((line) => bySlug.get(line.slug)?.currency).filter((currency): currency is string => typeof currency === "string"));
+  if (currencies.size > 1 || [...currencies].some((currency) => !/^[A-Z]{3}$/.test(currency))) {
+    return NextResponse.json({ error: "Prepare one currency per checkout. Separate products priced in different currencies into different orders." }, { status: 422, headers: { "Cache-Control": "no-store" } });
+  }
   const items: { product_id: string; variant_id: string | null; quantity: number }[] = [];
 
   for (const line of lines) {

@@ -11,6 +11,9 @@ export function CartPageClient() {
   for (const item of preview) {
     if (item.priceMinor !== null && item.currency) totals[item.currency] = (totals[item.currency] ?? 0) + item.priceMinor * item.quantityRequested;
   }
+  const canContinue = !isLoading && !error && lines.length > 0 && preview.length === lines.length
+    && preview.every((item) => item.available && item.priceMinor !== null && Boolean(item.currency))
+    && Object.keys(totals).length === 1;
   if (!lines.length) return <div className="empty-note">Your bag is currently empty.<br/><Link href="/shop" className="empty-link">EXPLORE THE COLLECTION ↗</Link></div>;
   return <div className="cart-page-layout">
     <section className="cart-page-lines">
@@ -28,9 +31,9 @@ export function CartPageClient() {
     </section>
     <aside className="cart-summary"><div className="section-kicker">ORDER SUMMARY</div><h2>Your selection</h2>
       {Object.entries(totals).map(([currency, amount]) => <div className="cart-summary-row" key={currency}><span>Item subtotal ({currency})</span><strong>{formatMoneyFromMinor(amount, currency)}</strong></div>)}
-      <p>Shipping and duties depend on the delivery destination and are not calculated yet.</p>
-      <div className="checkout-notice">Secure checkout is not active yet. We will not accept payment until the gateway and shipping calculations are configured and verified.</div>
-      <Link href="/contact" className="button-outline">ASK ABOUT YOUR SELECTION</Link>
+      <p>Shipping, configured taxes and duties disclosures depend on the delivery destination.</p>
+      <div className="checkout-notice">The next step prepares an unpaid, expiring order draft only. No payment is requested or taken until an approved payment provider and signed webhook flow are enabled.</div>
+      {canContinue ? <Link href="/checkout" className="button-primary dark-button">CONTINUE TO DELIVERY</Link> : <span className="button-outline checkout-disabled" aria-disabled="true">CHECK AVAILABILITY TO CONTINUE</span>}
     </aside>
   </div>;
 }
