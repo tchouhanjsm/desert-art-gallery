@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { getMySqlDb } from "@/server/db";
-import { artisanProfiles, collections, journalPosts, siteContent } from "@/server/db/schema";
+import { artisanProfiles, collectionProductLinks, collections, journalPosts, siteContent } from "@/server/db/schema";
 import type { EditorialTarget } from "@/server/media/storage";
 
 export type HomepageBody = Record<string, unknown>;
@@ -140,6 +140,74 @@ export async function getPublishedCollections(): Promise<CollectionRecord[]> {
 export async function getCollection(id: string): Promise<CollectionRecord | null> {
   const [row] = await getMySqlDb().select().from(collections).where(eq(collections.id, id)).limit(1);
   return row ? toCollection(row) : null;
+}
+
+export async function getCollectionProductSlugs(collectionId: string): Promise<string[]> {
+  const rows = await getMySqlDb().select({ productSlug: collectionProductLinks.productSlug })
+    .from(collectionProductLinks)
+    .where(eq(collectionProductLinks.collectionId, collectionId))
+    .orderBy(asc(collectionProductLinks.sortOrder), asc(collectionProductLinks.productSlug));
+  return rows.map((row) => row.productSlug);
+}
+
+export async function getCollectionProductSlugsByCollection(collectionIds: string[]): Promise<Map<string, string[]>> {
+  if (!collectionIds.length) return new Map();
+  const rows = await getMySqlDb().select({
+    collectionId: collectionProductLinks.collectionId,
+    productSlug: collectionProductLinks.productSlug,
+    sortOrder: collectionProductLinks.sortOrder,
+  }).from(collectionProductLinks)
+    .where(inArray(collectionProductLinks.collectionId, collectionIds))
+    .orderBy(asc(collectionProductLinks.sortOrder), asc(collectionProductLinks.productSlug));
+  const result = new Map<string, string[]>();
+  for (const row of rows) {
+    const values = result.get(row.collectionId) ?? [];
+    values.push(row.productSlug);
+    result.set(row.collectionId, values);
+  }
+  return result;
+}
+
+export async function getProductCollectionSlugs(productSlugs: string[]): Promise<Map<string, string[]>> {
+  if (!productSlugs.length) return new Map();
+  const rows = await getMySqlDb().select({
+    collectionId: collectionProductLinks.collectionId,
+    productSlug: collectionProductLinks.productSlug,
+    sortOrder: collectionProductLinks.sortOrder,
+  }).from(collectionProductLinks)
+    .where(inArray(collectionProductLinks.productSlug, productSlugs))
+    .orderBy(asc(collectionProductLinks.sortOrder), asc(collectionProductLinks.productSlug));
+  const result = new Map<string, string[]>();
+  for (const row of rows) {
+    const values = result.get(row.productSlug) ?? [];
+    values.push(row.collectionId);
+    result.set(row.productSlug, values);
+  }
+  return result;
+}
+
+export async function replaceCollectionProductSlugs(collectionId: string, productSlugs: string[]): Promise<void> {
+  if (productSlugs.length > 200) throw new Error("A collection can contain at most 200 products.");
+  const normalized = [...new Set(productSlugs.map((slug) => slug.trim()))];
+  if (normalized.some((slug) => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))) {
+    throw new Error("One or more product URL slugs are invalid.");
+  }
+  const current = await getCollection(collectionId);
+  if (!current) throw new Error("Collection was not found.");
+
+  const db = getMySqlDb();
+  await db.transaction(async (tx) => {
+    await tx.delete(collectionProductLinks).where(eq(collectionProductLinks.collectionId, collectionId));
+    if (normalized.length) {
+      await tx.insert(collectionProductLinks).values(normalized.map((productSlug, sortOrder) => ({
+        id: randomUUID(),
+        collectionId,
+        productSlug,
+        sortOrder,
+        createdAt: new Date(),
+      })));
+    }
+  });
 }
 
 export async function saveCollectionRecord(input: {
