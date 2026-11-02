@@ -4,6 +4,7 @@ import { getStorefrontProduct } from "@/lib/catalogue";
 import { products, type ProductImage } from "@/lib/products";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { formatProductMeasurements } from "@/lib/product-details";
+import { buildProductEnquiryHref } from "@/lib/product-enquiry";
 import type { Metadata } from "next";
 import { AddToBagButton } from "@/components/AddToBagButton";
 import { ProductGallery } from "@/components/ProductGallery";
@@ -120,12 +121,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               isOneOfAKind={product.isOneOfAKind ?? false}
             />}
           <WishlistToggle slug={product.slug} />
-          <a
+          <Link
             className="button-outline enquiry-button"
-            href={"mailto:hello@desertartgallery.net?subject=" + encodeURIComponent("Enquiry: " + product.name)}
+            href={buildProductEnquiryHref(product.slug)}
           >
             Enquire about this piece <span aria-hidden="true">↗</span>
-          </a>
+          </Link>
           <div className="detail-footnote">
             Desert Art Gallery · Jaisalmer, Rajasthan, India<br />
             Confirm the final price, availability and delivery charges with the gallery before payment.
@@ -133,30 +134,37 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </div>
 
-      {hasProductInformation && (
-        <section className="product-information atelier-product-information" aria-labelledby="product-information-heading">
-          <div className="section-kicker">THE DETAILS</div>
-          <h2 id="product-information-heading" className="section-title">More about this <em>piece.</em></h2>
-          {product.description && <p className="product-long-description">{product.description}</p>}
-          <dl className="product-attribute-list">
-            {materials.length > 0 && <div><dt>Materials</dt><dd>{materials.join(", ")}</dd></div>}
-            {sizes.length > 0 && <div><dt>Sizes</dt><dd>{sizes.join(", ")}</dd></div>}
-            {measurements.length > 0 && (
-              <div>
-                <dt>Measurements</dt>
-                <dd><dl className="product-measurements">
-                  {measurements.map((measurement) => (
-                    <div key={measurement.label}><dt>{measurement.label}</dt><dd>{measurement.value}</dd></div>
-                  ))}
-                </dl></dd>
-              </div>
-            )}
-            {product.conditionNotes && <div><dt>Condition notes</dt><dd>{product.conditionNotes}</dd></div>}
-            {product.provenance && <div><dt>Provenance</dt><dd>{product.provenance}</dd></div>}
-            {product.craftStory && <div><dt>Additional story</dt><dd>{product.craftStory}</dd></div>}
-          </dl>
-        </section>
-      )}
+      <section className="product-information atelier-product-information" aria-labelledby="product-information-heading">
+        <div className="section-kicker">THE DETAILS</div>
+        <h2 id="product-information-heading" className="section-title">More about this <em>piece.</em></h2>
+        {hasProductInformation ? (
+          <>
+            {product.description && <p className="product-long-description">{product.description}</p>}
+            <dl className="product-attribute-list">
+              {materials.length > 0 && <div><dt>Materials</dt><dd>{materials.join(", ")}</dd></div>}
+              {sizes.length > 0 && <div><dt>Sizes</dt><dd>{sizes.join(", ")}</dd></div>}
+              {measurements.length > 0 && (
+                <div>
+                  <dt>Measurements</dt>
+                  <dd><dl className="product-measurements">
+                    {measurements.map((measurement) => (
+                      <div key={measurement.label}><dt>{measurement.label}</dt><dd>{measurement.value}</dd></div>
+                    ))}
+                  </dl></dd>
+                </div>
+              )}
+              {product.conditionNotes && <div><dt>Condition notes</dt><dd>{product.conditionNotes}</dd></div>}
+              {product.provenance && <div><dt>Provenance</dt><dd>{product.provenance}</dd></div>}
+              {product.craftStory && <div><dt>Additional story</dt><dd>{product.craftStory}</dd></div>}
+            </dl>
+          </>
+        ) : (
+          <div className="atelier-product-details-pending">
+            <p>Additional product details have not yet been supplied for this listing.</p>
+            <p>Materials, measurements, condition and provenance are not assumed. Use the product enquiry link above to retain this piece&apos;s context when contacting the gallery.</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
