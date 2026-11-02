@@ -613,7 +613,7 @@ export async function adjustProductVariantInventory(formData: FormData) {
   const reason = value(formData, "reason", 24);
   const reference = value(formData, "reference", 120);
   if (!productId || !variantId) throw new Error("Product and variant IDs are required.");
-  if (!/^-?(0|[1-9]\\d*)$/.test(deltaText)) throw new Error("Enter a signed whole-number stock adjustment.");
+  if (!/^-?(0|[1-9]\d*)$/.test(deltaText)) throw new Error("Enter a signed whole-number stock adjustment.");
   const delta = Number(deltaText);
   if (!Number.isSafeInteger(delta) || delta === 0 || Math.abs(delta) > 2147483647) {
     throw new Error("Stock adjustment must be a non-zero whole number within the supported range.");

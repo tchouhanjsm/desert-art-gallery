@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { cartLineKey, mergeCartLine, normalizeCartLines, setCartLineQuantity, type CartLine } from "@/lib/cart";
 
@@ -31,6 +32,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [preview, setPreview] = useState<CartPreviewItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -68,6 +70,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => { if (hydrated) void refresh(lines); }, [hydrated, lines, refresh]);
 
   const syncSequence = useRef(0);
+  const syncedUserId = useRef<string | null>(null);
   useEffect(() => {
     if (!hydrated) return;
     const sequence = ++syncSequence.current;
@@ -76,11 +79,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const response = await fetch("/api/cart/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lines }),
+          body: JSON.stringify({ lines, syncedUserId: syncedUserId.current }),
         });
         if (!response.ok) return;
         const result = await response.json();
-        if (sequence !== syncSequence.current || !result.authenticated || !Array.isArray(result.lines)) return;
+        if (sequence !== syncSequence.current || !result.authenticated || !Array.isArray(result.lines) || typeof result.userId !== "string") return;
+        syncedUserId.current = result.userId;
         const merged = normalizeCartLines(result.lines);
         if (JSON.stringify(merged) !== JSON.stringify(lines)) setLines(merged);
       } catch {
@@ -88,7 +92,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [hydrated, lines]);
+  }, [hydrated, lines, pathname]);
 
   const addItem = useCallback((slug: string, maximum: number, variantId?: string) => {
     if (maximum < 1) { setError("This piece is currently unavailable."); return; }

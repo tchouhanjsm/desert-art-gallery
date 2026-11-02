@@ -398,3 +398,53 @@ main{min-height:50vh}
   .product-measurements>div{grid-template-columns:minmax(90px,.7fr) minmax(0,1.3fr)}
   .product-information{margin-bottom:65px}
 }
+
+
+/* Variant selection and line-item identity */
+.variant-select-label {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0 0 0.9rem;
+  color: #766b5d;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.variant-select-label select {
+  width: 100%;
+  min-height: 3.1rem;
+  border: 1px solid #b9ab99;
+  border-radius: 0;
+  background: #fbf8f2;
+  color: #29241f;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+.variant-select-label select:focus-visible {
+  outline: 2px solid #8a624b;
+  outline-offset: 3px;
+}
+.variant-selected-price,
+.cart-variant-label {
+  color: #756a5d;
+  font-size: 0.82rem;
+}
+.admin-variant-list {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0 1.5rem;
+}
+.admin-variant-card {
+  border: 1px solid #d8cdbf;
+  background: #faf7f1;
+  padding: clamp(0.9rem, 2vw, 1.35rem);
+}
+@media (max-width: 640px) {
+  .variant-select-label select {
+    min-height: 3.25rem;
+  }
+}

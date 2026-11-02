@@ -43,6 +43,18 @@ begin
     if v_product_status is distinct from 'active' or v_base_price is null then
       raise exception 'A variant can be activated only for an active product with a verified base price';
     end if;
+    if tg_op = 'INSERT' or new.status is distinct from old.status then
+      select coalesce(sum(ri.quantity), 0) into v_active_reservations
+      from public.inventory_reservation_items ri
+      join public.inventory_reservations r on r.id = ri.reservation_id
+      where ri.product_id = new.product_id
+        and ri.variant_id is null
+        and r.status = 'reserved'
+        and r.expires_at > now();
+      if v_active_reservations > 0 then
+        raise exception 'Product-level reservations prevent activating variants';
+      end if;
+    end if;
   end if;
 
   if tg_op = 'UPDATE' and new.status is distinct from old.status then

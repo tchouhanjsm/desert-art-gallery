@@ -62,5 +62,9 @@ export async function POST(request: NextRequest) {
   if (reservationError || !reservation) {
     return NextResponse.json({ error: "Inventory could not be reserved. Refresh the bag and try again." }, { status: 409, headers: { "Cache-Control": "no-store" } });
   }
-  return NextResponse.json(reservation, { status: 201, headers: { "Cache-Control": "no-store" } });
+  const reservationResult = reservation as { status?: string; replayed?: boolean };
+  if (reservationResult.status !== "reserved") {
+    return NextResponse.json({ error: "This reservation request has already been released or expired. Start a new reservation with a new idempotency key." }, { status: 409, headers: { "Cache-Control": "no-store" } });
+  }
+  return NextResponse.json(reservation, { status: reservationResult.replayed ? 200 : 201, headers: { "Cache-Control": "no-store" } });
 }

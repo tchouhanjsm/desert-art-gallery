@@ -179,3 +179,13 @@ Production activation requires merchant-authorized catalogue data and original p
 - Variant records cannot be moved between products.
 - Changed the cart-domain helper to a relative import so Vitest can resolve it without relying on Next.js path-alias runtime behavior.
 - Verified the variant stock adjustment integer validation uses the same whole-number grammar as the existing product stock action.
+
+
+### Follow-up — cart sync, reservation replay and CI lint correction
+
+- The first CI attempt for the variant phase passed TypeScript and all unit tests (13 files / 73 tests) but failed ESLint on an unescaped apostrophe in the admin variant-stock note. Corrected the JSX text.
+- Corrected the variant stock adjustment integer regex to use a single digit-class escape, matching the existing product stock action.
+- Cart account synchronization now distinguishes the current authenticated account from the previously synchronized account. It merges guest and saved account lines only when the account identity changes; subsequent cart edits replace the saved state instead of adding the same saved quantity repeatedly. Path changes after sign-in trigger synchronization.
+- Added unit coverage for first-account merge, same-account replacement and account-switch merge.
+- Reservation API now returns 201 for a new hold, 200 for an active idempotent replay, and 409 when the reused key points to an expired or released hold.
+- Variant activation now rejects active product-level holds, and all variant mutations use the parent product lock. This closes the race between switching a product from product-level stock to variant-level stock.

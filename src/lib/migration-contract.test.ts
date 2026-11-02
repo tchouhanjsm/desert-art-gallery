@@ -137,3 +137,12 @@ describe("variant and inventory reservation migration safety contract", () => {
     expect(variants).not.toContain("update public.orders set status = 'paid'");
   });
 });
+
+
+describe("reservation transition and idempotency safeguards", () => {
+  it("prevents activating variants while product-level holds exist", () => {
+    expect(variants).toContain("Product-level reservations prevent activating variants");
+    expect(variants).toContain("ri.variant_id is null");
+    expect(variants).toContain("before insert or update on public.product_variants");
+  });
+});

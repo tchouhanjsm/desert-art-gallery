@@ -138,7 +138,7 @@ export default async function EditAdminProductPage({ params }: { params: Promise
         <label>Reference (optional)<input name="reference" maxLength={120} placeholder="Supplier or stocktake reference" /></label>
         <button className="button-outline" type="submit">RECORD INVENTORY MOVEMENT</button>
       </form>}
-      {hasActiveVariants && <p className="catalogue-import-note">Product-level stock adjustments are disabled while active variants exist. Use each variant's own ledger above.</p>}
+      {hasActiveVariants && <p className="catalogue-import-note">Product-level stock adjustments are disabled while active variants exist. Use each variant&apos;s own ledger above.</p>}
       <h3>Recent product-level stock movements</h3>
       {movementResult.error ? <p className="catalogue-import-note">Movement history is unavailable. Verify the catalogue inventory migration.</p> : movements.length ? (
         <div className="admin-table-wrap">

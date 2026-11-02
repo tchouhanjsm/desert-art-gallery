@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cartLineKey, mergeCartLine, normalizeCartLines, setCartLineQuantity } from "./cart";
+import { cartLineKey, combineCartLines, mergeCartLine, normalizeCartLines, setCartLineQuantity, shouldMergeSavedCart } from "./cart";
 
 const variantA = "550e8400-e29b-41d4-a716-446655440000";
 const variantB = "550e8400-e29b-41d4-a716-446655440001";
@@ -51,5 +51,20 @@ describe("cart line normalization", () => {
     ];
     expect(setCartLineQuantity(lines, "woven-jacket", 0, variantA)).toEqual([lines[1]]);
     expect(setCartLineQuantity(lines, "woven-jacket", 4, variantB)).toEqual([{ ...lines[0] }, { ...lines[1], quantity: 4 }]);
+  });
+});
+
+
+describe("authenticated cart synchronization policy", () => {
+  it("merges saved and guest lines only when the authenticated account changes", () => {
+    const saved = [{ slug: "woven-jacket", variantId: variantA, quantity: 2 }];
+    const guest = [{ slug: "woven-jacket", variantId: variantA, quantity: 1 }];
+    expect(shouldMergeSavedCart(null, "customer-a")).toBe(true);
+    expect(shouldMergeSavedCart("customer-a", "customer-a")).toBe(false);
+    expect(shouldMergeSavedCart("customer-a", "customer-b")).toBe(true);
+    expect(combineCartLines(saved, guest, true)).toEqual([
+      { slug: "woven-jacket", variantId: variantA, quantity: 3 },
+    ]);
+    expect(combineCartLines(saved, guest, false)).toEqual(guest);
   });
 });

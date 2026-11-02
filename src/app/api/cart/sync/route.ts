@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { cartLineKey, normalizeCartLines } from "@/lib/cart";
+import { cartLineKey, combineCartLines, normalizeCartLines, shouldMergeSavedCart } from "@/lib/cart";
 import { normalizeVariantId } from "@/lib/variants";
 import { isSameOriginRequest } from "@/lib/request-security";
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   }
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid cart request." }, { status: 400 }); }
-  const payload = body as { lines?: unknown } | null;
+  const payload = body as { lines?: unknown; syncedUserId?: unknown } | null;
   const guestLines = normalizeCartLines(payload?.lines);
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.json({ authenticated: false, lines: guestLines });
@@ -43,12 +43,13 @@ export async function POST(request: NextRequest) {
     .eq("user_id", user.id);
   if (existingError) return NextResponse.json({ error: "Unable to load your saved bag." }, { status: 502 });
   const existing = (existingData ?? []) as unknown as ExistingCartRow[];
+  const mergeSaved = shouldMergeSavedCart(payload?.syncedUserId, user.id);
   const allSlugs = Array.from(new Set([
     ...guestLines.map((line) => line.slug),
     ...existing.flatMap((row) => row.products ? [row.products.slug] : []),
   ]));
 
-  if (!allSlugs.length) return NextResponse.json({ authenticated: true, lines: [] });
+  if (!allSlugs.length) return NextResponse.json({ authenticated: true, userId: user.id, lines: [] });
 
   const { data: productData, error: productError } = await supabase.from("products")
     .select("id,slug,quantity_on_hand,is_one_of_a_kind,product_variants(id,status,quantity_on_hand)")
@@ -64,10 +65,11 @@ export async function POST(request: NextRequest) {
     const current = requests.get(key);
     requests.set(key, { slug, ...(variantId ? { variantId } : {}), quantity: Math.min(99, (current?.quantity ?? 0) + quantity) });
   };
-  for (const row of existing) {
-    if (row.products?.slug) addRequest(row.products.slug, row.quantity, rowVariantId(row));
-  }
-  for (const line of guestLines) addRequest(line.slug, line.quantity, line.variantId);
+  const savedLines = existing.flatMap((row) => row.products?.slug
+    ? [{ slug: row.products.slug, ...(rowVariantId(row) ? { variantId: rowVariantId(row) } : {}), quantity: row.quantity }]
+    : []);
+  const requestedLines = combineCartLines(savedLines, guestLines, mergeSaved);
+  for (const line of requestedLines) addRequest(line.slug, line.quantity, line.variantId);
 
   const upsertRows: {
     user_id: string;
@@ -120,5 +122,5 @@ export async function POST(request: NextRequest) {
     const variantId = normalizeVariantId(row.selected_options.variant_id);
     return [{ slug: product.slug, ...(variantId ? { variantId } : {}), quantity: row.quantity }];
   });
-  return NextResponse.json({ authenticated: true, lines: mergedLines }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ authenticated: true, userId: user.id, lines: mergedLines }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -59,3 +59,11 @@ export function setCartLineQuantity(lines: CartLine[], slug: string, quantity: n
     ? { ...line, quantity: Math.min(99, quantity) }
     : line));
 }
+
+export function combineCartLines(saved: CartLine[], guest: CartLine[], mergeSaved: boolean): CartLine[] {
+  return normalizeCartLines(mergeSaved ? [...saved, ...guest] : guest);
+}
+
+export function shouldMergeSavedCart(syncedUserId: unknown, currentUserId: string): boolean {
+  return typeof syncedUserId !== "string" || syncedUserId !== currentUserId;
+}
