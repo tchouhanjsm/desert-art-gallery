@@ -75,6 +75,14 @@ npm run db:migrate
 
 The migration script loads .env when it exists. CI or a deployment environment can continue to inject DATABASE_URL directly without needing an .env file.
 
+After starting the application, check its local HTTP and MySQL readiness without exposing credentials:
+
+~~~bash
+curl -i http://localhost:3000/api/health
+~~~
+
+A ready local MySQL application returns HTTP 200 with application, database and migration checks all healthy. HTTP 503 means the database is not configured, is unavailable, or migrations have not been applied. The response deliberately omits database hostnames, credentials and raw SQL errors.
+
 ## 5. Create the local owner
 
 Set LOCAL_ADMIN_EMAIL, LOCAL_ADMIN_PASSWORD (12–256 characters) and optionally LOCAL_ADMIN_NAME in .env. Then run once:
