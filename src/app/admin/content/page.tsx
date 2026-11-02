@@ -3,12 +3,13 @@ import Link from "next/link";
 import { AlertCircle, BookOpen, Images, Layers3, Users } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasMySqlDatabase } from "@/server/db";
-import { getEditorialWorkspace } from "@/server/editorial/repository";
+import { getCollectionProductSlugsByCollection, getEditorialWorkspace } from "@/server/editorial/repository";
 import { getAdminEditorialMediaUrl } from "@/server/media/storage";
 import {
   confirmEditorialImageRights,
   saveArtisanProfile,
   saveCollection,
+  saveCollectionProducts,
   saveHomepageContent,
   saveJournalPost,
   uploadEditorialImage,
@@ -17,6 +18,7 @@ import {
 export const metadata = { title: "Website content", robots: { index: false, follow: false } };
 
 type ContentBody = Record<string, unknown>;
+type ProductOption = { slug: string; title: string };
 type CollectionRecord = {
   id: string; name: string; slug: string; description: string; hero_image_path: string | null;
   hero_image_alt: string; hero_image_rights_confirmed: boolean; hero_image_rights_evidence: string;
@@ -110,9 +112,25 @@ export default async function AdminContentPage() {
   let collectionCards: (CollectionRecord & { preview: string | null })[] = [];
   let artisanCards: (ArtisanRecord & { preview: string | null })[] = [];
   let journalCards: (JournalRecord & { preview: string | null })[] = [];
+  let productOptions: ProductOption[] = [];
+  let productOptionsError = false;
 
   if (mysqlMode) {
-    const workspace = await getEditorialWorkspace();
+    if (!supabase) {
+      return (
+        <section className="owner-page">
+          <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>MySQL content is enabled, but the existing owner identity provider is not configured.</p></div></header>
+          <div className="owner-inline-warning"><AlertCircle size={18} /> Configure the existing Supabase authentication variables before using the owner portal. MySQL replaces CMS data storage in this phase, not login or roles.</div>
+        </section>
+      );
+    }
+    const [workspace, productOptionsResult] = await Promise.all([
+      getEditorialWorkspace(),
+      supabase.from("products").select("slug,title").eq("status", "active").order("title").limit(500),
+    ]);
+    productOptionsError = Boolean(productOptionsResult.error);
+    productOptions = (productOptionsResult.data ?? []) as ProductOption[];
+    const collectionAssignments = await getCollectionProductSlugsByCollection(workspace.collections.map((item) => item.id));
     home = workspace.home ? {
       id: workspace.home.id,
       title: workspace.home.title,
@@ -129,6 +147,7 @@ export default async function AdminContentPage() {
     collectionCards = collections.map((item) => ({
       ...item,
       preview: item.hero_image_path ? getAdminEditorialMediaUrl(item.hero_image_path) : null,
+      productSlugs: collectionAssignments.get(item.id) ?? [],
     }));
     artisanCards = artisans.map((item) => ({
       ...item,
@@ -244,6 +263,29 @@ export default async function AdminContentPage() {
                 {item.hero_image_path && <RightsControl target="collection" id={item.id} confirmed={item.hero_image_rights_confirmed} evidence={item.hero_image_rights_evidence} />}
               </div>
             </div>
+            {mysqlMode && (
+              <form action={saveCollectionProducts} className="owner-cms-product-assignments">
+                <input type="hidden" name="collection_id" value={item.id} />
+                <div>
+                  <strong>Products in this collection</strong>
+                  <small>{item.productSlugs.length} assigned · choose up to 200 active catalogue products</small>
+                </div>
+                {productOptionsError ? (
+                  <p className="owner-inline-warning">The product catalogue could not be loaded. Refresh after checking the existing Supabase product service.</p>
+                ) : productOptions.length ? (
+                  <label>
+                    Active catalogue products
+                    <select name="product_slugs" multiple size={Math.min(Math.max(productOptions.length, 4), 10)} defaultValue={item.productSlugs}>
+                      {productOptions.map((product) => <option key={product.slug} value={product.slug}>{product.title} · {product.slug}</option>)}
+                    </select>
+                    <small>Use Ctrl (Windows) or Command (Mac) to select multiple products.</small>
+                  </label>
+                ) : (
+                  <p className="owner-cms-no-products">No active catalogue products were found.</p>
+                )}
+                <button className="owner-secondary-action" type="submit" disabled={productOptionsError}>Save product assignments</button>
+              </form>
+            )}
           </details>
         ))}
       </section>
