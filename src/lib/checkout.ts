@@ -55,7 +55,8 @@ export function parseCurrencyAmountToMinor(value: unknown, currency: string): nu
   if (!/^\d+(?:\.\d+)?$/.test(input)) return null;
   let digits: number;
   try {
-    digits = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits;
+    const options = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions();
+    digits = options.maximumFractionDigits ?? options.minimumFractionDigits ?? 2;
   } catch {
     return null;
   }
@@ -75,7 +76,8 @@ export function formatMinorForInput(amountMinor: number, currency: string): stri
   if (!Number.isSafeInteger(amountMinor) || amountMinor < 0 || !/^[A-Z]{3}$/.test(currency)) return "";
   let digits: number;
   try {
-    digits = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits;
+    const options = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions();
+    digits = options.maximumFractionDigits ?? options.minimumFractionDigits ?? 2;
   } catch {
     return "";
   }
