@@ -52,6 +52,8 @@ jobs:
           done
           echo "MySQL did not become ready" >&2
           exit 1
+      - name: Apply MySQL migrations
+        run: npm run db:migrate
       - name: Typecheck
         run: npm run typecheck
       - name: Unit and integration tests
