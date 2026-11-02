@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { formatMoneyFromMinor } from "@/lib/money";
 import type { Product } from "@/lib/products";
+import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import {
   ALL_SHOP_CATEGORY,
   filterAndSortProducts,
@@ -73,15 +72,14 @@ export function ShopBrowser({ products }: { products: Product[] }) {
     query.length > 0 || category !== ALL_SHOP_CATEGORY || sort !== "featured";
 
   return (
-    <div>
-      <div className="shop-toolbar">
-        <span role="status" aria-live="polite">
-          {visible.length} {visible.length === 1 ? "PIECE" : "PIECES"}
+    <div className="atelier-shop-browser">
+      <div className="shop-toolbar atelier-shop-toolbar">
+        <span className="atelier-results-count" role="status" aria-live="polite">
+          <strong>{visible.length.toString().padStart(2, "0")}</strong>
+          <span>{visible.length === 1 ? "PIECE" : "PIECES"} IN THE GALLERY</span>
         </span>
-        <div className="shop-controls">
-          <label className="visually-hidden" htmlFor="shop-search">
-            Search products
-          </label>
+        <div className="shop-controls atelier-shop-controls">
+          <label className="visually-hidden" htmlFor="shop-search">Search products</label>
           <input
             id="shop-search"
             type="search"
@@ -92,11 +90,9 @@ export function ShopBrowser({ products }: { products: Product[] }) {
               setQuery(nextQuery);
               updateUrl({ q: nextQuery, category, sort });
             }}
-            placeholder="Search published pieces…"
+            placeholder="Search the gallery…"
           />
-          <label className="visually-hidden" htmlFor="shop-category">
-            Filter by category
-          </label>
+          <label className="visually-hidden" htmlFor="shop-category">Filter by category</label>
           <select
             id="shop-category"
             value={category}
@@ -106,15 +102,9 @@ export function ShopBrowser({ products }: { products: Product[] }) {
               updateUrl({ q: query, category: nextCategory, sort }, "push");
             }}
           >
-            {categories.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
+            {categories.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
-          <label className="visually-hidden" htmlFor="shop-sort">
-            Sort products
-          </label>
+          <label className="visually-hidden" htmlFor="shop-sort">Sort products</label>
           <select
             id="shop-sort"
             value={sort}
@@ -131,67 +121,41 @@ export function ShopBrowser({ products }: { products: Product[] }) {
           </select>
           {hasActiveFilters && (
             <button
-              className="text-link"
+              className="atelier-clear-filters"
               type="button"
               onClick={() => {
                 setQuery("");
                 setCategory(ALL_SHOP_CATEGORY);
                 setSort("featured");
-                updateUrl({
-                  q: "",
-                  category: ALL_SHOP_CATEGORY,
-                  sort: "featured",
-                }, "push");
+                updateUrl({ q: "", category: ALL_SHOP_CATEGORY, sort: "featured" }, "push");
               }}
             >
-              Clear filters
+              Clear filters <span aria-hidden="true">↗</span>
             </button>
           )}
         </div>
       </div>
       {visible.length ? (
-        <div className="product-grid">
+        <div className="atelier-product-grid">
           {visible.map((product) => (
-            <article className="product-card" key={product.slug}>
-              <Link href={"/products/" + product.slug}>
-                <div className="product-image-wrap">
-                  <Image
-                    src={product.image}
-                    alt={product.imageAlt}
-                    fill
-                    sizes="(max-width:700px) 48vw, 24vw"
-                    unoptimized
-                  />
-                </div>
-                <div className="product-meta">
-                  <div className="product-category">{product.category}</div>
-                  <h2 className="product-name">{product.name}</h2>
-                  <div className="product-note">{product.note}</div>
-                  <div className="product-price">
-                    {product.priceMinor != null && product.currency
-                      ? formatMoneyFromMinor(product.priceMinor, product.currency)
-                      : "PRICE ON ENQUIRY"}
-                  </div>
-                  <div className="product-availability">
-                    {product.quantityOnHand === 0 && product.id
-                      ? "CURRENTLY UNAVAILABLE"
-                      : "ENQUIRE FOR DETAILS"}
-                  </div>
-                </div>
-              </Link>
-            </article>
+            <StorefrontProductCard key={product.slug} product={product} />
           ))}
         </div>
       ) : (
-        <div className="empty-note">
-          {products.length
-            ? "No published pieces match these filters. Try a different search or category."
-            : "No pieces are currently published online. Contact the gallery for current availability."}
-          <div className="center-action">
-            <Link className="text-link" href="/contact">
-              CONTACT THE GALLERY ↗
-            </Link>
-          </div>
+        <div className="atelier-empty-catalogue">
+          <span className="atelier-empty-mark" aria-hidden="true">✳</span>
+          <h2>{products.length ? "No pieces found." : "The next collection is taking shape."}</h2>
+          <p>{products.length
+            ? "Try another search or remove one of the selected filters."
+            : "No pieces are currently published online. Contact the gallery for current availability."}</p>
+          {hasActiveFilters
+            ? <button className="button-outline" type="button" onClick={() => {
+                setQuery("");
+                setCategory(ALL_SHOP_CATEGORY);
+                setSort("featured");
+                updateUrl({ q: "", category: ALL_SHOP_CATEGORY, sort: "featured" }, "push");
+              }}>Clear all filters</button>
+            : <Link className="button-outline" href="/contact">Contact the gallery</Link>}
         </div>
       )}
     </div>

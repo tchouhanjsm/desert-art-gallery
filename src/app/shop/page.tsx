@@ -3,15 +3,15 @@ import { ShopBrowser } from "@/components/ShopBrowser";
 import { getStorefrontProducts } from "@/lib/catalogue";
 
 export const metadata = {
-  title: "Shop all pieces",
+  title: "Shop the collection",
   description:
-    "Explore published textile and object listings from Desert Art Gallery.",
+    "Explore published textiles and objects from Desert Art Gallery in Jaisalmer, Rajasthan.",
 };
 
 function ShopBrowserFallback() {
   return (
-    <div className="empty-note" role="status" aria-live="polite">
-      Loading the published catalogue…
+    <div className="atelier-empty-catalogue" role="status" aria-live="polite">
+      Preparing the gallery catalogue…
     </div>
   );
 }
@@ -20,16 +20,16 @@ export default async function ShopPage() {
   const products = await getStorefrontProducts();
 
   return (
-    <div className="page-shell">
-      <div className="page-heading">
-        <div className="section-kicker">THE COLLECTION</div>
-        <h1>Shop all pieces</h1>
-        <p>
-          Browse published listings and use the filters to find the details
-          provided for each piece. Product information is shown only when it
-          has been supplied and approved for publication.
-        </p>
-      </div>
+    <div className="page-shell atelier-page-shell">
+      <header className="atelier-page-heading">
+        <div className="section-kicker">THE ONLINE GALLERY · JAISALMER</div>
+        <h1>Objects to <em>live with.</em></h1>
+        <p>Explore the pieces currently published by the gallery. Each listing shows the details available for that piece; contact us where you need further information.</p>
+        <div className="atelier-heading-meta">
+          <span>TEXTILES & OBJECTS</span>
+          <span>{products.length} {products.length === 1 ? "PUBLISHED PIECE" : "PUBLISHED PIECES"}</span>
+        </div>
+      </header>
       <Suspense fallback={<ShopBrowserFallback />}>
         <ShopBrowser products={products} />
       </Suspense>
