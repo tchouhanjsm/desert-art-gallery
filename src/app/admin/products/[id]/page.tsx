@@ -2,6 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { asc, desc, eq, inArray } from "drizzle-orm";
+import { getMySqlDb, isMySqlCatalogueEnabled } from "@/server/db";
+import { inventoryMovements, productMedia, products, productVariants } from "@/server/db/schema";
+import { getProductMediaUrl } from "@/server/media/product-storage";
+import { MySqlProductForm } from "../mysql-product-form";
+import { MySqlProductManagement } from "../mysql-product-management";
 import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights, adjustProductInventory, updateProductImageOrder, setProductImagePrimary, createProductVariant, updateProductVariant, adjustProductVariantInventory } from "../actions";
 
 export const metadata = { title: "Edit product" };
@@ -30,6 +36,83 @@ function displayMoneyInput(value: number | null, currency: string) {
 
 export default async function EditAdminProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (isMySqlCatalogueEnabled()) {
+    if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+    const db = getMySqlDb();
+    const [mysqlProduct] = await db.select().from(products).where(eq(products.id, id)).limit(1);
+    if (!mysqlProduct) notFound();
+    const [variantRows, mediaRows] = await Promise.all([
+      db.select().from(productVariants).where(eq(productVariants.productId, id))
+        .orderBy(asc(productVariants.sortOrder), asc(productVariants.createdAt)),
+      db.select().from(productMedia).where(eq(productMedia.productId, id))
+        .orderBy(asc(productMedia.position), asc(productMedia.createdAt)),
+    ]);
+    const variantIds = variantRows.map((variant) => variant.id);
+    const movementRows = variantIds.length
+      ? await db.select().from(inventoryMovements).where(inArray(inventoryMovements.variantId, variantIds))
+        .orderBy(desc(inventoryMovements.createdAt)).limit(60)
+      : [];
+    const variantById = new Map(variantRows.map((variant) => [variant.id, variant.label]));
+    const movements = movementRows.map((movement) => ({
+      id: movement.id,
+      quantityDelta: movement.quantityDelta,
+      reason: movement.reason,
+      referenceKey: movement.referenceKey,
+      createdAt: movement.createdAt.toISOString(),
+      variantLabel: variantById.get(movement.variantId) ?? "Unknown variant",
+    }));
+    const media = mediaRows.map((item) => ({
+      id: item.id,
+      url: getProductMediaUrl(item.storageKey),
+      altText: item.altText,
+      rightsConfirmed: item.rightsConfirmed,
+      rightsEvidence: item.rightsEvidence,
+      position: item.position,
+      isPrimary: item.isPrimary,
+    }));
+    const initial = {
+      id: mysqlProduct.id,
+      title: mysqlProduct.title,
+      slug: mysqlProduct.slug,
+      currency: mysqlProduct.currency,
+      price: displayMoneyInput(mysqlProduct.priceMinor, mysqlProduct.currency),
+      compareAtPrice: displayMoneyInput(mysqlProduct.compareAtPriceMinor, mysqlProduct.currency),
+      shortDescription: mysqlProduct.shortDescription,
+      description: mysqlProduct.description,
+      productType: mysqlProduct.productType,
+      materials: mysqlProduct.materials ?? [],
+      sizes: mysqlProduct.sizes ?? [],
+      measurements: mysqlProduct.measurements,
+      conditionNotes: mysqlProduct.conditionNotes,
+      provenance: mysqlProduct.provenance,
+      craftStory: mysqlProduct.craftStory,
+      isOneOfAKind: mysqlProduct.isOneOfAKind,
+      featured: mysqlProduct.featured,
+      seoTitle: mysqlProduct.seoTitle,
+      seoDescription: mysqlProduct.seoDescription,
+    };
+    return <div className="page-shell admin-editor">
+      <div className="breadcrumb"><Link href="/admin/products">PRODUCT CATALOGUE</Link> / MYSQL PRODUCT</div>
+      <div className="admin-page-heading">
+        <div><div className="section-kicker">SELF-HOSTED CATALOGUE</div><h1>{mysqlProduct.title}</h1>
+          <p>Manage verified product facts, options, stock movements and rights-approved photographs.</p></div>
+        <span className={"admin-status status-" + mysqlProduct.status}>{mysqlProduct.status}</span>
+      </div>
+      <MySqlProductForm mode="edit" initial={initial} />
+      <MySqlProductManagement
+        productId={id}
+        productSlug={mysqlProduct.slug}
+        productStatus={mysqlProduct.status}
+        media={media}
+        variants={variantRows.map((variant) => ({
+          id: variant.id, sku: variant.sku, label: variant.label,
+          attributes: variant.attributes, stockQuantity: variant.stockQuantity,
+          isActive: variant.isActive, sortOrder: variant.sortOrder,
+        }))}
+        movements={movements}
+      />
+    </div>;
+  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><div className="page-heading"><h1>Edit product</h1><p>Connect Supabase to manage the catalogue.</p></div></div>;
 
