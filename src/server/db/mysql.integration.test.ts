@@ -11,7 +11,7 @@ import {
   getAvailableVariantQuantity, getPublishedProductBySlug, isPublicProductMedia, listPublishedProducts,
 } from "@/server/catalogue/repository";
 import {
-  artisanProfiles, collectionProductLinks, collections, inventoryMovements, inventoryReservationItems,
+  artisanProfiles, collections, inventoryMovements, inventoryReservationItems,
   inventoryReservations, journalPosts, productCategories, productCategoryLinks,
   productMedia, products, productVariants, siteContent,
 } from "./schema";
@@ -281,7 +281,9 @@ suite("real MySQL migration and catalogue integration", () => {
         items: [{ variantId, quantity: 4 }],
         expiresAt,
       }, now)));
-      expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+      const successful = results.filter((result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof reserveVariantStock>>> =>
+        result.status === "fulfilled");
+      expect(successful).toHaveLength(1);
       expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
 
       const shortHold = await reserveVariantStock({
@@ -289,11 +291,16 @@ suite("real MySQL migration and catalogue integration", () => {
         idempotencyKey: "expiry-idempotency-" + productId,
         items: [{ variantId, quantity: 1 }],
         expiresAt,
-      }, now).catch(() => null);
-      expect(shortHold).toBeNull();
+      }, now);
+      const expiredCount = await expireVariantStockReservations(100, new Date(now.getTime() + 11 * 60 * 1000));
+      expect(expiredCount).toBe(2);
+      const expiredRecords = await db.select().from(inventoryReservations)
+        .where(sql`idempotency_key IN (${"concurrent-idempotency-" + productId + "-1"}, ${"concurrent-idempotency-" + productId + "-2"}, ${"expiry-idempotency-" + productId})`);
+      expect(expiredRecords.every((record) => record.status === "expired")).toBe(true);
+      expect(shortHold.status).toBe("reserved");
     } finally {
       await db.delete(inventoryReservationItems).where(eq(inventoryReservationItems.variantId, variantId));
-      await db.delete(inventoryReservations).where(sql`idempotency_key LIKE ${"concurrent-idempotency-" + productId + "%"}`);
+      await db.delete(inventoryReservations).where(sql`idempotency_key LIKE ${"concurrent-idempotency-" + productId + "%"} OR idempotency_key = ${"expiry-idempotency-" + productId}`);
       await db.delete(productVariants).where(eq(productVariants.id, variantId));
       await db.delete(products).where(eq(products.id, productId));
     }
