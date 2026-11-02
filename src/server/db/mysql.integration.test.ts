@@ -1,12 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { afterAll, describe, expect, it } from "vitest";
+import { createHash, randomUUID } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { closeMySqlPool, getMySqlDb } from "./index";
 import {
   expireVariantStockReservations, reserveVariantStock,
   releaseVariantStockReservation, consumeVariantStockReservation, adjustVariantInventory,
 } from "../catalogue/inventory";
+import { commitLocalCatalogueCsv, previewLocalCatalogueCsv } from "../catalogue/import-csv";
 import {
   getAvailableVariantQuantity, getPublishedProductBySlug, isPublicProductMedia, listPublishedProducts,
 } from "../catalogue/repository";
@@ -345,6 +347,67 @@ suite("real MySQL migration and catalogue integration", () => {
       await db.delete(adminUsers).where(eq(adminUsers.id, ownerId));
     }
   }, 30_000);
+
+  it("previews and commits a local CSV as drafts with opening inventory exactly once", async () => {
+    const db = getMySqlDb();
+    const id = randomUUID();
+    const categoryId = randomUUID();
+    const slug = "csv-import-" + id;
+    const categorySlug = "csv-category-" + id;
+    const sku = "CSV-" + id.slice(0, 8);
+    const csv = [
+      "slug,title,short_description,description,category_slug,price,currency,compare_at_price,sku,quantity_on_hand,materials,sizes,measurements,condition_notes,provenance,craft_story",
+      [slug, "Imported test textile", "Verified short detail", "Merchant supplied description", categorySlug, "12.50", "USD", "", sku, "3", "Cotton|Silk", "M|L", "{\"chest\":\"40 cm\"}", "Good condition", "Owner supplied provenance", "Merchant supplied story"].join(","),
+    ].join("\n");
+    const bytes = new TextEncoder().encode(csv);
+    const sha = createHash("sha256").update(bytes).digest("hex");
+    try {
+      await db.insert(productCategories).values({
+        id: categoryId, name: "CSV test category", slug: categorySlug, description: "Integration category",
+      });
+      const preview = await previewLocalCatalogueCsv("import.csv", bytes);
+      expect(preview.canCommit).toBe(true);
+      expect(preview.totalRows).toBe(1);
+      expect(preview.validRows).toBe(1);
+      expect(preview.productsInTarget).toBe(0);
+      const before = await db.select().from(products).where(eq(products.slug, slug));
+      expect(before).toHaveLength(0);
+
+      await expect(commitLocalCatalogueCsv("import.csv", bytes, "incorrect-confirmation")).rejects.toThrow("explicit");
+      const result = await commitLocalCatalogueCsv("import.csv", bytes, "IMPORT_TO_LOCAL_MYSQL");
+      expect(result.productsCreated).toBe(1);
+      expect(result.stockUnitsAdded).toBe(3);
+      const [product] = await db.select().from(products).where(eq(products.slug, slug));
+      expect(product.status).toBe("draft");
+      expect(product.priceMinor).toBe(1250);
+      const [variant] = await db.select().from(productVariants).where(eq(productVariants.productId, product.id));
+      expect(variant.sku).toBe(sku);
+      expect(variant.label).toBe("Standard");
+      expect(variant.stockQuantity).toBe(3);
+      const [movement] = await db.select().from(inventoryMovements).where(eq(inventoryMovements.variantId, variant.id));
+      expect(movement.quantityDelta).toBe(3);
+      expect(movement.reason).toBe("CSV opening balance");
+      expect(await db.select().from(productMedia).where(eq(productMedia.productId, product.id))).toHaveLength(0);
+      const [batch] = await db.select().from(catalogueImportBatches)
+        .where(eq(catalogueImportBatches.sourceSha256, sha));
+      expect(batch.productsCreated).toBe(1);
+      await expect(commitLocalCatalogueCsv("import.csv", bytes, "IMPORT_TO_LOCAL_MYSQL")).rejects.toThrow("not ready to commit");
+    } finally {
+      const [product] = await db.select().from(products).where(eq(products.slug, slug));
+      if (product) {
+        const variantsForProduct = await db.select().from(productVariants).where(eq(productVariants.productId, product.id));
+        for (const variant of variantsForProduct) {
+          await db.delete(inventoryMovements).where(eq(inventoryMovements.variantId, variant.id));
+        }
+        await db.delete(productCategoryLinks).where(eq(productCategoryLinks.productId, product.id));
+        await db.delete(productVariants).where(eq(productVariants.productId, product.id));
+        await db.delete(productMedia).where(eq(productMedia.productId, product.id));
+        await db.delete(products).where(eq(products.id, product.id));
+      }
+      await db.delete(catalogueImportBatches).where(eq(catalogueImportBatches.sourceSha256, sha));
+      await db.delete(productCategories).where(eq(productCategories.id, categoryId));
+    }
+  }, 60_000);
 
   it("reopens the pool and reads previously committed content", async () => {
     const db = getMySqlDb();
