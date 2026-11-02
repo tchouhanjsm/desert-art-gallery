@@ -149,8 +149,10 @@ export const products = mysqlTable("products", {
   uniqueIndex("products_legacy_id_uq").on(table.legacyId),
   index("products_status_created_idx").on(table.status, table.createdAt),
   index("products_featured_status_idx").on(table.featured, table.status),
-  check("products_currency_check", sql`${table.currency} REGEXP '^[A-Z]{3}
-
+  check("products_currency_check", sql`${table.currency} REGEXP '^[A-Z]{3}$'`),
+  check("products_status_check", sql`${table.status} IN ('draft','published','archived')`),
+  check("products_price_compare_check", sql`${table.compareAtPriceMinor} IS NULL OR ${table.compareAtPriceMinor} >= ${table.priceMinor}`),
+]);
 export const productCategoryLinks = mysqlTable("product_category_links", {
   productId: char("product_id", { length: 36 }).notNull().references(() => products.id, { onDelete: "cascade" }),
   categoryId: char("category_id", { length: 36 }).notNull().references(() => productCategories.id, { onDelete: "cascade" }),
