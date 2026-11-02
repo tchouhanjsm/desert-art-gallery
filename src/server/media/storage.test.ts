@@ -10,7 +10,7 @@ import {
   readEditorialMedia,
   removeEditorialMedia,
   storeEditorialMedia,
-} from "@/server/media/storage";
+} from "./storage";
 
 const originalRoot = process.env.MEDIA_STORAGE_ROOT;
 const originalNodeEnv = process.env.NODE_ENV;
