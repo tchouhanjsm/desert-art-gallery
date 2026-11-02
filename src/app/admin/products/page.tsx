@@ -5,6 +5,7 @@ import { formatMoneyFromMinor } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getMySqlDb, isMySqlCatalogueEnabled } from "@/server/db";
 import { products, productVariants } from "@/server/db/schema";
+import { MySqlCategoryForm } from "./mysql-category-form";
 
 export const metadata = { title: "Products" };
 
@@ -71,6 +72,7 @@ async function MySqlProductsPage() {
           {!rows.length && <div className="owner-panel-empty"><Package size={22} /><strong>No MySQL products yet</strong><p>Create a draft to begin building the self-hosted catalogue. Nothing is automatically imported from Supabase.</p><Link className="owner-text-action" href="/admin/products/new">Create your first product ↗</Link></div>}
         </div>
       </section>
+      <MySqlCategoryForm />
     </section>
   );
 }
