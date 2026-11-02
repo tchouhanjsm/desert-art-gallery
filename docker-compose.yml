@@ -1,0 +1,20 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: desert-art-gallery-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: desert_art_gallery
+      MYSQL_ROOT_PASSWORD: localdevpassword
+      TZ: Asia/Kolkata
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - desert_art_gallery_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-plocaldevpassword"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+volumes:
+  desert_art_gallery_mysql:

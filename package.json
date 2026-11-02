@@ -11,15 +11,13 @@
     "test": "vitest run",
     "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
-    "db:import-editorial": "node --env-file=.env --import=tsx scripts/import-editorial-to-mysql.ts"
+    "db:create-owner": "node --env-file=.env --import=tsx scripts/create-owner.ts"
   },
   "dependencies": {
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "lucide-react": "^0.468.0",
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.49.1",
     "drizzle-orm": "0.45.4",
     "mysql2": "3.24.6",
     "@fontsource-variable/cormorant-garamond": "5.3.0",

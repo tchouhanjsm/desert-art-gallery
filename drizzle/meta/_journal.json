@@ -8,6 +8,13 @@
       "when": 1793600000000,
       "tag": "0000_mysql_editorial_cms",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793601000000,
+      "tag": "0001_local_mysql_application",
+      "breakpoints": true
     }
   ]
 }
