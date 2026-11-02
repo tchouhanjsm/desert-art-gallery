@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getMySqlDb } from "@/server/db";
 import { products, productCategories, productVariants, productMedia, inventoryMovements } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 async function requireCatalogueAdmin() {
   const supabase = await createSupabaseServerClient();
