@@ -10,7 +10,7 @@ export default function ContactPage() {
     <div className="page-shell atelier-contact-page">
       <header className="atelier-page-heading atelier-contact-heading">
         <div className="section-kicker">A DIRECT CONVERSATION · JAISALMER</div>
-        <h1>Let's talk about <em>a piece.</em></h1>
+        <h1>Let&apos;s talk about <em>a piece.</em></h1>
         <p>Questions about a published object, its materials or delivery to your destination? Share the piece you have in mind and the gallery will help clarify the details available.</p>
       </header>
 
@@ -35,7 +35,7 @@ export default function ContactPage() {
           <ol>
             <li><span>01</span><div><strong>The piece</strong><p>Include the product name or a link to its listing.</p></div></li>
             <li><span>02</span><div><strong>Your destination</strong><p>Tell us the destination city and country for delivery questions.</p></div></li>
-            <li><span>03</span><div><strong>What you'd like to know</strong><p>Ask about materials, measurements, condition, provenance or availability.</p></div></li>
+            <li><span>03</span><div><strong>What you&apos;d like to know</strong><p>Ask about materials, measurements, condition, provenance or availability.</p></div></li>
           </ol>
           <div className="atelier-contact-delivery" id="delivery-enquiries">
             <h3>Delivery enquiries</h3>

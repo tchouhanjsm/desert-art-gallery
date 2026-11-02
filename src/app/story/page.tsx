@@ -22,7 +22,7 @@ export default function StoryPage() {
 
       <div className="atelier-story-content">
         <article className="atelier-story-article">
-          <span className="section-kicker">THE GALLERY'S APPROACH</span>
+          <span className="section-kicker">THE GALLERY&apos;S APPROACH</span>
           <h2>Look closely.<br /><em>Understand the piece.</em></h2>
           <p>Desert Art Gallery is based in Jaisalmer, Rajasthan. Our focus is the visual language of textiles and objects, and the context that helps people understand what they are considering.</p>
           <p>Every published product should be accompanied by the information the gallery can verify. Materials, measurements, condition, provenance and availability are not assumed; they are confirmed piece by piece.</p>
