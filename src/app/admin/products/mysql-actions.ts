@@ -107,50 +107,6 @@ function productInput(formData: FormData) {
   };
 }
 
-async function replaceProductCategories(executor: {
-  delete: (...args: never[]) => unknown;
-}, productId: string, categorySlugs: string[]) {
-  const db = getMySqlDb();
-  const categories = categorySlugs.length
-    ? await db.select({ id: productCategories.id, slug: productCategories.slug })
-      .from(productCategories).where(and(inArray(productCategories.slug, categorySlugs), eq(productCategories.isActive, true)))
-    : [];
-  if (categories.length !== categorySlugs.length) {
-    throw new Error("One or more category slugs do not match active MySQL categories.");
-  }
-  await getMySqlDb().delete(productCategoryLinks).where(eq(productCategoryLinks.productId, productId));
-  if (categories.length) {
-    await getMySqlDb().insert(productCategoryLinks).values(categories.map((category) => ({
-      productId, categoryId: category.id,
-    })));
-  }
-}
-
-function parseVariantAttributes(raw: string): Record<string, string> {
-  if (!raw) return {};
-  if (raw.length > 3000) throw new Error("Variant attributes are too long.");
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
-    const entries = Object.entries(parsed);
-    if (entries.length > 30 || entries.some(([key, value]) =>
-      !key.trim() || key.length > 80 || typeof value !== "string" || value.length > 160)) {
-      throw new Error();
-    }
-    return Object.fromEntries(entries) as Record<string, string>;
-  } catch {
-    throw new Error("Variant attributes must be a JSON object containing short string values.");
-  }
-}
-
-function variantSku(formData: FormData) {
-  const sku = textValue(formData, "sku", 100).toUpperCase() || null;
-  if (sku && !/^[A-Z0-9][A-Z0-9._/-]{0,99}$/.test(sku)) {
-    throw new Error("Variant SKU contains unsupported characters.");
-  }
-  return sku;
-}
-
 export async function createMySqlDraftProduct(formData: FormData): Promise<CatalogueActionResult> {
   try {
     await requireCatalogueAdmin();
@@ -171,7 +127,16 @@ export async function createMySqlDraftProduct(formData: FormData): Promise<Catal
         isActive: true,
         sortOrder: 0,
       });
-      await replaceProductCategories(getMySqlDb(), id, input.categorySlugs);
+      const categories = input.categorySlugs.length
+        ? await tx.select({ id: productCategories.id, slug: productCategories.slug }).from(productCategories)
+          .where(and(inArray(productCategories.slug, input.categorySlugs), eq(productCategories.isActive, true)))
+        : [];
+      if (categories.length !== input.categorySlugs.length) {
+        throw new Error("One or more category slugs do not match active MySQL categories.");
+      }
+      if (categories.length) {
+        await tx.insert(productCategoryLinks).values(categories.map((category) => ({ productId: id, categoryId: category.id })));
+      }
     });
     revalidatePath("/admin/products");
     return { ok: true, id };
