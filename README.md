@@ -34,4 +34,6 @@ Owner passwords are stored as salted scrypt hashes; sessions use random httpOnly
 
 The MySQL catalogue and owner product management are opt-in. The existing legacy customer-account, customer-order and some fulfilment routes are not fully migrated in this phase. Optional Supabase credentials are retained only for reading the old source during the one-time legacy editorial import. No target MySQL owner session depends on Supabase Auth.
 
+To seed the local catalogue from the supplied CSV template, first run `npm run db:import-products -- ./catalogue.csv` (read-only preview). A database write requires both `--commit --confirm-local-import` and is blocked for production/live database names or a non-empty catalogue. Imported products remain drafts without approved images.
+
 No live data is imported automatically, and no production deployment or payment provider is enabled by these scripts.
