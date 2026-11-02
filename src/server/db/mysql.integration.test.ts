@@ -382,7 +382,7 @@ suite("real MySQL migration and catalogue integration", () => {
       expect(product.status).toBe("draft");
       expect(product.priceMinor).toBe(1250);
       const [variant] = await db.select().from(productVariants).where(eq(productVariants.productId, product.id));
-      expect(variant.sku).toBe(sku);
+      expect(variant.sku).toBe(sku.toUpperCase());
       expect(variant.label).toBe("Standard");
       expect(variant.stockQuantity).toBe(3);
       const [movement] = await db.select().from(inventoryMovements).where(eq(inventoryMovements.variantId, variant.id));
