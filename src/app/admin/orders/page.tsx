@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { isMySqlCatalogueEnabled } from "@/server/db";
 import Link from "next/link";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -5,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const metadata = { title: "Orders" };
 
 export default async function AdminOrdersPage() {
+  if (isMySqlCatalogueEnabled()) redirect("/admin/products");
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><div className="page-heading"><h1>Orders</h1><p>Connect Supabase to view order operations.</p></div></div>;
   const { data, error } = await supabase.from("orders")
