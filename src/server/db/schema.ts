@@ -279,3 +279,21 @@ export const adminSessions = mysqlTable("admin_sessions", {
   uniqueIndex("admin_sessions_token_hash_uq").on(table.tokenHash),
   index("admin_sessions_user_expiry_idx").on(table.adminUserId, table.expiresAt),
 ]);
+
+
+export const catalogueImportBatches = mysqlTable("catalogue_import_batches", {
+  id: char("id", { length: 36 }).primaryKey(),
+  sourceSha256: char("source_sha256", { length: 64 }).notNull(),
+  sourceName: varchar("source_name", { length: 255 }).notNull(),
+  rowCount: int("row_count").notNull(),
+  productsCreated: int("products_created").notNull(),
+  stockUnitsAdded: bigint("stock_units_added", { mode: "number", unsigned: true }).notNull(),
+  report: json("report").$type<Record<string, unknown>>().notNull(),
+  createdBy: char("created_by", { length: 36 }),
+  createdAt: createdAt(),
+}, (table) => [
+  uniqueIndex("catalogue_import_batches_source_sha_uq").on(table.sourceSha256),
+  index("catalogue_import_batches_created_idx").on(table.createdAt),
+  check("catalogue_import_batches_row_count_check", sql`${table.rowCount} BETWEEN 1 AND 500`),
+  check("catalogue_import_batches_products_check", sql`${table.productsCreated} BETWEEN 1 AND 500`),
+]);
