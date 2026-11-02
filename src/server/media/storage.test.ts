@@ -15,12 +15,16 @@ import {
 const originalRoot = process.env.MEDIA_STORAGE_ROOT;
 const originalNodeEnv = process.env.NODE_ENV;
 const temporaryRoots: string[] = [];
+const setNodeEnv = (value: string | undefined) => {
+  if (value === undefined) delete process.env.NODE_ENV;
+  else Reflect.set(process.env, "NODE_ENV", value);
+};
 
 afterEach(async () => {
   await Promise.all(temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
   if (originalRoot === undefined) delete process.env.MEDIA_STORAGE_ROOT;
   else process.env.MEDIA_STORAGE_ROOT = originalRoot;
-  process.env.NODE_ENV = originalNodeEnv;
+  setNodeEnv(originalNodeEnv);
 });
 
 describe("editorial media storage paths", () => {
@@ -38,7 +42,7 @@ describe("editorial media storage paths", () => {
   });
 
   it("requires an absolute persistent media path in production", () => {
-    process.env.NODE_ENV = "production";
+    setNodeEnv("production");
     delete process.env.MEDIA_STORAGE_ROOT;
     expect(() => getMediaStorageRoot()).toThrow("persistent storage");
     process.env.MEDIA_STORAGE_ROOT = "relative/media";
@@ -46,7 +50,7 @@ describe("editorial media storage paths", () => {
   });
 
   it("uses a local ignored directory for development when no root is configured", () => {
-    process.env.NODE_ENV = "development";
+    setNodeEnv("development");
     delete process.env.MEDIA_STORAGE_ROOT;
     expect(getMediaStorageRoot()).toMatch(/\.local-data[\/]media$/);
   });
@@ -55,7 +59,7 @@ describe("editorial media storage paths", () => {
     const root = await mkdtemp(join(tmpdir(), "desert-art-gallery-media-"));
     temporaryRoots.push(root);
     process.env.MEDIA_STORAGE_ROOT = root;
-    process.env.NODE_ENV = "test";
+    setNodeEnv("test");
 
     const key = createEditorialStorageKey("collection", "a8f9df07-6f01-4f8b-a74d-90d49db01852", "image/webp");
     const bytes = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00]);

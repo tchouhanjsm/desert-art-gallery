@@ -14,7 +14,10 @@ import {
 } from "drizzle-orm/mysql-core";
 
 const createdAt = () => datetime("created_at", { mode: "date", fsp: 3 }).notNull().default(sql`CURRENT_TIMESTAMP(3)`);
-const updatedAt = () => datetime("updated_at", { mode: "date", fsp: 3 }).notNull().default(sql`CURRENT_TIMESTAMP(3)`).onUpdateNow();
+const updatedAt = () => datetime("updated_at", { mode: "date", fsp: 3 })
+  .notNull()
+  .default(sql`CURRENT_TIMESTAMP(3)`)
+  .$onUpdateFn(() => new Date());
 
 export const siteContent = mysqlTable("site_content", {
   id: char("id", { length: 36 }).primaryKey(),

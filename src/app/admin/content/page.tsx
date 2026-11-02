@@ -18,6 +18,7 @@ import {
 export const metadata = { title: "Website content", robots: { index: false, follow: false } };
 
 type ContentBody = Record<string, unknown>;
+type HomeRecord = { id: string; title: string; body: ContentBody; is_published: boolean; updated_at: Date | string };
 type ProductOption = { slug: string; title: string };
 type CollectionRecord = {
   id: string; name: string; slug: string; description: string; hero_image_path: string | null;
@@ -103,7 +104,7 @@ export default async function AdminContentPage() {
     );
   }
 
-  let home: { id: string; title: string; body: ContentBody; is_published: boolean; updated_at: Date } | null = null;
+  let home: HomeRecord | null = null;
   let homeBody: ContentBody = {};
   let collections: CollectionRecord[] = [];
   let artisans: ArtisanRecord[] = [];
@@ -175,7 +176,7 @@ export default async function AdminContentPage() {
       );
     }
 
-    home = homeResult.data as typeof home;
+    home = homeResult.data as HomeRecord | null;
     homeBody = home?.body && typeof home.body === "object" && !Array.isArray(home.body) ? home.body : {};
     collections = (collectionResult.data ?? []) as unknown as CollectionRecord[];
     artisans = (artisanResult.data ?? []) as unknown as ArtisanRecord[];

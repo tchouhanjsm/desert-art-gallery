@@ -43,7 +43,7 @@ type SourceJournalPost = {
   author_id: string | null; published_at: string | null; created_at: string | null; updated_at: string | null;
 };
 type SourceCollectionProduct = { collection_id: string; product_id: string; sort_order: number };
-type SourceCollectionProduct = { collection_id: string; product_id: string; sort_order: number };
+
 
 const importMarker = "__legacy_supabase_editorial_import_v1";
 const commitMode = process.argv.includes("--commit");
