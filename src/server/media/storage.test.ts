@@ -16,7 +16,7 @@ const originalRoot = process.env.MEDIA_STORAGE_ROOT;
 const originalNodeEnv = process.env.NODE_ENV;
 const temporaryRoots: string[] = [];
 const setNodeEnv = (value: string | undefined) => {
-  if (value === undefined) delete process.env.NODE_ENV;
+  if (value === undefined) Reflect.deleteProperty(process.env, "NODE_ENV");
   else Reflect.set(process.env, "NODE_ENV", value);
 };
 
