@@ -2,42 +2,46 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { hasMySqlDatabase } from "@/server/db";
+import { getPublishedJournalPost, type JournalRecord } from "@/server/editorial/repository";
+import { getEditorialMediaUrl } from "@/server/media/storage";
 
-type JournalPost = {
-  title: string;
-  slug: string;
-  excerpt: string;
-  category: string;
-  content_markdown: string;
-  cover_image_path: string | null;
-  cover_image_alt: string;
-  cover_image_rights_confirmed: boolean;
-};
+async function getPost(slug: string): Promise<JournalRecord | null> {
+  if (hasMySqlDatabase()) return getPublishedJournalPost(slug);
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("journal_posts")
+    .select("id,title,slug,excerpt,content_markdown,category,cover_image_path,cover_image_alt,cover_image_rights_confirmed,cover_image_rights_evidence,status,author_id,published_at")
+    .eq("slug", slug).eq("status", "published").not("published_at", "is", null).maybeSingle();
+  if (error || !data) return null;
+  return data as unknown as JournalRecord;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return { title: "Journal story" };
-  const { data } = await supabase.from("journal_posts").select("title,excerpt").eq("slug", slug).eq("status", "published").maybeSingle();
-  return data ? { title: data.title, description: data.excerpt } : {};
+  const post = await getPost(slug);
+  return post ? { title: post.title, description: post.excerpt } : {};
 }
 
 export default async function JournalArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) notFound();
+  const post = await getPost(slug);
+  if (!post) notFound();
 
-  const { data, error } = await supabase.from("journal_posts")
-    .select("title,slug,excerpt,category,content_markdown,cover_image_path,cover_image_alt,cover_image_rights_confirmed")
-    .eq("slug", slug).eq("status", "published").not("published_at", "is", null).maybeSingle();
-  if (error || !data) notFound();
-
-  const post = data as unknown as JournalPost;
   let cover: string | null = null;
-  if (post.cover_image_path && post.cover_image_rights_confirmed) {
-    const { data: signed } = await supabase.storage.from("product-media").createSignedUrl(post.cover_image_path, 900);
-    cover = signed?.signedUrl ?? null;
+  if (post.cover_image_path && post.cover_image_rights_confirmed &&
+    post.cover_image_rights_evidence.trim() && post.cover_image_alt.trim()) {
+    if (hasMySqlDatabase()) {
+      cover = getEditorialMediaUrl(post.cover_image_path);
+    } else {
+      const supabase = await createSupabaseServerClient();
+      if (supabase) {
+        const { data: signed } = await supabase.storage.from("product-media").createSignedUrl(post.cover_image_path, 900);
+        cover = signed?.signedUrl ?? null;
+      }
+    }
   }
+
   const paragraphs = post.content_markdown.split("\n\n").map((block) => block.trim()).filter(Boolean);
 
   return <article className="page-shell">

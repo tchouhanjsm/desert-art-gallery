@@ -1,58 +1,63 @@
 import Image from "next/image";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { hasMySqlDatabase } from "@/server/db";
+import { getPublishedArtisanProfiles, type ArtisanRecord } from "@/server/editorial/repository";
+import { getEditorialMediaUrl } from "@/server/media/storage";
 
 export const metadata = {
   title: "Our makers",
   description: "Maker profiles shared by Desert Art Gallery only after the people featured have reviewed and approved their details.",
 };
 
-type ArtisanRow = {
-  id: string;
-  full_name: string;
-  role_title: string;
-  short_bio: string;
-  biography: string;
-  craft_specialties: string[];
-  years_experience: number | null;
-  portrait_path: string | null;
-  portrait_alt_text: string;
-  portrait_rights_confirmed: boolean;
-};
+type ArtisanCard = ArtisanRecord & { portrait: string | null };
 
 export default async function ArtisansPage() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) {
-    return (
-      <div className="page-shell">
-        <div className="page-heading">
-          <div className="section-kicker">PEOPLE & PROCESS</div>
-          <h1>Maker stories</h1>
-          <p>Personal stories should be told by, or with the approval of, the people involved.</p>
-        </div>
-        <div className="info-copy">
-          <p>This space is reserved for profiles that have been reviewed and approved by the people featured. No names, portraits, biographies or experience claims will be published here without their permission.</p>
-          <p>For questions about the making or details of a particular piece, contact the gallery.</p>
-          <Link className="contact-link" href="/contact">CONTACT THE GALLERY ↗</Link>
-        </div>
-      </div>
-    );
-  }
+  let cards: ArtisanCard[] = [];
 
-  const { data, error } = await supabase.from("artisan_profiles")
-    .select("id,full_name,role_title,short_bio,biography,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed")
-    .eq("is_published", true).order("sort_order", { ascending: true });
-  if (error) throw new Error("Unable to load maker profiles.");
-
-  const rows = (data ?? []) as unknown as ArtisanRow[];
-  const cards = await Promise.all(rows.map(async (artisan) => {
-    let portrait: string | null = null;
-    if (artisan.portrait_path && artisan.portrait_rights_confirmed) {
-      const { data: signed } = await supabase.storage.from("product-media").createSignedUrl(artisan.portrait_path, 900);
-      portrait = signed?.signedUrl ?? null;
+  if (hasMySqlDatabase()) {
+    const rows = await getPublishedArtisanProfiles();
+    cards = rows.map((artisan) => ({
+      ...artisan,
+      portrait: artisan.portrait_path && artisan.portrait_rights_confirmed &&
+        artisan.portrait_rights_evidence.trim() && artisan.portrait_alt_text.trim()
+        ? getEditorialMediaUrl(artisan.portrait_path)
+        : null,
+    }));
+  } else {
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) {
+      return (
+        <div className="page-shell">
+          <div className="page-heading">
+            <div className="section-kicker">PEOPLE & PROCESS</div>
+            <h1>Maker stories</h1>
+            <p>Personal stories should be told by, or with the approval of, the people involved.</p>
+          </div>
+          <div className="info-copy">
+            <p>This space is reserved for profiles that have been reviewed and approved by the people featured. No names, portraits, biographies or experience claims will be published here without their permission.</p>
+            <p>For questions about the making or details of a particular piece, contact the gallery.</p>
+            <Link className="contact-link" href="/contact">CONTACT THE GALLERY ↗</Link>
+          </div>
+        </div>
+      );
     }
-    return { ...artisan, portrait };
-  }));
+
+    const { data, error } = await supabase.from("artisan_profiles")
+      .select("id,full_name,role_title,short_bio,biography,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed,portrait_rights_evidence,sort_order,is_published")
+      .eq("is_published", true).order("sort_order", { ascending: true });
+    if (error) throw new Error("Unable to load maker profiles.");
+
+    const rows = (data ?? []) as unknown as ArtisanRecord[];
+    cards = await Promise.all(rows.map(async (artisan) => {
+      let portrait: string | null = null;
+      if (artisan.portrait_path && artisan.portrait_rights_confirmed && artisan.portrait_rights_evidence.trim() && artisan.portrait_alt_text.trim()) {
+        const { data: signed } = await supabase.storage.from("product-media").createSignedUrl(artisan.portrait_path, 900);
+        portrait = signed?.signedUrl ?? null;
+      }
+      return { ...artisan, portrait };
+    }));
+  }
 
   return (
     <div className="page-shell">
