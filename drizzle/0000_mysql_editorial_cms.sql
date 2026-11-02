@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS site_content (
   PRIMARY KEY (id),
   UNIQUE KEY site_content_key_uq (content_key),
   KEY site_content_published_idx (is_published, content_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS collections (
   id CHAR(36) NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS collections (
   KEY collections_public_order_idx (is_published, sort_order, name),
   CONSTRAINT collections_hero_rights_evidence_check
     CHECK (hero_image_rights_confirmed = FALSE OR (CHAR_LENGTH(TRIM(hero_image_rights_evidence)) > 0 AND CHAR_LENGTH(TRIM(hero_image_alt)) > 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS artisan_profiles (
   id CHAR(36) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS artisan_profiles (
     CHECK (portrait_rights_confirmed = FALSE OR (CHAR_LENGTH(TRIM(portrait_rights_evidence)) > 0 AND CHAR_LENGTH(TRIM(portrait_alt_text)) > 0)),
   CONSTRAINT artisan_experience_range_check
     CHECK (years_experience IS NULL OR years_experience BETWEEN 0 AND 100)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS journal_posts (
   id CHAR(36) NOT NULL,
@@ -79,4 +79,4 @@ CREATE TABLE IF NOT EXISTS journal_posts (
   CONSTRAINT journal_status_check CHECK (status IN ('draft','published','archived')),
   CONSTRAINT journal_cover_rights_evidence_check
     CHECK (cover_image_rights_confirmed = FALSE OR (CHAR_LENGTH(TRIM(cover_image_rights_evidence)) > 0 AND CHAR_LENGTH(TRIM(cover_image_alt)) > 0))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
