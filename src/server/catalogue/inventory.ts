@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
-import { getMySqlDb } from "@/server/db";
+import { getMySqlDb } from "../db";
 import {
   inventoryMovements, inventoryReservationItems, inventoryReservations,
   products, productVariants,
-} from "@/server/db/schema";
+} from "../db/schema";
 
 export type ReservationStatus = "reserved" | "released" | "expired" | "consumed";
 export type ReservationRequest = {
