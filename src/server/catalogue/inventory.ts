@@ -119,7 +119,8 @@ export async function reserveVariantStock(input: ReservationRequest, now = new D
           inArray(inventoryReservationItems.variantId, variantIds),
           eq(inventoryReservations.status, "reserved"),
           gt(inventoryReservations.expiresAt, now),
-        ));
+        ))
+        .for("update");
       const reservedByVariant = new Map<string, number>();
       for (const row of activeRows) reservedByVariant.set(row.variantId, (reservedByVariant.get(row.variantId) ?? 0) + row.quantity);
 
@@ -178,6 +179,25 @@ export async function releaseVariantStockReservation(reservationId: string, now 
 export async function consumeVariantStockReservation(reservationId: string, now = new Date()): Promise<ReservationStatus> {
   const db = getMySqlDb();
   return db.transaction(async (tx) => {
+    // Read the item IDs first, then acquire variant locks before the reservation lock.
+    // Reserve/adjust paths use this same variant -> reservation lock order to avoid deadlocks.
+    const [snapshot] = await tx.select().from(inventoryReservations)
+      .where(eq(inventoryReservations.id, reservationId)).limit(1);
+    if (!snapshot) throw new Error("Stock reservation was not found.");
+    const items = await tx.select({
+      variantId: inventoryReservationItems.variantId,
+      quantity: inventoryReservationItems.quantity,
+    }).from(inventoryReservationItems)
+      .where(eq(inventoryReservationItems.reservationId, reservationId))
+      .orderBy(asc(inventoryReservationItems.variantId));
+    if (!items.length) throw new Error("Reservation has no line items.");
+
+    const variantIds = items.map((item) => item.variantId);
+    const variants = await tx.select().from(productVariants)
+      .where(inArray(productVariants.id, variantIds))
+      .orderBy(asc(productVariants.id))
+      .for("update");
+
     const [reservation] = await tx.select().from(inventoryReservations)
       .where(eq(inventoryReservations.id, reservationId)).limit(1).for("update");
     if (!reservation) throw new Error("Stock reservation was not found.");
@@ -189,18 +209,6 @@ export async function consumeVariantStockReservation(reservationId: string, now 
       return "expired";
     }
 
-    const items = await tx.select({
-      variantId: inventoryReservationItems.variantId,
-      quantity: inventoryReservationItems.quantity,
-    }).from(inventoryReservationItems)
-      .where(eq(inventoryReservationItems.reservationId, reservationId))
-      .orderBy(asc(inventoryReservationItems.variantId));
-    if (!items.length) throw new Error("Reservation has no line items.");
-    const variantIds = items.map((item) => item.variantId);
-    const variants = await tx.select().from(productVariants)
-      .where(inArray(productVariants.id, variantIds))
-      .orderBy(asc(productVariants.id))
-      .for("update");
     const variantById = new Map(variants.map((variant) => [variant.id, variant]));
     for (const item of items) {
       const variant = variantById.get(item.variantId);
@@ -282,7 +290,8 @@ export async function adjustVariantInventory(input: {
         eq(inventoryReservationItems.variantId, input.variantId),
         eq(inventoryReservations.status, "reserved"),
         gt(inventoryReservations.expiresAt, now),
-      ));
+      ))
+      .for("update");
     const reserved = activeReservations.reduce((total, row) => total + row.quantity, 0);
     const next = variant.stockQuantity + input.quantityDelta;
     if (!Number.isSafeInteger(next) || next < reserved || next > 2147483647) {
