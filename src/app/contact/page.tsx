@@ -1,11 +1,21 @@
 import Link from "next/link";
+import { getStorefrontProduct } from "@/lib/catalogue";
+import { parseProductEnquirySlug } from "@/lib/product-enquiry";
 
 export const metadata = {
   title: "Contact the gallery",
   description: "Contact information for Desert Art Gallery in Jaisalmer, Rajasthan.",
 };
 
-export default function ContactPage() {
+type ContactPageProps = {
+  searchParams: Promise<{ product?: string | string[] }>;
+};
+
+export default async function ContactPage({ searchParams }: ContactPageProps) {
+  const params = await searchParams;
+  const requestedSlug = parseProductEnquirySlug(params.product);
+  const requestedProduct = requestedSlug ? await getStorefrontProduct(requestedSlug) : null;
+
   return (
     <div className="page-shell atelier-contact-page">
       <header className="atelier-page-heading atelier-contact-heading">
@@ -13,6 +23,20 @@ export default function ContactPage() {
         <h1>Let&apos;s talk about <em>a piece.</em></h1>
         <p>Questions about a published object, its materials or delivery to your destination? The gallery&apos;s verified contact channel will be published here once confirmed. Please check back before sending product or order enquiries.</p>
       </header>
+
+      {requestedProduct && (
+        <section className="atelier-enquiry-context" id="product-enquiry" aria-labelledby="enquiry-context-heading">
+          <div>
+            <span className="section-kicker">YOUR PRODUCT ENQUIRY</span>
+            <h2 id="enquiry-context-heading">{requestedProduct.name}</h2>
+            <p>{requestedProduct.category || "Desert Art Gallery"} · Product context retained from the listing you selected.</p>
+          </div>
+          <Link className="text-link" href={"/products/" + requestedProduct.slug}>Return to this piece ↗</Link>
+          <p className="atelier-enquiry-status" role="status">
+            Your enquiry context is ready, but no message has been sent. The gallery&apos;s official contact channel is still awaiting confirmation.
+          </p>
+        </section>
+      )}
 
       <div className="atelier-contact-layout">
         <section className="atelier-contact-main">
