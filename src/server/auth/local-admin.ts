@@ -1,10 +1,11 @@
 import "server-only";
 
-import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { getMySqlDb } from "@/server/db";
 import { adminSessions, adminUsers } from "@/server/db/schema";
+import { hashOwnerPassword, verifyOwnerPassword } from "./password";
 
 export const LOCAL_ADMIN_SESSION_COOKIE = "dag_owner_session";
 const SESSION_LIFETIME_SECONDS = 8 * 60 * 60;
@@ -26,24 +27,7 @@ function tokenDigest(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function hashAdminPassword(password: string): string {
-  if (password.length < 12 || password.length > 256) {
-    throw new Error("Owner passwords must be between 12 and 256 characters.");
-  }
-  const salt = randomBytes(16);
-  const derived = scryptSync(password, salt, 64);
-  return "scrypt$" + salt.toString("hex") + "$" + derived.toString("hex");
-}
-
-function verifyAdminPassword(password: string, encoded: string): boolean {
-  const [algorithm, saltHex, expectedHex] = encoded.split("$");
-  if (algorithm !== "scrypt" || !saltHex || !expectedHex || !/^[a-f0-9]{32}$/i.test(saltHex) || !/^[a-f0-9]{128}$/i.test(expectedHex)) {
-    return false;
-  }
-  const actual = scryptSync(password, Buffer.from(saltHex, "hex"), 64);
-  const expected = Buffer.from(expectedHex, "hex");
-  return actual.length === expected.length && timingSafeEqual(actual, expected);
-}
+export const hashAdminPassword = hashOwnerPassword;
 
 export async function createLocalAdminSession(emailInput: string, password: string): Promise<void> {
   const email = normalizeEmail(emailInput);
@@ -65,7 +49,7 @@ export async function createLocalAdminSession(emailInput: string, password: stri
     throw new Error("Sign-in is temporarily locked. Wait 15 minutes or ask another owner to reset access.");
   }
 
-  if (!verifyAdminPassword(password, user.passwordHash)) {
+  if (!verifyOwnerPassword(password, user.passwordHash)) {
     await db.update(adminUsers).set({
       failedLoginCount: sql`LEAST(${adminUsers.failedLoginCount} + 1, 100)`,
       lockedUntil: sql`CASE WHEN ${adminUsers.failedLoginCount} + 1 >= ${MAX_FAILED_LOGIN_ATTEMPTS} THEN DATE_ADD(CURRENT_TIMESTAMP(3), INTERVAL ${LOCKOUT_MINUTES} MINUTE) ELSE ${adminUsers.lockedUntil} END`,
