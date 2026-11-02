@@ -1,28 +1,24 @@
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { asc } from "drizzle-orm";
+import { requireOwner } from "@/server/auth/session";
+import { getMySqlDb } from "@/server/db";
+import { checkoutTaxRules, shippingRates, shippingZones } from "@/server/db/schema";
 import { formatMinorForInput } from "@/lib/checkout";
 import { saveShippingRate, saveShippingZone, saveTaxRule } from "./actions";
 
 export const metadata = { title: "Shipping and tax configuration", robots: { index: false, follow: false } };
 
 export default async function AdminCheckoutSettingsPage() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return <div className="page-shell"><h1>Checkout configuration</h1><p>Connect Supabase to manage shipping and tax rules.</p></div>;
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return <div className="page-shell"><h1>Checkout configuration</h1><p>Owner sign-in is required.</p></div>;
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profile?.role !== "owner") return <div className="page-shell"><h1>Checkout configuration</h1><p>Only the business owner can change shipping and tax configuration.</p><Link href="/admin">RETURN TO ADMIN</Link></div>;
-
-  const [zoneResult, rateResult, taxResult] = await Promise.all([
-    supabase.from("shipping_zones").select("id,name,country_codes,is_active").order("name"),
-    supabase.from("shipping_rates").select("id,zone_id,name,currency,amount_minor,min_delivery_days,max_delivery_days,duties_disclosure,is_active").order("name"),
-    supabase.from("checkout_tax_rules").select("id,country_code,currency,tax_name,rate_basis_points,taxable_shipping,disclosure,is_active").order("country_code").order("currency"),
+  await requireOwner();
+  const db=getMySqlDb();
+  const [zoneRows,rateRows,taxRows]=await Promise.all([
+    db.select().from(shippingZones).orderBy(asc(shippingZones.name)),
+    db.select().from(shippingRates).orderBy(asc(shippingRates.name)),
+    db.select().from(checkoutTaxRules).orderBy(asc(checkoutTaxRules.countryCode),asc(checkoutTaxRules.currency)),
   ]);
-  if (zoneResult.error || rateResult.error || taxResult.error) return <div className="page-shell"><h1>Checkout configuration</h1><div className="checkout-notice">The order/checkout migration must be applied to the approved Supabase project before configuration can be managed. No values have been seeded.</div></div>;
-
-  const zones = zoneResult.data ?? [];
-  const rates = rateResult.data ?? [];
-  const taxes = taxResult.data ?? [];
+  const zones=zoneRows.map(row=>({id:row.id,name:row.name,country_codes:row.countryCodes,is_active:row.isActive}));
+  const rates=rateRows.map(row=>({id:row.id,zone_id:row.zoneId,name:row.name,currency:row.currency,amount_minor:row.amountMinor,min_delivery_days:row.minDeliveryDays,max_delivery_days:row.maxDeliveryDays,duties_disclosure:row.dutiesDisclosure,is_active:row.isActive}));
+  const taxes=taxRows.map(row=>({id:row.id,country_code:row.countryCode,currency:row.currency,tax_name:row.taxName,rate_basis_points:row.rateBasisPoints,taxable_shipping:row.taxableShipping,disclosure:row.disclosure,is_active:row.isActive}));
   return <div className="page-shell">
     <div className="admin-page-heading"><div><div className="section-kicker">OWNER WORKSPACE</div><h1>Shipping & tax</h1><p>Only approved merchant rates, delivery windows and legal disclosures belong here.</p></div><Link className="text-link" href="/admin">DASHBOARD</Link></div>
     <div className="checkout-notice">Checkout fails closed unless exactly one active shipping zone matches the destination, a matching active rate exists, and at least one active tax rule is configured for the same country and currency. An explicit zero-rate tax rule is required when no tax applies. The tax calculation is an additive basis-point scaffold, not a jurisdiction-complete tax engine; obtain accountant approval before activating any destination. No example prices or policies are preloaded.</div>
