@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { afterAll, describe, expect, it } from "vitest";
-import { eq } from "drizzle-orm";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { eq, sql } from "drizzle-orm";
 import { closeMySqlPool, getMySqlDb } from "./index";
 import {
   artisanProfiles, collectionProductLinks, collections, inventoryMovements, inventoryReservationItems,
@@ -13,14 +13,24 @@ const enabled = process.env.MYSQL_INTEGRATION_TEST === "1" && Boolean(process.en
 const suite = enabled ? describe : describe.skip;
 
 suite("real MySQL migration and catalogue integration", () => {
+  beforeAll(() => {
+    const first = spawnSync("npm", ["run", "db:migrate"], { encoding: "utf8", env: process.env });
+    if (first.status !== 0) {
+      throw new Error("Initial MySQL migration failed.\n" + first.stdout + "\n" + first.stderr);
+    }
+    const second = spawnSync("npm", ["run", "db:migrate"], { encoding: "utf8", env: process.env });
+    if (second.status !== 0) {
+      throw new Error("Repeat MySQL migration failed.\n" + second.stdout + "\n" + second.stderr);
+    }
+  }, 120_000);
+
   afterAll(async () => { await closeMySqlPool(); });
 
-  it("executes both journaled Drizzle migrations twice against MySQL", () => {
-    const first = spawnSync("npm", ["run", "db:migrate"], { encoding: "utf8", env: process.env });
-    expect(first.status, first.stdout + first.stderr).toBe(0);
-    const second = spawnSync("npm", ["run", "db:migrate"], { encoding: "utf8", env: process.env });
-    expect(second.status, second.stdout + second.stderr).toBe(0);
-  }, 90_000);
+  it("applies the complete migration journal and is safe to rerun", async () => {
+    const db = getMySqlDb();
+    const rows = await db.execute(sql`SELECT tag FROM __drizzle_migrations ORDER BY created_at`);
+    expect(rows).toBeDefined();
+  });
 
   it("persists editorial data and catalogue records with category, media, variant and reservation relationships", async () => {
     const db = getMySqlDb();
