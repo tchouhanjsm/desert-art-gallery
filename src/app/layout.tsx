@@ -3,6 +3,7 @@ import "@fontsource-variable/cormorant-garamond";
 import "@fontsource-variable/dm-sans";
 import "./globals.css";
 import "@/styles/theme.css";
+import "@/styles/editorial.css";
 import { SiteChrome } from "@/components/SiteChrome";
 import { CartProvider } from "@/components/CartProvider";
 import { WishlistProvider } from "@/components/WishlistProvider";
@@ -29,9 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <CartProvider>
           <WishlistProvider>
-            <SiteChrome>
-              <main id="main-content" tabIndex={-1}>{children}</main>
-            </SiteChrome>
+            <SiteChrome>{children}</SiteChrome>
           </WishlistProvider>
         </CartProvider>
       </body>

@@ -37,7 +37,7 @@ export default function ContactPage() {
             <li><span>02</span><div><strong>Your destination</strong><p>Tell us the destination city and country for delivery questions.</p></div></li>
             <li><span>03</span><div><strong>What you'd like to know</strong><p>Ask about materials, measurements, condition, provenance or availability.</p></div></li>
           </ol>
-          <div className="atelier-contact-delivery">
+          <div className="atelier-contact-delivery" id="delivery-enquiries">
             <h3>Delivery enquiries</h3>
             <p>Shipping availability, charges, taxes, duties and estimated delivery depend on the destination and confirmed order. No delivery rate or timing is promised by this page.</p>
             <Link href="/contact#delivery-enquiries">Read the delivery note ↗</Link>
