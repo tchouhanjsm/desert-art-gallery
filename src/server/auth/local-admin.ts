@@ -40,13 +40,13 @@ export async function createLocalAdminSession(emailInput: string, password: stri
   const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email)).limit(1);
   if (!user || !user.isActive) {
     // Do a password derivation even for unknown accounts to reduce timing-based account enumeration.
-    scryptSync(password, Buffer.alloc(16, 0x44), 64);
+    verifyOwnerPassword(password, "scrypt$" + "44".repeat(16) + "$" + "00".repeat(64));
     throw new Error("Email or password is incorrect.");
   }
 
   const now = new Date();
   if (user.lockedUntil && user.lockedUntil > now) {
-    throw new Error("Sign-in is temporarily locked. Wait 15 minutes or ask another owner to reset access.");
+    throw new Error("Sign-in is temporarily locked. Wait 15 minutes before trying again.");
   }
 
   if (!verifyOwnerPassword(password, user.passwordHash)) {
