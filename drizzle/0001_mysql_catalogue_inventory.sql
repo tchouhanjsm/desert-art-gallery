@@ -17,8 +17,15 @@ CREATE TABLE IF NOT EXISTS products (
   legacy_id CHAR(36) NULL,
   title VARCHAR(240) NOT NULL,
   slug VARCHAR(180) NOT NULL,
+  short_description VARCHAR(240) NOT NULL DEFAULT '',
   description TEXT NOT NULL DEFAULT '',
   product_type VARCHAR(100) NOT NULL DEFAULT '',
+  materials JSON NULL,
+  sizes JSON NULL,
+  measurements JSON NULL,
+  condition_notes TEXT NOT NULL DEFAULT '',
+  provenance TEXT NOT NULL DEFAULT '',
+  craft_story TEXT NOT NULL DEFAULT '',
   currency CHAR(3) NOT NULL,
   price_minor BIGINT UNSIGNED NOT NULL,
   compare_at_price_minor BIGINT UNSIGNED NULL,
@@ -52,7 +59,7 @@ CREATE TABLE IF NOT EXISTS product_category_links (
 CREATE TABLE IF NOT EXISTS product_variants (
   id CHAR(36) NOT NULL,
   product_id CHAR(36) NOT NULL,
-  sku VARCHAR(100) NOT NULL,
+  sku VARCHAR(100) NULL,
   label VARCHAR(180) NOT NULL,
   attributes JSON NOT NULL,
   price_minor BIGINT UNSIGNED NULL,
@@ -119,7 +126,7 @@ CREATE TABLE IF NOT EXISTS inventory_reservations (
   PRIMARY KEY (id),
   UNIQUE KEY inventory_reservations_idempotency_uq (idempotency_key),
   KEY inventory_reservations_expiry_idx (status, expires_at),
-  CONSTRAINT inventory_reservations_status_check CHECK (status IN ('reserved','released','expired'))
+  CONSTRAINT inventory_reservations_status_check CHECK (status IN ('reserved','released','expired','consumed'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS inventory_reservation_items (
