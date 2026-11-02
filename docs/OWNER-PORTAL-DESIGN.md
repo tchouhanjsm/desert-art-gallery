@@ -1,6 +1,6 @@
 # Desert Art Gallery — Owner Operations Portal
 
-**Status:** Phase 2 UI foundation implemented  
+**Status:** Phase 2 UI foundation and Phase 3 editorial CMS implemented; live operational acceptance pending  
 **Design direction:** Gallery Operations — warm neutral workspace with deep-ink navigation  
 **Data source:** Existing Supabase-backed repositories and actions pending planned MySQL migration
 
