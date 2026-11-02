@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, BookOpen, Images, Layers3, Users } from "lucide-react";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { hasMySqlDatabase } from "@/server/db";
+import { asc, eq } from "drizzle-orm";
+import { getMySqlDb } from "@/server/db";
+import { products } from "@/server/db/schema";
 import { getCollectionProductSlugsByCollection, getEditorialWorkspace } from "@/server/editorial/repository";
 import { getAdminEditorialMediaUrl } from "@/server/media/storage";
 import {
@@ -40,12 +41,6 @@ type JournalRecord = {
 function bodyString(body: ContentBody, key: string, fallback = "") {
   const value = body[key];
   return typeof value === "string" ? value : fallback;
-}
-
-async function signedPreview(supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>, path: string | null) {
-  if (!path) return null;
-  const { data } = await supabase.storage.from("product-media").createSignedUrl(path, 900);
-  return data?.signedUrl ?? null;
 }
 
 function RightsControl({ target, id, confirmed, evidence }: {
@@ -93,99 +88,37 @@ function EditorialUpload({ target, id, label, altText }: {
 }
 
 export default async function AdminContentPage() {
-  const mysqlMode = hasMySqlDatabase();
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) {
+  let workspace: Awaited<ReturnType<typeof getEditorialWorkspace>>;
+  try { workspace = await getEditorialWorkspace(); }
+  catch {
     return (
       <section className="owner-page">
-        <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>Manage the homepage, collections, maker profiles and journal without changing application code.</p></div></header>
-        <div className="owner-setup-card"><AlertCircle size={22} /><div><h2>Content backend is not connected</h2><p>Configure the current database environment to manage site content. The owner sign-in still uses the existing authentication provider during this staged migration.</p></div></div>
+        <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>The local MySQL editorial database could not be loaded.</p></div></header>
+        <div className="owner-inline-warning"><AlertCircle size={18} /> Start the local database and apply the Drizzle migrations before opening this workspace.</div>
       </section>
     );
   }
-
-  let home: HomeRecord | null = null;
-  let homeBody: ContentBody = {};
-  let collections: CollectionRecord[] = [];
-  let artisans: ArtisanRecord[] = [];
-  let journal: JournalRecord[] = [];
-  let homePreview: string | null = null;
-  let collectionCards: (CollectionRecord & { preview: string | null; productSlugs?: string[] })[] = [];
-  let artisanCards: (ArtisanRecord & { preview: string | null })[] = [];
-  let journalCards: (JournalRecord & { preview: string | null })[] = [];
+  const home: HomeRecord | null = workspace.home ? {
+    id: workspace.home.id, title: workspace.home.title, body: workspace.home.body,
+    is_published: workspace.home.is_published, updated_at: workspace.home.updated_at,
+  } : null;
+  const homeBody: ContentBody = home?.body ?? {};
+  const collections: CollectionRecord[] = workspace.collections;
+  const artisans: ArtisanRecord[] = workspace.artisans;
+  const journal: JournalRecord[] = workspace.journal;
+  const homePath = bodyString(homeBody, "hero_image_path") || null;
+  const homePreview = homePath ? getAdminEditorialMediaUrl(homePath) : null;
+  const collectionAssignments = await getCollectionProductSlugsByCollection(collections.map(item => item.id));
+  const collectionCards = collections.map(item => ({
+    ...item, preview: item.hero_image_path ? getAdminEditorialMediaUrl(item.hero_image_path) : null,
+    productSlugs: collectionAssignments.get(item.id) ?? [],
+  }));
+  const artisanCards = artisans.map(item => ({...item,preview:item.portrait_path?getAdminEditorialMediaUrl(item.portrait_path):null}));
+  const journalCards = journal.map(item => ({...item,preview:item.cover_image_path?getAdminEditorialMediaUrl(item.cover_image_path):null}));
   let productOptions: ProductOption[] = [];
   let productOptionsError = false;
-
-  if (mysqlMode) {
-    let workspace: Awaited<ReturnType<typeof getEditorialWorkspace>>;
-    try {
-      workspace = await getEditorialWorkspace();
-    } catch {
-      return (
-        <section className="owner-page">
-          <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>The MySQL editorial backend could not be loaded.</p></div></header>
-          <div className="owner-inline-warning"><AlertCircle size={18} /> Check the MySQL connection and apply the Drizzle migrations before opening the CMS workspace.</div>
-        </section>
-      );
-    }
-    const productOptionsResult = await supabase.from("products")
-      .select("slug,title").eq("status", "active").order("title").limit(500);
-    productOptionsError = Boolean(productOptionsResult.error);
-    productOptions = (productOptionsResult.data ?? []) as ProductOption[];
-    const collectionAssignments = await getCollectionProductSlugsByCollection(workspace.collections.map((item) => item.id));
-    home = workspace.home ? {
-      id: workspace.home.id,
-      title: workspace.home.title,
-      body: workspace.home.body,
-      is_published: workspace.home.is_published,
-      updated_at: workspace.home.updated_at,
-    } : null;
-    homeBody = home?.body ?? {};
-    collections = workspace.collections;
-    artisans = workspace.artisans;
-    journal = workspace.journal;
-    const homePath = bodyString(homeBody, "hero_image_path") || null;
-    homePreview = homePath ? getAdminEditorialMediaUrl(homePath) : null;
-    collectionCards = collections.map((item) => ({
-      ...item,
-      preview: item.hero_image_path ? getAdminEditorialMediaUrl(item.hero_image_path) : null,
-      productSlugs: collectionAssignments.get(item.id) ?? [],
-    }));
-    artisanCards = artisans.map((item) => ({
-      ...item,
-      preview: item.portrait_path ? getAdminEditorialMediaUrl(item.portrait_path) : null,
-    }));
-    journalCards = journal.map((item) => ({
-      ...item,
-      preview: item.cover_image_path ? getAdminEditorialMediaUrl(item.cover_image_path) : null,
-    }));
-  } else if (supabase) {
-    const [homeResult, collectionResult, artisanResult, journalResult] = await Promise.all([
-      supabase.from("site_content").select("id,title,body,is_published,updated_at").eq("content_key", "homepage").maybeSingle(),
-      supabase.from("collections").select("id,name,slug,description,hero_image_path,hero_image_alt,hero_image_rights_confirmed,hero_image_rights_evidence,sort_order,is_published").order("sort_order").order("name"),
-      supabase.from("artisan_profiles").select("id,full_name,role_title,short_bio,biography,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed,portrait_rights_evidence,sort_order,is_published").order("sort_order").order("full_name"),
-      supabase.from("journal_posts").select("id,title,slug,excerpt,content_markdown,category,cover_image_path,cover_image_alt,cover_image_rights_confirmed,cover_image_rights_evidence,status").order("updated_at", { ascending: false }),
-    ]);
-
-    if (homeResult.error || collectionResult.error || artisanResult.error || journalResult.error) {
-      return (
-        <section className="owner-page">
-          <header className="owner-page-heading"><div><span className="owner-eyebrow">EDITORIAL WORKSPACE</span><h1>Website content</h1><p>CMS database compatibility needs attention before editing can begin.</p></div></header>
-          <div className="owner-inline-warning"><AlertCircle size={18} /> Legacy editorial schema is not ready. Apply the matching PostgreSQL migrations before using the Supabase CMS path.</div>
-        </section>
-      );
-    }
-
-    home = homeResult.data as HomeRecord | null;
-    homeBody = home?.body && typeof home.body === "object" && !Array.isArray(home.body) ? home.body : {};
-    collections = (collectionResult.data ?? []) as unknown as CollectionRecord[];
-    artisans = (artisanResult.data ?? []) as unknown as ArtisanRecord[];
-    journal = (journalResult.data ?? []) as unknown as JournalRecord[];
-    homePreview = await signedPreview(supabase, bodyString(homeBody, "hero_image_path") || null);
-    collectionCards = await Promise.all(collections.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.hero_image_path) })));
-    artisanCards = await Promise.all(artisans.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.portrait_path) })));
-    journalCards = await Promise.all(journal.map(async (item) => ({ ...item, preview: await signedPreview(supabase, item.cover_image_path) })));
-  }
+  try { productOptions = await getMySqlDb().select({slug:products.slug,title:products.title}).from(products).where(eq(products.status,"active")).orderBy(asc(products.title)).limit(500); }
+  catch { productOptionsError = true; }
 
   return (
     <section className="owner-page owner-cms">
