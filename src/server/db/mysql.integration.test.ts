@@ -383,12 +383,20 @@ suite("real MySQL migration and catalogue integration", () => {
         expiresAt,
       }, now)).rejects.toThrow("Insufficient available stock");
     } finally {
-      await db.delete(inventoryReservationItems).where(inArray(
-        inventoryReservationItems.reservationId,
-        db.select({ id: inventoryReservations.id }).from(inventoryReservations)
-          .where(eq(inventoryReservations.customerReference, customerReference)),
-      ));
-      await db.delete(inventoryReservations).where(eq(inventoryReservations.customerReference, customerReference));
+      const testReservations = await db.select({ id: inventoryReservations.id })
+        .from(inventoryReservations)
+        .where(inArray(inventoryReservations.customerReference, [
+          customerReference,
+          customerReference + "-sibling",
+        ]));
+      for (const reservation of testReservations) {
+        await db.delete(inventoryReservationItems)
+          .where(eq(inventoryReservationItems.reservationId, reservation.id));
+      }
+      await db.delete(inventoryReservations).where(inArray(inventoryReservations.customerReference, [
+        customerReference,
+        customerReference + "-sibling",
+      ]));
       await db.delete(productVariants).where(inArray(productVariants.id, [firstVariantId, secondVariantId]));
       await db.delete(products).where(eq(products.id, productId));
     }
