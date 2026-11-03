@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getMediaStorageRoot } from "./storage";
@@ -40,6 +40,29 @@ export function safeProductStorageKey(key: string): string {
 export function createProductStorageKey(productId: string, mimeType: EditorialImageMime): string {
   if (!UUID.test(productId)) throw new Error("Product identifier is invalid.");
   return safeProductStorageKey("products/" + productId + "/" + randomUUID() + "." + extensionByMime[mimeType]);
+}
+
+
+export function createDeterministicProductStorageKey(
+  productId: string,
+  contentSha256: string,
+  mimeType: EditorialImageMime,
+): string {
+  if (!UUID.test(productId)) throw new Error("Product identifier is invalid.");
+  if (!/^[0-9a-f]{64}$/i.test(contentSha256)) throw new Error("Image SHA-256 digest is invalid.");
+  const digest = createHash("sha256")
+    .update(productId)
+    .update(":")
+    .update(contentSha256.toLowerCase())
+    .digest("hex")
+    .slice(0, 32)
+    .split("");
+  digest[12] = "5";
+  digest[16] = (parseInt(digest[16], 16) & 0x3 | 0x8).toString(16);
+  const compact = digest.join("");
+  const imageId = compact.slice(0, 8) + "-" + compact.slice(8, 12) + "-"
+    + compact.slice(12, 16) + "-" + compact.slice(16, 20) + "-" + compact.slice(20);
+  return safeProductStorageKey("products/" + productId + "/" + imageId + "." + extensionByMime[mimeType]);
 }
 
 export function getProductMediaUrl(key: string): string {
