@@ -245,6 +245,43 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
         "order_draft_created",
         "reservation_expired",
       ]);
+
+      // The draft TTL may be shorter than the underlying reservation. An
+      // idempotent checkout retry at the draft deadline must still expire both.
+      const thirdReservation = await reserveVariantStock({
+        customerReference: customerId,
+        idempotencyKey: "checkout-draft-expiry-reservation-" + randomUUID(),
+        items: [{ variantId, quantity: 1 }],
+        expiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+      }, now);
+      additionalReservationIds.push(thirdReservation.reservationId);
+      const thirdDraft = await createMySqlOrderDraft({
+        ...checkoutInput,
+        reservationId: thirdReservation.reservationId,
+        idempotencyKey: randomUUID(),
+      });
+      additionalOrderIds.push(thirdDraft.orderId);
+
+      const draftDeadlineRetry = await createMySqlOrderDraft({
+        ...checkoutInput,
+        reservationId: thirdReservation.reservationId,
+        idempotencyKey: randomUUID(),
+        now: thirdDraft.expiresAt,
+      });
+      expect(draftDeadlineRetry.status).toBe("expired");
+      expect(draftDeadlineRetry.replayed).toBe(true);
+
+      const [expiredReservation] = await db.select().from(inventoryReservations)
+        .where(eq(inventoryReservations.id, thirdReservation.reservationId)).limit(1);
+      const [expiredDraft] = await db.select().from(orders)
+        .where(eq(orders.id, thirdDraft.orderId)).limit(1);
+      expect(expiredReservation?.status).toBe("expired");
+      expect(expiredDraft?.status).toBe("expired");
+      const thirdAdminOrder = await getMySqlAdminOrder(thirdDraft.orderId);
+      expect(thirdAdminOrder?.events.map((event) => event.eventType)).toEqual([
+        "order_draft_created",
+        "reservation_expired",
+      ]);
     } finally {
       const allOrderIds = [...additionalOrderIds, ...(orderId ? [orderId] : [])];
       for (const id of allOrderIds) {
