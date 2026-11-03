@@ -8,7 +8,7 @@ import {
 
 describe("MySQL checkout arithmetic", () => {
   it("calculates destination taxes using integer minor units", () => {
-    const result = calculateCheckoutTax(10000n, 500n, [
+    const result = calculateCheckoutTax(BigInt(10000), BigInt(500), [
       { name: "GST", rateBasisPoints: 1800, taxableShipping: false },
       { name: "Shipping levy", rateBasisPoints: 500, taxableShipping: true },
     ]);
@@ -16,26 +16,26 @@ describe("MySQL checkout arithmetic", () => {
       { name: "GST", rate_basis_points: 1800, amount_minor: 1800 },
       { name: "Shipping levy", rate_basis_points: 500, amount_minor: 525 },
     ]);
-    expect(result.taxMinor).toBe(2325n);
+    expect(result.taxMinor).toBe(BigInt(2325));
   });
 
   it("requires an explicit zero-rate rule when no tax applies", () => {
-    expect(calculateCheckoutTax(5000n, 0n, [
+    expect(calculateCheckoutTax(BigInt(5000), BigInt(0), [
       { name: "No tax applies", rateBasisPoints: 0, taxableShipping: false },
-    ]).taxMinor).toBe(0n);
-    expect(() => calculateCheckoutTax(5000n, 0n, [])).toThrow("At least one destination tax rule is required.");
-    expect(() => calculateCheckoutTax(5000n, 0n, [
+    ]).taxMinor).toBe(BigInt(0));
+    expect(() => calculateCheckoutTax(BigInt(5000), BigInt(0), [])).toThrow("At least one destination tax rule is required.");
+    expect(() => calculateCheckoutTax(BigInt(5000), BigInt(0), [
       { name: "Invalid", rateBasisPoints: 10001, taxableShipping: false },
     ])).toThrow("A destination tax rule is invalid.");
   });
 
   it("rounds each tax component and rejects imprecise total values", () => {
-    expect(calculateCheckoutTax(1n, 0n, [
+    expect(calculateCheckoutTax(BigInt(1), BigInt(0), [
       { name: "Half minor unit", rateBasisPoints: 5000, taxableShipping: false },
-    ]).taxMinor).toBe(1n);
-    expect(() => toSafeOrderMinor(BigInt(Number.MAX_SAFE_INTEGER) + 1n, "test")).toThrow();
+    ]).taxMinor).toBe(BigInt(1));
+    expect(() => toSafeOrderMinor(BigInt(Number.MAX_SAFE_INTEGER) + BigInt(1), "test")).toThrow();
     expect(() => calculateCheckoutTotal({
-      subtotalMinor: BigInt(Number.MAX_SAFE_INTEGER), shippingMinor: 1n, taxMinor: 0n,
+      subtotalMinor: BigInt(Number.MAX_SAFE_INTEGER), shippingMinor: BigInt(1), taxMinor: BigInt(0),
     })).toThrow();
   });
 

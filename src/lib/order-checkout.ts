@@ -13,7 +13,7 @@ export type CheckoutTaxSnapshot = {
 const MAX_SAFE_MINOR = BigInt(Number.MAX_SAFE_INTEGER);
 
 export function toSafeOrderMinor(value: bigint, label: string): number {
-  if (value < 0n || value > MAX_SAFE_MINOR) {
+  if (value < BigInt(0) || value > MAX_SAFE_MINOR) {
     throw new Error("The " + label + " exceeds the supported amount.");
   }
   return Number(value);
@@ -24,22 +24,22 @@ export function calculateCheckoutTax(
   shippingMinor: bigint,
   rules: readonly CheckoutTaxRule[],
 ): { taxMinor: bigint; breakdown: CheckoutTaxSnapshot[] } {
-  if (subtotalMinor < 0n || shippingMinor < 0n) throw new Error("Order amounts cannot be negative.");
+  if (subtotalMinor < BigInt(0) || shippingMinor < BigInt(0)) throw new Error("Order amounts cannot be negative.");
   if (rules.length === 0) throw new Error("At least one destination tax rule is required.");
   const breakdown = rules.map((rule) => {
     if (!rule.name.trim() || !Number.isInteger(rule.rateBasisPoints)
       || rule.rateBasisPoints < 0 || rule.rateBasisPoints > 10000) {
       throw new Error("A destination tax rule is invalid.");
     }
-    const taxableBase = subtotalMinor + (rule.taxableShipping ? shippingMinor : 0n);
-    const amount = (taxableBase * BigInt(rule.rateBasisPoints) + 5000n) / 10000n;
+    const taxableBase = subtotalMinor + (rule.taxableShipping ? shippingMinor : BigInt(0));
+    const amount = (taxableBase * BigInt(rule.rateBasisPoints) + BigInt(5000)) / BigInt(10000);
     return {
       name: rule.name,
       rate_basis_points: rule.rateBasisPoints,
       amount_minor: toSafeOrderMinor(amount, "tax amount"),
     };
   });
-  const taxMinor = breakdown.reduce((sum, row) => sum + BigInt(row.amount_minor), 0n);
+  const taxMinor = breakdown.reduce((sum, row) => sum + BigInt(row.amount_minor), BigInt(0));
   toSafeOrderMinor(taxMinor, "tax total");
   return { taxMinor, breakdown };
 }
@@ -50,7 +50,7 @@ export function calculateCheckoutTotal(input: {
   taxMinor: bigint;
   discountMinor?: bigint;
 }): number {
-  const discount = input.discountMinor ?? 0n;
+  const discount = input.discountMinor ?? BigInt(0);
   return toSafeOrderMinor(
     input.subtotalMinor + input.shippingMinor + input.taxMinor - discount,
     "order total",

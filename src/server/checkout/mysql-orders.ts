@@ -186,7 +186,7 @@ export async function createMySqlOrderDraft(input: {
       const currency = [...currencies][0];
       if (!currency || !/^[A-Z]{3}$/.test(currency)) throw new Error("The reservation currency is invalid.");
 
-      let subtotal = 0n;
+      let subtotal = BigInt(0);
       for (const line of lines) {
         subtotal += safeMinor(line.unitPriceMinorSnapshot, "reserved unit price") * BigInt(line.quantity);
         if (subtotal > MAX_ORDER_MINOR) throw new Error("The order subtotal exceeds the supported amount.");
