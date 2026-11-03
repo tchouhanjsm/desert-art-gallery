@@ -410,15 +410,19 @@ export async function previewEtsyImageDownloads(
     const productErrors: string[] = [];
     const productWarnings: string[] = [];
     if (!safeProductSlug(product.slug)) productErrors.push("Product slug is invalid for a local folder.");
-    if (product.status !== "draft") productErrors.push("Product is " + product.status + "; only draft products can receive automatic images.");
+    if (product.status !== "draft") {
+      productWarnings.push("Product is " + product.status + "; it is excluded from automatic photo downloads.");
+    }
     if (!product.imageUrls.length) productWarnings.push("No approved Etsy image URLs are recorded.");
     if (product.imageUrls.length > MAX_IMAGES_PER_PRODUCT) productErrors.push("More than 10 Etsy image URLs are recorded.");
-    product.imageUrls.forEach((url, index) => {
-      if (!isAllowedEtsyImageUrl(url)) productErrors.push("IMAGE" + (index + 1) + " is not an approved i.etsystatic.com URL.");
-    });
+    if (product.status === "draft") {
+      product.imageUrls.forEach((url, index) => {
+        if (!isAllowedEtsyImageUrl(url)) productErrors.push("IMAGE" + (index + 1) + " is not an approved i.etsystatic.com URL.");
+      });
+    }
 
     let alreadyDownloaded = 0;
-    if (!productErrors.length && product.imageUrls.length) {
+    if (!productErrors.length && product.status === "draft" && product.imageUrls.length) {
       const folder = path.join(root, product.slug);
       let localFiles: string[] = [];
       try {
@@ -482,8 +486,10 @@ export async function previewEtsyImageDownloads(
       }
     }
 
-    if (!productErrors.length && product.imageUrls.length) productsReady += 1;
-    imagesFound += product.imageUrls.length;
+    if (!productErrors.length && product.status === "draft" && product.imageUrls.length) {
+      productsReady += 1;
+      imagesFound += product.imageUrls.length;
+    }
     imagesAlreadyDownloaded += alreadyDownloaded;
     errors.push(...productErrors.map((message) => product.slug + ": " + message));
     warnings.push(...productWarnings.map((message) => product.slug + ": " + message));
@@ -538,7 +544,7 @@ export async function downloadEtsyProductImages(
   const db = getMySqlDb();
 
   for (const productPreview of preview.products) {
-    if (!productPreview.imageCount) continue;
+    if (productPreview.status !== "draft" || !productPreview.imageCount) continue;
     const [productRow] = await db.select({
       id: products.id,
       title: products.title,
