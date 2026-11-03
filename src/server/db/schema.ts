@@ -245,6 +245,13 @@ export const inventoryReservationItems = mysqlTable("inventory_reservation_items
   reservationId: char("reservation_id", { length: 36 }).notNull().references(() => inventoryReservations.id, { onDelete: "cascade" }),
   variantId: char("variant_id", { length: 36 }).notNull().references(() => productVariants.id, { onDelete: "restrict" }),
   quantity: int("quantity", { unsigned: true }).notNull(),
+  productIdSnapshot: char("product_id_snapshot", { length: 36 }),
+  productTitleSnapshot: varchar("product_title_snapshot", { length: 240 }),
+  productSkuSnapshot: varchar("product_sku_snapshot", { length: 100 }),
+  variantLabelSnapshot: varchar("variant_label_snapshot", { length: 180 }),
+  selectedOptionsSnapshot: json("selected_options_snapshot").$type<Record<string, string> | null>(),
+  unitPriceMinorSnapshot: bigint("unit_price_minor_snapshot", { mode: "number", unsigned: true }),
+  currencySnapshot: char("currency_snapshot", { length: 3 }),
 }, (table) => [
   uniqueIndex("inventory_reservation_items_pair_uq").on(table.reservationId, table.variantId),
   index("inventory_reservation_items_variant_idx").on(table.variantId),
@@ -374,4 +381,141 @@ export const customerWishlistItems = mysqlTable("customer_wishlist_items", {
 }, (table) => [
   uniqueIndex("customer_wishlist_items_product_uq").on(table.customerUserId, table.productId),
   index("customer_wishlist_items_created_idx").on(table.customerUserId, table.createdAt),
+]);
+
+
+export type MySqlOrderStatus = "draft" | "pending_payment" | "paid" | "processing" | "shipped" | "delivered" | "cancelled" | "expired" | "refunded";
+
+export const shippingZones = mysqlTable("shipping_zones", {
+  id: char("id", { length: 36 }).primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  countryCodes: json("country_codes").$type<string[]>().notNull(),
+  isActive: boolean("is_active").notNull().default(false),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("shipping_zones_name_uq").on(table.name),
+  index("shipping_zones_active_idx").on(table.isActive),
+  check("shipping_zones_countries_check", sql.raw("JSON_TYPE(country_codes) = 'ARRAY' AND JSON_LENGTH(country_codes) BETWEEN 1 AND 50")),
+]);
+
+export const shippingRates = mysqlTable("shipping_rates", {
+  id: char("id", { length: 36 }).primaryKey(),
+  zoneId: char("zone_id", { length: 36 }).notNull().references(() => shippingZones.id, { onDelete: "restrict" }),
+  name: varchar("name", { length: 120 }).notNull(),
+  currency: char("currency", { length: 3 }).notNull(),
+  amountMinor: bigint("amount_minor", { mode: "number", unsigned: true }).notNull(),
+  minDeliveryDays: smallint("min_delivery_days", { unsigned: true }),
+  maxDeliveryDays: smallint("max_delivery_days", { unsigned: true }),
+  dutiesDisclosure: varchar("duties_disclosure", { length: 2000 }).notNull(),
+  isActive: boolean("is_active").notNull().default(false),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  index("shipping_rates_zone_active_idx").on(table.zoneId, table.isActive, table.currency),
+  check("shipping_rates_currency_check", sql.raw("currency REGEXP '^[A-Z]{3}$'")),
+  check("shipping_rates_duties_check", sql.raw("CHAR_LENGTH(TRIM(duties_disclosure)) BETWEEN 1 AND 2000")),
+  check("shipping_rates_delivery_days_check", sql.raw("(min_delivery_days IS NULL AND max_delivery_days IS NULL) OR (min_delivery_days IS NOT NULL AND max_delivery_days IS NOT NULL AND min_delivery_days <= max_delivery_days AND max_delivery_days <= 365)")),
+]);
+
+export const checkoutTaxRules = mysqlTable("checkout_tax_rules", {
+  id: char("id", { length: 36 }).primaryKey(),
+  countryCode: char("country_code", { length: 2 }).notNull(),
+  currency: char("currency", { length: 3 }).notNull(),
+  taxName: varchar("tax_name", { length: 120 }).notNull(),
+  rateBasisPoints: int("rate_basis_points", { unsigned: true }).notNull(),
+  taxableShipping: boolean("taxable_shipping").notNull().default(false),
+  disclosure: varchar("disclosure", { length: 2000 }).notNull(),
+  isActive: boolean("is_active").notNull().default(false),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("checkout_tax_rules_destination_name_uq").on(table.countryCode, table.currency, table.taxName),
+  index("checkout_tax_rules_destination_idx").on(table.countryCode, table.currency, table.isActive),
+  check("checkout_tax_rules_country_check", sql.raw("country_code REGEXP '^[A-Z]{2}$'")),
+  check("checkout_tax_rules_currency_check", sql.raw("currency REGEXP '^[A-Z]{3}$'")),
+  check("checkout_tax_rules_rate_check", sql.raw("rate_basis_points BETWEEN 0 AND 10000")),
+  check("checkout_tax_rules_disclosure_check", sql.raw("CHAR_LENGTH(TRIM(disclosure)) BETWEEN 1 AND 2000")),
+  check("checkout_tax_rules_name_check", sql.raw("CHAR_LENGTH(TRIM(tax_name)) BETWEEN 1 AND 120")),
+]);
+
+export const orders = mysqlTable("orders", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderNumber: varchar("order_number", { length: 32 }).notNull(),
+  customerUserId: char("customer_user_id", { length: 36 }).notNull().references(() => customerUsers.id, { onDelete: "restrict" }),
+  email: varchar("email", { length: 255 }).notNull(),
+  reservationId: char("reservation_id", { length: 36 }).notNull().references(() => inventoryReservations.id, { onDelete: "restrict" }),
+  checkoutIdempotencyKey: char("checkout_idempotency_key", { length: 36 }).notNull(),
+  checkoutRequestHash: char("checkout_request_hash", { length: 64 }).notNull(),
+  status: varchar("status", { length: 24 }).$type<MySqlOrderStatus>().notNull().default("draft"),
+  currency: char("currency", { length: 3 }).notNull(),
+  subtotalMinor: bigint("subtotal_minor", { mode: "number", unsigned: true }).notNull(),
+  shippingMinor: bigint("shipping_minor", { mode: "number", unsigned: true }).notNull(),
+  taxMinor: bigint("tax_minor", { mode: "number", unsigned: true }).notNull(),
+  discountMinor: bigint("discount_minor", { mode: "number", unsigned: true }).notNull().default(0),
+  totalMinor: bigint("total_minor", { mode: "number", unsigned: true }).notNull(),
+  shippingAddress: json("shipping_address").$type<Record<string, string>>().notNull(),
+  customerNote: varchar("customer_note", { length: 1000 }),
+  expiresAt: datetime("expires_at", { mode: "date", fsp: 3 }).notNull(),
+  shippingRateId: char("shipping_rate_id", { length: 36 }).references(() => shippingRates.id, { onDelete: "set null" }),
+  shippingZoneName: varchar("shipping_zone_name", { length: 120 }).notNull(),
+  shippingRateName: varchar("shipping_rate_name", { length: 120 }).notNull(),
+  shippingDeliveryMinDays: smallint("shipping_delivery_min_days", { unsigned: true }),
+  shippingDeliveryMaxDays: smallint("shipping_delivery_max_days", { unsigned: true }),
+  dutiesDisclosure: varchar("duties_disclosure", { length: 2000 }).notNull(),
+  taxBreakdown: json("tax_breakdown").$type<Array<{ name: string; rate_basis_points: number; amount_minor: number }>>().notNull(),
+  taxDisclosure: varchar("tax_disclosure", { length: 10000 }).notNull(),
+  trackingCarrier: varchar("tracking_carrier", { length: 100 }),
+  trackingNumber: varchar("tracking_number", { length: 160 }),
+  trackingUrl: varchar("tracking_url", { length: 1000 }),
+  shippedAt: datetime("shipped_at", { mode: "date", fsp: 3 }),
+  deliveredAt: datetime("delivered_at", { mode: "date", fsp: 3 }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("orders_number_uq").on(table.orderNumber),
+  uniqueIndex("orders_reservation_uq").on(table.reservationId),
+  uniqueIndex("orders_customer_checkout_key_uq").on(table.customerUserId, table.checkoutIdempotencyKey),
+  index("orders_customer_created_idx").on(table.customerUserId, table.createdAt),
+  index("orders_status_created_idx").on(table.status, table.createdAt),
+  index("orders_expiry_idx").on(table.status, table.expiresAt),
+  check("orders_currency_check", sql.raw("currency REGEXP '^[A-Z]{3}$'")),
+  check("orders_status_check", sql.raw("status IN ('draft','pending_payment','paid','processing','shipped','delivered','cancelled','expired','refunded')")),
+  check("orders_checkout_hash_check", sql.raw("checkout_request_hash REGEXP '^[a-f0-9]{64}$'")),
+  check("orders_amounts_check", sql.raw("total_minor = subtotal_minor + shipping_minor + tax_minor - discount_minor")),
+  check("orders_delivery_days_check", sql.raw("(shipping_delivery_min_days IS NULL AND shipping_delivery_max_days IS NULL) OR (shipping_delivery_min_days IS NOT NULL AND shipping_delivery_max_days IS NOT NULL AND shipping_delivery_min_days <= shipping_delivery_max_days AND shipping_delivery_max_days <= 365)")),
+]);
+
+export const orderItems = mysqlTable("order_items", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  productIdSnapshot: char("product_id_snapshot", { length: 36 }).notNull(),
+  variantIdSnapshot: char("variant_id_snapshot", { length: 36 }).notNull(),
+  productTitle: varchar("product_title", { length: 240 }).notNull(),
+  productSku: varchar("product_sku", { length: 100 }),
+  variantLabel: varchar("variant_label", { length: 180 }).notNull(),
+  quantity: int("quantity", { unsigned: true }).notNull(),
+  unitPriceMinor: bigint("unit_price_minor", { mode: "number", unsigned: true }).notNull(),
+  lineTotalMinor: bigint("line_total_minor", { mode: "number", unsigned: true }).notNull(),
+  selectedOptions: json("selected_options").$type<Record<string, string>>().notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_items_order_idx").on(table.orderId, table.createdAt),
+  check("order_items_quantity_check", sql.raw("quantity BETWEEN 1 AND 100")),
+  check("order_items_total_check", sql.raw("line_total_minor = quantity * unit_price_minor")),
+]);
+
+export const orderEvents = mysqlTable("order_events", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  actorType: varchar("actor_type", { length: 16 }).$type<"customer" | "admin" | "system">().notNull(),
+  actorId: char("actor_id", { length: 36 }),
+  eventType: varchar("event_type", { length: 40 }).notNull(),
+  fromStatus: varchar("from_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  toStatus: varchar("to_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  note: varchar("note", { length: 1000 }),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_events_order_created_idx").on(table.orderId, table.createdAt),
+  check("order_events_actor_type_check", sql.raw("actor_type IN ('customer','admin','system')")),
 ]);

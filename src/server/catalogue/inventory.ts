@@ -3,7 +3,7 @@ import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
 import { getMySqlDb } from "../db";
 import {
   inventoryMovements, inventoryReservationItems, inventoryReservations,
-  products, productVariants,
+  orderEvents, orders, products, productVariants,
 } from "../db/schema";
 
 export type ReservationStatus = "reserved" | "released" | "expired" | "consumed";
@@ -108,6 +108,13 @@ export async function reserveVariantStock(input: ReservationRequest, now = new D
         if (!variant.isActive || !product || product.status !== "published") {
           throw new Error("Only active variants of published products can be reserved.");
         }
+        if (variant.currency !== product.currency) {
+          throw new Error("The product option currency does not match its product currency.");
+        }
+        const unitPrice = variant.priceMinor ?? product.priceMinor;
+        if (!Number.isSafeInteger(unitPrice) || unitPrice < 0 || !/^[A-Z]{3}$/.test(variant.currency)) {
+          throw new Error("The product option does not have a supported verified price.");
+        }
       }
 
       const activeRows = await tx.select({
@@ -124,10 +131,17 @@ export async function reserveVariantStock(input: ReservationRequest, now = new D
       const reservedByVariant = new Map<string, number>();
       for (const row of activeRows) reservedByVariant.set(row.variantId, (reservedByVariant.get(row.variantId) ?? 0) + row.quantity);
 
+      if (new Set(lockedVariants.map((variant) => variant.currency)).size !== 1) {
+        throw new Error("A reservation must contain products priced in one currency.");
+      }
+      const requestedByProduct = new Map<string, number>();
       for (const item of items) {
         const variant = variantById.get(item.variantId)!;
+        const product = productById.get(variant.productId)!;
+        const requestedForProduct = (requestedByProduct.get(product.id) ?? 0) + item.quantity;
+        requestedByProduct.set(product.id, requestedForProduct);
         const available = variant.stockQuantity - (reservedByVariant.get(item.variantId) ?? 0);
-        if (available < item.quantity) {
+        if (available < item.quantity || (product.isOneOfAKind && requestedForProduct > 1)) {
           throw new Error("Insufficient available stock for variant " + variant.label + ".");
         }
       }
@@ -137,9 +151,23 @@ export async function reserveVariantStock(input: ReservationRequest, now = new D
         id: reservationId, customerReference, idempotencyKey,
         status: "reserved", expiresAt, createdAt: now,
       });
-      await tx.insert(inventoryReservationItems).values(items.map((item) => ({
-        id: randomUUID(), reservationId, variantId: item.variantId, quantity: item.quantity,
-      })));
+      await tx.insert(inventoryReservationItems).values(items.map((item) => {
+        const variant = variantById.get(item.variantId)!;
+        const product = productById.get(variant.productId)!;
+        return {
+          id: randomUUID(),
+          reservationId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          productIdSnapshot: product.id,
+          productTitleSnapshot: product.title,
+          productSkuSnapshot: variant.sku,
+          variantLabelSnapshot: variant.label,
+          selectedOptionsSnapshot: variant.attributes ?? {},
+          unitPriceMinorSnapshot: variant.priceMinor ?? product.priceMinor,
+          currencySnapshot: variant.currency,
+        };
+      }));
       return { reservationId, status: "reserved", expiresAt };
     });
   } catch (error) {
@@ -172,6 +200,25 @@ export async function releaseVariantStockReservation(reservationId: string, now 
     if (row.status !== "reserved") return row.status as ReservationStatus;
     const status: ReservationStatus = row.expiresAt <= now ? "expired" : "released";
     await tx.update(inventoryReservations).set({ status }).where(eq(inventoryReservations.id, reservationId));
+    const [draftOrder] = await tx.select().from(orders)
+      .where(and(eq(orders.reservationId, reservationId), eq(orders.status, "draft")))
+      .limit(1).for("update");
+    if (draftOrder) {
+      const nextStatus = status === "expired" ? "expired" : "cancelled";
+      await tx.update(orders).set({ status: nextStatus, updatedAt: now })
+        .where(eq(orders.id, draftOrder.id));
+      await tx.insert(orderEvents).values({
+        id: randomUUID(),
+        orderId: draftOrder.id,
+        actorType: "system",
+        actorId: null,
+        eventType: status === "expired" ? "reservation_expired" : "reservation_released",
+        fromStatus: "draft",
+        toStatus: nextStatus,
+        note: "The inventory reservation is no longer active.",
+        createdAt: now,
+      });
+    }
     return status;
   });
 }

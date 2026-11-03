@@ -82,7 +82,7 @@ export function CheckoutForm({
     setMessage("");
     setHoldExpiry("");
     try {
-      const fingerprint = JSON.stringify(lines);
+      const fingerprint = JSON.stringify({ lines, address, shippingRateId: selectedRate.id, customerNote });
       if (!reservationKey.current || reservationKey.current.fingerprint !== fingerprint) {
         reservationKey.current = { fingerprint, key: crypto.randomUUID() };
       }

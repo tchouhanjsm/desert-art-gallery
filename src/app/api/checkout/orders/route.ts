@@ -2,16 +2,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSameOriginRequest } from "@/lib/request-security";
 import { isCheckoutUuid, normalizeCheckoutAddress } from "@/lib/checkout";
-import { isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
+import { getCurrentCustomer, isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
+import { createMySqlOrderDraft } from "@/server/checkout/mysql-orders";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request)) {
     return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403, headers: { "Cache-Control": "no-store" } });
-  }
-  if (isMySqlCustomerAuthEnabled()) {
-    return NextResponse.json({ error: "MySQL order drafts and checkout are the next commerce phase and are not enabled yet." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (Number.isFinite(contentLength) && contentLength > 16_384) {
@@ -36,6 +34,40 @@ export async function POST(request: NextRequest) {
   }
   if (customerNote !== null && (typeof customerNote !== "string" || customerNote.trim().length > 1000)) {
     return NextResponse.json({ error: "The delivery note must be 1,000 characters or fewer." }, { status: 400 });
+  }
+
+  if (isMySqlCustomerAuthEnabled()) {
+    const customer = await getCurrentCustomer();
+    if (!customer) return NextResponse.json({ error: "Sign in before preparing an order." }, { status: 401, headers: { "Cache-Control": "no-store" } });
+    try {
+      const draft = await createMySqlOrderDraft({
+        customerUserId: customer.id,
+        reservationId,
+        shippingRateId,
+        shippingAddress,
+        customerNote: typeof customerNote === "string" ? customerNote.trim() : null,
+        idempotencyKey: idempotencyKey.toLowerCase(),
+      });
+      if (draft.status !== "draft") {
+        return NextResponse.json({ error: "This unpaid order draft has expired. Return to your bag and prepare a new checkout." }, { status: 409, headers: { "Cache-Control": "no-store" } });
+      }
+      return NextResponse.json({
+        order_id: draft.orderId,
+        order_number: draft.orderNumber,
+        status: draft.status,
+        currency: draft.currency,
+        subtotal_minor: draft.subtotalMinor,
+        shipping_minor: draft.shippingMinor,
+        tax_minor: draft.taxMinor,
+        total_minor: draft.totalMinor,
+        expires_at: draft.expiresAt.toISOString(),
+        replayed: draft.replayed,
+      }, { status: draft.replayed ? 200 : 201, headers: { "Cache-Control": "no-store" } });
+    } catch (error) {
+      return NextResponse.json({
+        error: error instanceof Error ? error.message : "The order draft could not be prepared.",
+      }, { status: 409, headers: { "Cache-Control": "no-store" } });
+    }
   }
 
   const supabase = await createSupabaseServerClient();

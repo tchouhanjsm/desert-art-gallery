@@ -60,3 +60,6 @@ No live data is imported automatically, and no production deployment or payment 
 ## CI
 
 Pull-request CI runs against a GitHub-managed MySQL service and validates migrations, typecheck, tests, lint and production build. This hosted service does not require a local database container runtime on the developer device.
+
+
+The MySQL customer order lifecycle and merchant shipping/tax configuration are documented in docs/MYSQL-ORDER-CHECKOUT-PHASE-7.md. Keep payment processing disabled until the provider/webhook security phase is reviewed and enabled separately.

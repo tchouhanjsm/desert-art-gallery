@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { isMySqlCatalogueEnabled } from "@/server/db";
+import { getCurrentLocalAdmin } from "@/server/auth/local-admin";
+import { listMySqlCheckoutConfiguration } from "@/server/checkout/mysql-orders";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatMinorForInput } from "@/lib/checkout";
@@ -8,7 +10,86 @@ import { saveShippingRate, saveShippingZone, saveTaxRule } from "./actions";
 export const metadata = { title: "Shipping and tax configuration", robots: { index: false, follow: false } };
 
 export default async function AdminCheckoutSettingsPage() {
-  if (isMySqlCatalogueEnabled()) redirect("/admin/products");
+  if (isMySqlCatalogueEnabled()) {
+    const admin = await getCurrentLocalAdmin();
+    if (!admin || admin.role !== "owner") {
+      return <div className="page-shell"><h1>Shipping & tax</h1><p>Only the local business owner can change these settings.</p><Link className="text-link" href="/owner/login">OWNER SIGN IN</Link></div>;
+    }
+    const configuration = await listMySqlCheckoutConfiguration();
+    const zones = configuration.zones;
+    const rates = configuration.rates;
+    const taxes = configuration.taxes;
+    return <div className="page-shell">
+      <div className="admin-page-heading"><div><div className="section-kicker">OWNER WORKSPACE</div><h1>Shipping & tax</h1><p>Only merchant-approved rates, delivery windows and legal disclosures belong here.</p></div><Link className="text-link" href="/admin">DASHBOARD</Link></div>
+      <div className="checkout-notice">Checkout requires exactly one active zone for the destination, a matching active rate, and at least one active tax rule for the same country and currency. Configure an explicit zero-rate tax rule where no tax applies. The basis-point calculation is an arithmetic scaffold, not a complete jurisdictional tax engine; obtain accountant approval before activation. No sample rates, zones or tax rules are preloaded.</div>
+      <section className="checkout-section">
+        <div className="section-kicker">01 / SHIPPING ZONES</div><h2>Destination coverage</h2>
+        <form action={saveShippingZone} className="checkout-admin-form">
+          <label>Zone name<input name="name" required maxLength={120}/></label>
+          <label>Country codes<input name="country_codes" required placeholder="IN, US, GB" maxLength={500}/></label>
+          <label className="checkout-checkbox"><input type="checkbox" name="is_active" value="yes"/> Active</label>
+          <button className="button-primary dark-button" type="submit">ADD SHIPPING ZONE</button>
+        </form>
+        <div className="checkout-config-list">{zones.map((zone) => <form action={saveShippingZone} className="checkout-config-item" key={zone.id}>
+          <input type="hidden" name="id" value={zone.id}/>
+          <label>Zone name<input name="name" defaultValue={zone.name} required maxLength={120}/></label>
+          <label>Country codes<input name="country_codes" defaultValue={zone.countryCodes.join(", ")} required maxLength={500}/></label>
+          <label className="checkout-checkbox"><input type="checkbox" name="is_active" value="yes" defaultChecked={zone.isActive}/> Active</label>
+          <button className="button-outline" type="submit">SAVE ZONE</button>
+        </form>)}</div>
+      </section>
+      <section className="checkout-section">
+        <div className="section-kicker">02 / SHIPPING RATES</div><h2>Delivery options</h2>
+        <form action={saveShippingRate} className="checkout-admin-form">
+          <label>Zone<select name="zone_id" required defaultValue=""><option value="" disabled>Select a zone</option>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name}</option>)}</select></label>
+          <label>Rate name<input name="name" required maxLength={120}/></label>
+          <label>Currency<input name="currency" required minLength={3} maxLength={3} pattern="[A-Za-z]{3}" placeholder="INR, USD…"/></label>
+          <label>Amount in major units<input name="amount" required inputMode="decimal"/></label>
+          <label>Minimum delivery days<input name="min_delivery_days" inputMode="numeric" maxLength={3}/></label>
+          <label>Maximum delivery days<input name="max_delivery_days" inputMode="numeric" maxLength={3}/></label>
+          <label className="checkout-admin-wide">Duties disclosure<textarea name="duties_disclosure" required maxLength={2000} rows={3}/></label>
+          <label className="checkout-checkbox"><input type="checkbox" name="is_active" value="yes"/> Active</label>
+          <button className="button-primary dark-button" type="submit">ADD SHIPPING RATE</button>
+        </form>
+        <div className="checkout-config-list">{rates.map((rate) => <form action={saveShippingRate} className="checkout-config-item" key={rate.id}>
+          <input type="hidden" name="id" value={rate.id}/>
+          <label>Zone<select name="zone_id" defaultValue={rate.zoneId} required>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name}</option>)}</select></label>
+          <label>Rate name<input name="name" defaultValue={rate.name} required maxLength={120}/></label>
+          <label>Currency<input name="currency" defaultValue={rate.currency} required minLength={3} maxLength={3} pattern="[A-Za-z]{3}"/></label>
+          <label>Amount<input name="amount" defaultValue={formatMinorForInput(rate.amountMinor, rate.currency)} required inputMode="decimal"/></label>
+          <label>Minimum days<input name="min_delivery_days" defaultValue={rate.minDeliveryDays ?? ""} inputMode="numeric" maxLength={3}/></label>
+          <label>Maximum days<input name="max_delivery_days" defaultValue={rate.maxDeliveryDays ?? ""} inputMode="numeric" maxLength={3}/></label>
+          <label className="checkout-admin-wide">Duties disclosure<textarea name="duties_disclosure" defaultValue={rate.dutiesDisclosure} required maxLength={2000} rows={3}/></label>
+          <label className="checkout-checkbox"><input type="checkbox" name="is_active" value="yes" defaultChecked={rate.isActive}/> Active</label>
+          <button className="button-outline" type="submit">SAVE RATE</button>
+        </form>)}</div>
+      </section>
+      <section className="checkout-section">
+        <div className="section-kicker">03 / TAX RULES</div><h2>Destination tax configuration</h2>
+        <form action={saveTaxRule} className="checkout-admin-form">
+          <label>Country code<input name="country_code" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}"/></label>
+          <label>Currency<input name="currency" required minLength={3} maxLength={3} pattern="[A-Za-z]{3}"/></label>
+          <label>Tax name<input name="tax_name" required maxLength={120}/></label>
+          <label>Rate in basis points<input name="rate_basis_points" required type="number" min={0} max={10000} step={1}/></label>
+          <label className="checkout-checkbox"><input type="checkbox" name="taxable_shipping" value="yes"/> Apply to shipping</label>
+          <label className="checkout-admin-wide">Disclosure<textarea name="disclosure" required maxLength={2000} rows={3}/></label>
+          <label className="checkout-checkbox"><input type="checkbox" name="is_active" value="yes"/> Active</label>
+          <button className="button-primary dark-button" type="submit">ADD TAX RULE</button>
+        </form>
+        <div className="checkout-config-list">{taxes.map((tax) => <form action={saveTaxRule} className="checkout-config-item" key={tax.id}>
+          <input type="hidden" name="id" value={tax.id}/>
+          <label>Country<input name="country_code" defaultValue={tax.countryCode} required minLength={2} maxLength={2} pattern="[A-Za-z]{2}"/></label>
+          <label>Currency<input name="currency" defaultValue={tax.currency} required minLength={3} maxLength={3} pattern="[A-Za-z]{3}"/></label>
+          <label>Tax name<input name="tax_name" defaultValue={tax.taxName} required maxLength={120}/></label>
+          <label>Rate (basis points)<input name="rate_basis_points" defaultValue={tax.rateBasisPoints} required type="number" min={0} max={10000} step={1}/></label>
+          <label className="checkout-checkbox"><input type="checkbox" name="taxable_shipping" value="yes" defaultChecked={tax.taxableShipping}/> Apply to shipping</label>
+          <label className="checkout-admin-wide">Disclosure<textarea name="disclosure" defaultValue={tax.disclosure} required maxLength={2000} rows={3}/></label>
+          <label className="checkout-checkbox"><input type="checkbox" name="is_active" value="yes" defaultChecked={tax.isActive}/> Active</label>
+          <button className="button-outline" type="submit">SAVE TAX RULE</button>
+        </form>)}</div>
+      </section>
+    </div>;
+  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><h1>Checkout configuration</h1><p>Connect Supabase to manage shipping and tax rules.</p></div>;
   const { data: { user }, error: authError } = await supabase.auth.getUser();

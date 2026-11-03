@@ -13,6 +13,7 @@ const customerMigration = readFileSync(
   new URL("../../../drizzle/0003_mysql_customer_identity.sql", import.meta.url),
   "utf8",
 );
+const orderMigration = readFileSync(new URL("../../../drizzle/0004_mysql_order_checkout.sql", import.meta.url), "utf8");
 const journal = readFileSync(
   new URL("../../../drizzle/meta/_journal.json", import.meta.url),
   "utf8",
@@ -47,6 +48,7 @@ describe("MySQL editorial CMS migration contract", () => {
       "0001_mysql_catalogue_inventory",
       "0002_etsy_listing_source",
       "0003_mysql_customer_identity",
+      "0004_mysql_order_checkout",
     ]);
   });
 
@@ -58,6 +60,18 @@ describe("MySQL editorial CMS migration contract", () => {
     expect(customerMigration).toContain("customer_cart_items_line_uq");
     expect(customerMigration).toContain("customer_wishlist_items_product_uq");
     expect(customerMigration).toContain("REFERENCES customer_users(id) ON DELETE CASCADE");
+  });
+
+  it("adds destination configuration, immutable order snapshots and event history", () => {
+    for (const table of ["shipping_zones", "shipping_rates", "checkout_tax_rules", "orders", "order_items", "order_events"]) {
+      expect(orderMigration).toContain("CREATE TABLE IF NOT EXISTS " + table);
+    }
+    for (const snapshot of ["product_id_snapshot", "product_title_snapshot", "variant_label_snapshot", "unit_price_minor_snapshot", "currency_snapshot"]) {
+      expect(orderMigration).toContain(snapshot);
+    }
+    expect(orderMigration).toContain("checkout_idempotency_key");
+    expect(orderMigration).toContain("orders_amounts_check");
+    expect(orderMigration).not.toContain("CREATE TABLE IF NOT EXISTS payments");
   });
 
   it("adds Etsy source metadata and expands safe import batch capacity", () => {
