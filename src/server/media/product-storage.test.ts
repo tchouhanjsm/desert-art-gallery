@@ -15,7 +15,11 @@ describe("deterministic product media storage keys", () => {
     const [namespace, storedProductId, filename] = first.split("/");
     expect(namespace).toBe("products");
     expect(storedProductId).toBe(productId);
-    expect(filename).toMatch(/^[0-9a-f-]{36}\\.jpg$/i);
+    expect(filename.endsWith(".jpg")).toBe(true);
+    const uuidSegments = filename.slice(0, -4).split("-");
+    expect(uuidSegments).toHaveLength(5);
+    expect(uuidSegments[2][0]).toBe("5");
+    expect("89ab").toContain(uuidSegments[3][0]);
     expect(safeProductStorageKey(first)).toBe(first);
   });
 
