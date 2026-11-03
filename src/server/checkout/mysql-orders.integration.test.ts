@@ -195,7 +195,8 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
         now,
       })).rejects.toThrow("Only the preceding paid/fulfilment state can be advanced.");
 
-      await releaseVariantStockReservation(reservationId, now);
+      const releaseAt = new Date(now.getTime() + 1_000);
+      await releaseVariantStockReservation(reservationId, releaseAt);
       const [cancelledOrder] = await db.select().from(orders)
         .where(eq(orders.id, created.orderId)).limit(1);
       if (!cancelledOrder) throw new Error("The checkout order disappeared after reservation release.");
