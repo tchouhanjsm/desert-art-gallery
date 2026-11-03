@@ -65,14 +65,16 @@ describe("MySQL reservation expiry endpoint", () => {
     const response = await POST(request("Bearer " + validSecret));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true, expired: 4 });
-    expect(expireReservations).toHaveBeenCalledExactlyOnceWith(250);
+    expect(expireReservations).toHaveBeenCalledTimes(1);
+    expect(expireReservations).toHaveBeenCalledWith(250);
   });
 
   it("returns a safe service error when the expiry batch fails", async () => {
     expireReservations.mockRejectedValue(new Error("private database detail"));
     const response = await POST(request("Bearer " + validSecret));
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ error: "Reservation expiry could not be completed." });
-    expect(JSON.stringify(await response.json())).not.toContain("private database detail");
+    const body = await response.json();
+    expect(body).toEqual({ error: "Reservation expiry could not be completed." });
+    expect(JSON.stringify(body)).not.toContain("private database detail");
   });
 });
