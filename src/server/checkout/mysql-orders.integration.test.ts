@@ -198,6 +198,7 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
       await releaseVariantStockReservation(reservationId, now);
       const [cancelledOrder] = await db.select().from(orders)
         .where(eq(orders.id, created.orderId)).limit(1);
+      if (!cancelledOrder) throw new Error("The checkout order disappeared after reservation release.");
       expect(cancelledOrder.status).toBe("cancelled");
       const updatedAdminOrder = await getMySqlAdminOrder(created.orderId);
       expect(updatedAdminOrder?.events.map((event) => event.eventType)).toEqual([
