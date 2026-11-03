@@ -117,19 +117,44 @@ export async function reserveVariantStock(input: ReservationRequest, now = new D
         }
       }
 
+      // The product row is locked above, so supported inventory writers for every
+      // variant of these products are serialized here. Read the full variant set
+      // without FOR UPDATE: locking sibling variant rows here can deadlock with a
+      // concurrent reservation that already holds its selected variant row.
+      const productVariantRows = await tx.select({
+        id: productVariants.id,
+        productId: productVariants.productId,
+        stockQuantity: productVariants.stockQuantity,
+      }).from(productVariants)
+        .where(inArray(productVariants.productId, productIds));
+      const productIdByVariantId = new Map(productVariantRows.map((variant) => [variant.id, variant.productId]));
+      const stockByProduct = new Map<string, number>();
+      for (const variant of productVariantRows) {
+        // One-of-a-kind validation only needs to distinguish 0, 1 and >1.
+        stockByProduct.set(variant.productId, Math.min(2,
+          (stockByProduct.get(variant.productId) ?? 0) + variant.stockQuantity));
+      }
+
+      const allVariantIds = productVariantRows.map((variant) => variant.id);
       const activeRows = await tx.select({
         variantId: inventoryReservationItems.variantId,
         quantity: inventoryReservationItems.quantity,
       }).from(inventoryReservationItems)
         .innerJoin(inventoryReservations, eq(inventoryReservations.id, inventoryReservationItems.reservationId))
         .where(and(
-          inArray(inventoryReservationItems.variantId, variantIds),
+          inArray(inventoryReservationItems.variantId, allVariantIds),
           eq(inventoryReservations.status, "reserved"),
           gt(inventoryReservations.expiresAt, now),
         ))
         .for("update");
       const reservedByVariant = new Map<string, number>();
-      for (const row of activeRows) reservedByVariant.set(row.variantId, (reservedByVariant.get(row.variantId) ?? 0) + row.quantity);
+      const reservedByProduct = new Map<string, number>();
+      for (const row of activeRows) {
+        reservedByVariant.set(row.variantId, (reservedByVariant.get(row.variantId) ?? 0) + row.quantity);
+        const productId = productIdByVariantId.get(row.variantId);
+        if (productId) reservedByProduct.set(productId, Math.min(2,
+          (reservedByProduct.get(productId) ?? 0) + row.quantity));
+      }
 
       if (new Set(lockedVariants.map((variant) => variant.currency)).size !== 1) {
         throw new Error("A reservation must contain products priced in one currency.");
@@ -141,7 +166,11 @@ export async function reserveVariantStock(input: ReservationRequest, now = new D
         const requestedForProduct = (requestedByProduct.get(product.id) ?? 0) + item.quantity;
         requestedByProduct.set(product.id, requestedForProduct);
         const available = variant.stockQuantity - (reservedByVariant.get(item.variantId) ?? 0);
-        if (available < item.quantity || (product.isOneOfAKind && requestedForProduct > 1)) {
+        const productReserved = reservedByProduct.get(product.id) ?? 0;
+        const oneOfAKindInventoryIsValid = !product.isOneOfAKind
+          || (stockByProduct.get(product.id) ?? 0) <= 1;
+        if (available < item.quantity
+          || (product.isOneOfAKind && (!oneOfAKindInventoryIsValid || productReserved + requestedForProduct > 1))) {
           throw new Error("Insufficient available stock for variant " + variant.label + ".");
         }
       }
@@ -330,21 +359,45 @@ export async function adjustVariantInventory(input: {
       throw new Error("This inventory reference has already been used for a different movement.");
     }
 
-    const activeReservations = await tx.select({ quantity: inventoryReservationItems.quantity })
-      .from(inventoryReservationItems)
+    // Inventory changes for a product are serialized by its product row lock.
+    // Evaluate reservations and physical stock across every variant so a one-off
+    // piece cannot be duplicated by adding stock to a sibling option.
+    const productVariantsForStock = await tx.select({
+      id: productVariants.id,
+      stockQuantity: productVariants.stockQuantity,
+    }).from(productVariants)
+      .where(eq(productVariants.productId, product.id));
+    const productVariantIds = productVariantsForStock.map((row) => row.id);
+    const activeReservations = await tx.select({
+      variantId: inventoryReservationItems.variantId,
+      quantity: inventoryReservationItems.quantity,
+    }).from(inventoryReservationItems)
       .innerJoin(inventoryReservations, eq(inventoryReservations.id, inventoryReservationItems.reservationId))
       .where(and(
-        eq(inventoryReservationItems.variantId, input.variantId),
+        inArray(inventoryReservationItems.variantId, productVariantIds),
         eq(inventoryReservations.status, "reserved"),
         gt(inventoryReservations.expiresAt, now),
       ))
       .for("update");
-    const reserved = activeReservations.reduce((total, row) => total + row.quantity, 0);
+    const reservedByVariant = new Map<string, number>();
+    let reservedAcrossProduct = 0;
+    for (const row of activeReservations) {
+      reservedByVariant.set(row.variantId, (reservedByVariant.get(row.variantId) ?? 0) + row.quantity);
+      reservedAcrossProduct += row.quantity;
+    }
+    const reservedForVariant = reservedByVariant.get(input.variantId) ?? 0;
     const next = variant.stockQuantity + input.quantityDelta;
-    if (!Number.isSafeInteger(next) || next < reserved || next > 2147483647) {
+    if (!Number.isSafeInteger(next) || next < reservedForVariant || next > 2147483647) {
       throw new Error("Adjustment would reduce stock below reserved quantity or exceed the supported balance.");
     }
-    if (product.isOneOfAKind && next > 1) throw new Error("One-of-a-kind products may have no more than one unit in stock.");
+    if (product.isOneOfAKind) {
+      const stockAcrossProduct = productVariantsForStock.reduce((total, row) => total + row.stockQuantity, 0);
+      const nextProductStock = stockAcrossProduct + input.quantityDelta;
+      if (!Number.isSafeInteger(stockAcrossProduct) || !Number.isSafeInteger(nextProductStock)
+        || nextProductStock < reservedAcrossProduct || nextProductStock < 0 || nextProductStock > 1) {
+        throw new Error("A one-of-a-kind product may have at most one unit of stock across all variants, and stock cannot fall below active reservations.");
+      }
+    }
 
     await tx.insert(inventoryMovements).values({
       id: randomUUID(), variantId: input.variantId, quantityDelta: input.quantityDelta,
