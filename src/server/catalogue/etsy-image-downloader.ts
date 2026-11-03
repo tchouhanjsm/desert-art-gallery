@@ -318,12 +318,13 @@ async function stageProductImages(
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
       }
-    } else if (!previous) {
-      const prefix = String(sequence).padStart(2, "0") + "-";
-      const files = await readdir(folder);
-      if (files.some((file) => file.startsWith(prefix) && !file.startsWith("."))) {
-        throw new Error(product.slug + ": a local image already occupies IMAGE" + sequence + "; refusing to overwrite manually supplied photography.");
-      }
+    }
+
+    const prefix = String(sequence).padStart(2, "0") + "-";
+    const localFiles = await readdir(folder);
+    if (localFiles.some((file) => file.startsWith(prefix) && !file.startsWith(".")
+      && (!previous || file !== previous.fileName))) {
+      throw new Error(product.slug + ": a local image already occupies IMAGE" + sequence + "; refusing to overwrite manually supplied photography.");
     }
 
     const pending: DownloadManifestEntry = previous ?? {
@@ -448,8 +449,7 @@ export async function previewEtsyImageDownloads(
           continue;
         }
         const untrackedFiles = localFiles.filter((file) => file.startsWith(prefix) && !file.startsWith(".")
-          && (!entry || (entry.status === "complete" && file !== entry.fileName)
-            || (entry.status === "pending" && Boolean(entry.fileName) && file !== entry.fileName)));
+          && (!entry || file !== entry.fileName));
         if (!entry && untrackedFiles.length) {
           productErrors.push("IMAGE" + sequence + " already has a local photograph without an Etsy download manifest; refusing to overwrite it.");
         } else if (untrackedFiles.length) {
