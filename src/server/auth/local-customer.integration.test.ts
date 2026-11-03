@@ -77,7 +77,7 @@ suite("MySQL customer identity acceptance", () => {
     try {
       await createLocalCustomerAccount({ email, password, displayName: "Integration Customer" });
       const [customer] = await db.select().from(customerUsers).where(eq(customerUsers.email, email)).limit(1);
-      expect(customer).toBeDefined();
+      if (!customer) throw new Error("The registered integration customer was not persisted.");
       expect(customer.passwordHash).not.toContain(password);
       expect(verifyOwnerPassword(password, customer.passwordHash)).toBe(true);
       expect(verifyOwnerPassword("incorrect-password", customer.passwordHash)).toBe(false);
@@ -106,6 +106,7 @@ suite("MySQL customer identity acceptance", () => {
 
       const [lockedCustomer] = await db.select().from(customerUsers)
         .where(eq(customerUsers.id, customer.id)).limit(1);
+      if (!lockedCustomer) throw new Error("The locked integration customer was not found.");
       expect(lockedCustomer.failedLoginCount).toBe(5);
       expect(lockedCustomer.lockedUntil).toBeInstanceOf(Date);
       expect(lockedCustomer.lockedUntil!.getTime()).toBeGreaterThan(Date.now());
@@ -156,11 +157,13 @@ suite("MySQL customer identity acceptance", () => {
       await createLocalCustomerAccount({ email: secondEmail, password, displayName: "Second Customer" });
       const [first] = await db.select().from(customerUsers).where(eq(customerUsers.email, firstEmail)).limit(1);
       const [second] = await db.select().from(customerUsers).where(eq(customerUsers.email, secondEmail)).limit(1);
+      if (!first || !second) throw new Error("The address test customers were not persisted.");
       firstCustomerId = first.id;
       secondCustomerId = second.id;
 
       await saveCustomerAddress(first.id, address("First Recipient", "Jaisalmer", false));
       const [firstAddress] = await listCustomerAddresses(first.id);
+      if (!firstAddress) throw new Error("The first address was not persisted.");
       expect(firstAddress.isDefaultShipping).toBe(true);
 
       await saveCustomerAddress(first.id, address("Second Recipient", "Jaipur", true));
@@ -172,6 +175,7 @@ suite("MySQL customer identity acceptance", () => {
 
       await saveCustomerAddress(second.id, address("Other Recipient", "Jodhpur", true));
       const [otherAddress] = await listCustomerAddresses(second.id);
+      if (!otherAddress) throw new Error("The second customer's address was not persisted.");
       await expect(saveCustomerAddress(first.id, {
         id: otherAddress.id,
         ...address("Attempted Cross-account Edit", "Delhi", true),
