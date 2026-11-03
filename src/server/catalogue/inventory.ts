@@ -291,6 +291,21 @@ export async function consumeVariantStockReservation(reservationId: string, now 
       .where(inArray(productVariants.id, variantIds))
       .orderBy(asc(productVariants.id))
       .for("update");
+    if (variants.length !== variantIds.length) {
+      throw new Error("One or more reserved product variants no longer exist. Reconcile inventory before consuming this reservation.");
+    }
+
+    // Serialize consumption with new reservations and stock adjustments for
+    // the same products. All inventory writers acquire variant locks first,
+    // then sorted product locks, before changing physical stock.
+    const productIds = [...new Set(variants.map((variant) => variant.productId))].sort();
+    const lockedProducts = await tx.select({ id: products.id }).from(products)
+      .where(inArray(products.id, productIds))
+      .orderBy(asc(products.id))
+      .for("update");
+    if (lockedProducts.length !== productIds.length) {
+      throw new Error("One or more reserved products no longer exist. Reconcile inventory before consuming this reservation.");
+    }
 
     const [reservation] = await tx.select().from(inventoryReservations)
       .where(eq(inventoryReservations.id, reservationId)).limit(1).for("update");
