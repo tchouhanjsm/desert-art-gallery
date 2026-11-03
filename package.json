@@ -18,7 +18,8 @@
     "db:import-editorial": "node --env-file=.env --import=tsx scripts/import-editorial-to-mysql.ts",
     "db:bootstrap-admin": "node --env-file=.env --import=tsx scripts/bootstrap-local-admin.ts",
     "db:import-products": "node --env-file=.env --import=tsx scripts/import-products-to-mysql.ts",
-    "media:preview": "node --import=tsx scripts/preview-product-images.ts"
+    "media:preview": "node --import=tsx scripts/preview-product-images.ts",
+    "media:import": "node --env-file=.env --import=tsx scripts/import-product-images-to-mysql.ts"
   },
   "dependencies": {
     "next": "^15.1.6",
