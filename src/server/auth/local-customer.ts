@@ -88,7 +88,6 @@ export async function createLocalCustomerSession(emailInput: string, password: s
     throw new Error("Email or password is incorrect.");
   }
 
-  const now = new Date();
   const result = await getMySqlDb().transaction(async (tx) => {
     // Serialize attempts for this account. Without a row lock, concurrent bad
     // passwords can all read the same counter and overwrite one another.
@@ -96,6 +95,7 @@ export async function createLocalCustomerSession(emailInput: string, password: s
       .where(eq(customerUsers.email, email))
       .limit(1)
       .for("update");
+    const now = new Date();
 
     if (!user || !user.isActive) {
       verifyOwnerPassword(password, DUMMY_PASSWORD_HASH);
