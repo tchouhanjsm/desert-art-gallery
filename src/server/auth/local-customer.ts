@@ -25,6 +25,12 @@ export function isMySqlCustomerAuthEnabled(): boolean {
   return true;
 }
 
+function requireCustomerAuthEnabled(): void {
+  if (!isMySqlCustomerAuthEnabled()) {
+    throw new Error("Customer authentication is not enabled on this environment.");
+  }
+}
+
 function tokenDigest(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -40,6 +46,7 @@ async function setCustomerCookie(rawToken: string): Promise<void> {
 export async function createLocalCustomerAccount(input: {
   email: string; password: string; displayName: string;
 }): Promise<void> {
+  requireCustomerAuthEnabled();
   const email = normalizeCustomerEmail(input.email);
   if (!isValidCustomerEmail(email)) throw new Error("Enter a valid email address.");
   const displayName = validateCustomerDisplayName(input.displayName);
@@ -74,37 +81,46 @@ export async function createLocalCustomerAccount(input: {
 }
 
 export async function createLocalCustomerSession(emailInput: string, password: string): Promise<void> {
+  requireCustomerAuthEnabled();
   const email = normalizeCustomerEmail(emailInput);
   if (!isValidCustomerEmail(email) || typeof password !== "string" || !password || password.length > 256) {
     verifyOwnerPassword(typeof password === "string" ? password : "", DUMMY_PASSWORD_HASH);
     throw new Error("Email or password is incorrect.");
   }
 
-  const db = getMySqlDb();
-  const [user] = await db.select().from(customerUsers).where(eq(customerUsers.email, email)).limit(1);
-  if (!user || !user.isActive) {
-    verifyOwnerPassword(password, DUMMY_PASSWORD_HASH);
-    throw new Error("Email or password is incorrect.");
-  }
+  const result = await getMySqlDb().transaction(async (tx) => {
+    // Serialize attempts for this account. Without a row lock, concurrent bad
+    // passwords can all read the same counter and overwrite one another.
+    const [user] = await tx.select().from(customerUsers)
+      .where(eq(customerUsers.email, email))
+      .limit(1)
+      .for("update");
+    const now = new Date();
 
-  const now = new Date();
-  if (user.lockedUntil && user.lockedUntil > now) {
-    throw new Error("Sign-in is temporarily locked. Wait 15 minutes before trying again.");
-  }
-  if (!verifyOwnerPassword(password, user.passwordHash)) {
-    const nextFailedCount = Math.min(user.failedLoginCount + 1, 100);
-    const lockedUntil = nextFailedCount >= MAX_FAILED_LOGIN_ATTEMPTS
-      ? new Date(now.getTime() + LOCKOUT_MINUTES * 60 * 1000)
-      : user.lockedUntil;
-    await db.update(customerUsers).set({
-      failedLoginCount: nextFailedCount, lockedUntil, updatedAt: now,
-    }).where(eq(customerUsers.id, user.id));
-    throw new Error("Email or password is incorrect.");
-  }
+    if (!user || !user.isActive) {
+      verifyOwnerPassword(password, DUMMY_PASSWORD_HASH);
+      return { status: "invalid" as const };
+    }
+    if (user.lockedUntil && user.lockedUntil > now) {
+      // Keep account existence and lock state out of the response/timing signal.
+      verifyOwnerPassword(password, DUMMY_PASSWORD_HASH);
+      return { status: "invalid" as const };
+    }
 
-  const rawToken = randomBytes(32).toString("base64url");
-  const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_SECONDS * 1000);
-  await db.transaction(async (tx) => {
+    if (!verifyOwnerPassword(password, user.passwordHash)) {
+      const nextFailedCount = Math.min(user.failedLoginCount + 1, 100);
+      const lockedUntil = nextFailedCount >= MAX_FAILED_LOGIN_ATTEMPTS
+        ? new Date(now.getTime() + LOCKOUT_MINUTES * 60 * 1000)
+        : user.lockedUntil;
+      await tx.update(customerUsers).set({
+        failedLoginCount: nextFailedCount, lockedUntil, updatedAt: now,
+      }).where(eq(customerUsers.id, user.id));
+      // Return instead of throwing so the failed-attempt update commits.
+      return { status: "invalid" as const };
+    }
+
+    const rawToken = randomBytes(32).toString("base64url");
+    const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_SECONDS * 1000);
     await tx.delete(customerSessions).where(and(
       eq(customerSessions.customerUserId, user.id), lte(customerSessions.expiresAt, now),
     ));
@@ -114,11 +130,15 @@ export async function createLocalCustomerSession(emailInput: string, password: s
     await tx.update(customerUsers).set({
       failedLoginCount: 0, lockedUntil: null, lastLoginAt: now, updatedAt: now,
     }).where(eq(customerUsers.id, user.id));
+    return { status: "success" as const, rawToken };
   });
-  await setCustomerCookie(rawToken);
+
+  if (result.status !== "success") throw new Error("Email or password is incorrect.");
+  await setCustomerCookie(result.rawToken);
 }
 
 export async function getCurrentCustomer(): Promise<LocalCustomer | null> {
+  if (!isMySqlCustomerAuthEnabled()) return null;
   const cookieStore = await cookies();
   const rawToken = cookieStore.get(LOCAL_CUSTOMER_SESSION_COOKIE)?.value;
   if (!rawToken || !/^[A-Za-z0-9_-]{43}$/.test(rawToken)) return null;

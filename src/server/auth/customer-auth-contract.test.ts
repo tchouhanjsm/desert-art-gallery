@@ -16,6 +16,21 @@ describe("MySQL customer identity contract", () => {
     expect(auth).toContain("DATABASE_URL");
   });
 
+  it("enforces the feature flag inside customer auth services and serializes failed-login lockout updates", () => {
+    expect(auth).toContain("function requireCustomerAuthEnabled()");
+    expect(auth.match(/requireCustomerAuthEnabled\(\);/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(auth).toContain("if (!isMySqlCustomerAuthEnabled()) return null;");
+    const login = auth.slice(
+      auth.indexOf("export async function createLocalCustomerSession"),
+      auth.indexOf("export async function getCurrentCustomer"),
+    );
+    expect(login).toContain("getMySqlDb().transaction(async (tx)");
+    expect(login).toContain('.for("update")');
+    expect(login).toContain("return { status: \"invalid\" as const };");
+    expect(login).toContain('throw new Error("Email or password is incorrect.");');
+    expect(login).not.toContain("Sign-in is temporarily locked");
+  });
+
   it("hashes passwords and stores only digests of random, expiring browser sessions", () => {
     expect(auth).toContain("hashOwnerPassword(input.password)");
     expect(auth).toContain('createHash("sha256")');
@@ -46,8 +61,13 @@ describe("MySQL customer identity contract", () => {
 
   it("fails closed instead of sending MySQL customer checkout through the legacy Supabase order path", () => {
     expect(checkoutPage).toContain("isMySqlCustomerAuthEnabled()");
-    expect(checkoutPage).toContain("Checkout is the next phase");
+    expect(checkoutPage).toContain("listMySqlCheckoutConfiguration()");
+    expect(checkoutPage).toContain("<CheckoutForm addresses={addresses}");
     expect(orderRoute).toContain("isMySqlCustomerAuthEnabled()");
-    expect(orderRoute).toContain("MySQL order drafts and checkout are the next commerce phase");
+    expect(orderRoute).toContain("createMySqlOrderDraft");
+    const mysqlBranch = orderRoute.indexOf("if (isMySqlCustomerAuthEnabled())");
+    const legacySupabaseCall = orderRoute.indexOf("const supabase = await createSupabaseServerClient()");
+    expect(mysqlBranch).toBeGreaterThanOrEqual(0);
+    expect(legacySupabaseCall).toBeGreaterThan(mysqlBranch);
   });
 });

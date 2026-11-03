@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { getCurrentCustomer, isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
+import { listCustomerAddresses } from "@/server/customer/repository";
+import { listMySqlCheckoutConfiguration } from "@/server/checkout/mysql-orders";
 
 export const metadata = {
   title: "Delivery and order review",
@@ -14,7 +16,39 @@ export default async function CheckoutPage() {
   if (isMySqlCustomerAuthEnabled()) {
     const customer = await getCurrentCustomer();
     if (!customer) redirect("/login?next=%2Fcheckout");
-    return <div className="page-shell"><div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Checkout is the next phase</h1><p>Your MySQL customer account and shopping bag are available. Order creation, shipping/tax configuration and fulfilment are still being migrated.</p></div><div className="checkout-notice" role="status">No order, inventory reservation or payment has been created. Your bag remains saved while Phase 7 is implemented.</div><Link className="text-link" href="/cart">RETURN TO YOUR BAG</Link></div>;
+    const [addressRows, configuration] = await Promise.all([
+      listCustomerAddresses(customer.id),
+      listMySqlCheckoutConfiguration(),
+    ]);
+    const addresses = addressRows.map((address) => ({
+      id: address.id,
+      recipient_name: address.recipientName,
+      address_line_1: address.addressLine1,
+      address_line_2: address.addressLine2,
+      city: address.city,
+      region: address.region,
+      postal_code: address.postalCode,
+      country_code: address.countryCode,
+      phone: address.phone,
+      is_default_shipping: address.isDefaultShipping,
+    }));
+    const zones = configuration.zones.filter((zone) => zone.isActive).map((zone) => ({
+      id: zone.id, name: zone.name, country_codes: zone.countryCodes,
+    }));
+    const rates = configuration.rates.filter((rate) => rate.isActive).map((rate) => ({
+      id: rate.id, zone_id: rate.zoneId, name: rate.name, currency: rate.currency,
+      amount_minor: rate.amountMinor, min_delivery_days: rate.minDeliveryDays,
+      max_delivery_days: rate.maxDeliveryDays, duties_disclosure: rate.dutiesDisclosure,
+    }));
+    const taxRules = configuration.taxes.filter((rule) => rule.isActive).map((rule) => ({
+      id: rule.id, country_code: rule.countryCode, currency: rule.currency,
+      tax_name: rule.taxName, rate_basis_points: rule.rateBasisPoints,
+      taxable_shipping: rule.taxableShipping, disclosure: rule.disclosure,
+    }));
+    return <div className="page-shell">
+      <div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Delivery details</h1><p>Choose an active merchant-configured shipping option and review the destination disclosures.</p></div>
+      <CheckoutForm addresses={addresses} zones={zones} rates={rates} taxRules={taxRules}/>
+    </div>;
   }
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><div className="page-heading"><div className="section-kicker">SECURE ORDER REVIEW</div><h1>Delivery details</h1><p>Checkout is not configured yet. No order or payment has been created.</p></div><Link className="text-link" href="/cart">RETURN TO YOUR BAG</Link></div>;

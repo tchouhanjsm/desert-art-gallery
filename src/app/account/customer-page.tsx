@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentCustomer } from "@/server/auth/local-customer";
 import { listCustomerAddresses } from "@/server/customer/repository";
+import { listMySqlCustomerOrders } from "@/server/checkout/mysql-orders";
+import { formatMoneyFromMinor } from "@/lib/money";
 import {
   deleteLocalCustomerAddress,
   saveLocalCustomerAddress,
@@ -12,7 +14,10 @@ import {
 export async function CustomerAccountPage() {
   const customer = await getCurrentCustomer();
   if (!customer) redirect("/login");
-  const addresses = await listCustomerAddresses(customer.id);
+  const [addresses, savedOrders] = await Promise.all([
+    listCustomerAddresses(customer.id),
+    listMySqlCustomerOrders(customer.id),
+  ]);
 
   return (
     <div className="page-shell account-shell">
@@ -67,7 +72,13 @@ export async function CustomerAccountPage() {
       </section>
       <section className="account-section">
         <div className="section-kicker">ORDER HISTORY</div><h2>Your orders</h2>
-        <div className="checkout-notice">Order history and checkout are part of the next MySQL commerce phase. No legacy order data is shown in this MySQL account, and no payment has been enabled.</div>
+        {savedOrders.length ? <div className="account-order-list">{savedOrders.map((order) => (
+          <article className="account-order-row" key={order.id}>
+            <div><strong><Link href={"/account/orders/" + order.id}>{order.orderNumber}</Link></strong><p>{new Date(order.createdAt).toLocaleDateString("en-IN")} · {order.status.replaceAll("_", " ")}</p></div>
+            <strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong>
+          </article>
+        ))}</div> : <div className="empty-note">No orders have been prepared from this account yet.</div>}
+        <div className="checkout-notice">Only orders created in this MySQL account are displayed. Existing customer orders from the previous identity system have not been imported. Payment remains disabled.</div>
         <Link className="text-link" href="/shop">CONTINUE DISCOVERING</Link>
       </section>
     </div>

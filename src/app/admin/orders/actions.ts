@@ -1,6 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isMySqlCatalogueEnabled } from "@/server/db";
+import { requireLocalAdmin } from "@/server/auth/local-admin";
+import { transitionMySqlOrderFulfilment } from "@/server/checkout/mysql-orders";
 
 function textField(formData: FormData, key: string, maxLength: number) {
   const value = formData.get(key);
@@ -11,6 +14,28 @@ function textField(formData: FormData, key: string, maxLength: number) {
 }
 
 export async function transitionOrder(formData: FormData) {
+  if (isMySqlCatalogueEnabled()) {
+    const admin = await requireLocalAdmin();
+    if (!["owner", "admin"].includes(admin.role)) throw new Error("Administrator permissions are required.");
+    const id = textField(formData, "id", 80);
+    const nextStatus = textField(formData, "next_status", 24);
+    const carrier = textField(formData, "tracking_carrier", 100);
+    const trackingNumber = textField(formData, "tracking_number", 160);
+    const trackingUrl = textField(formData, "tracking_url", 1000);
+    await transitionMySqlOrderFulfilment({
+      adminId: admin.id,
+      orderId: id,
+      nextStatus,
+      carrier: carrier || null,
+      trackingNumber: trackingNumber || null,
+      trackingUrl: trackingUrl || null,
+    });
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin/orders/" + id);
+    revalidatePath("/account");
+    revalidatePath("/account/orders/" + id);
+    return;
+  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) throw new Error("Order management is not configured.");
   const { data: { user }, error: authError } = await supabase.auth.getUser();

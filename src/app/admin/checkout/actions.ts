@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isCheckoutUuid, normalizeCountryCodes, parseCurrencyAmountToMinor } from "@/lib/checkout";
+import { isMySqlCatalogueEnabled } from "@/server/db";
+import { requireLocalAdmin } from "@/server/auth/local-admin";
+import { saveMySqlShippingZone, saveMySqlShippingRate, saveMySqlTaxRule } from "@/server/checkout/mysql-orders";
 
 function field(formData: FormData, key: string, maxLength: number): string {
   const value = formData.get(key);
@@ -31,6 +34,21 @@ function optionalDays(value: string): number | null {
 }
 
 export async function saveShippingZone(formData: FormData) {
+  if (isMySqlCatalogueEnabled()) {
+    const admin = await requireLocalAdmin();
+    if (admin.role !== "owner") throw new Error("Only the business owner can change shipping and tax configuration.");
+    const id = field(formData, "id", 40);
+    if (id && !isCheckoutUuid(id)) throw new Error("Invalid shipping zone identifier.");
+    await saveMySqlShippingZone({
+      ...(id ? { id } : {}),
+      name: field(formData, "name", 120),
+      countryCodesText: field(formData, "country_codes", 500),
+      isActive: formData.get("is_active") === "yes",
+    });
+    revalidatePath("/admin/checkout");
+    revalidatePath("/checkout");
+    return;
+  }
   const supabase = await ownerClient();
   const id = field(formData, "id", 40);
   const name = field(formData, "name", 120);
@@ -47,6 +65,26 @@ export async function saveShippingZone(formData: FormData) {
 }
 
 export async function saveShippingRate(formData: FormData) {
+  if (isMySqlCatalogueEnabled()) {
+    const admin = await requireLocalAdmin();
+    if (admin.role !== "owner") throw new Error("Only the business owner can change shipping and tax configuration.");
+    const id = field(formData, "id", 40);
+    if (id && !isCheckoutUuid(id)) throw new Error("Invalid shipping rate identifier.");
+    await saveMySqlShippingRate({
+      ...(id ? { id } : {}),
+      zoneId: field(formData, "zone_id", 40),
+      name: field(formData, "name", 120),
+      currency: field(formData, "currency", 3),
+      amount: field(formData, "amount", 32),
+      minDays: field(formData, "min_delivery_days", 3),
+      maxDays: field(formData, "max_delivery_days", 3),
+      dutiesDisclosure: field(formData, "duties_disclosure", 2000),
+      isActive: formData.get("is_active") === "yes",
+    });
+    revalidatePath("/admin/checkout");
+    revalidatePath("/checkout");
+    return;
+  }
   const supabase = await ownerClient();
   const id = field(formData, "id", 40);
   const zoneId = field(formData, "zone_id", 40);
@@ -81,6 +119,25 @@ export async function saveShippingRate(formData: FormData) {
 }
 
 export async function saveTaxRule(formData: FormData) {
+  if (isMySqlCatalogueEnabled()) {
+    const admin = await requireLocalAdmin();
+    if (admin.role !== "owner") throw new Error("Only the business owner can change shipping and tax configuration.");
+    const id = field(formData, "id", 40);
+    if (id && !isCheckoutUuid(id)) throw new Error("Invalid tax rule identifier.");
+    await saveMySqlTaxRule({
+      ...(id ? { id } : {}),
+      countryCode: field(formData, "country_code", 2),
+      currency: field(formData, "currency", 3),
+      taxName: field(formData, "tax_name", 120),
+      rateBasisPoints: field(formData, "rate_basis_points", 5),
+      taxableShipping: formData.get("taxable_shipping") === "yes",
+      disclosure: field(formData, "disclosure", 2000),
+      isActive: formData.get("is_active") === "yes",
+    });
+    revalidatePath("/admin/checkout");
+    revalidatePath("/checkout");
+    return;
+  }
   const supabase = await ownerClient();
   const id = field(formData, "id", 40);
   const countryCode = field(formData, "country_code", 2).toUpperCase();
