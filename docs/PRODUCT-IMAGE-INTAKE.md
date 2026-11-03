@@ -56,12 +56,34 @@ The preview checks folder slugs, filenames, duplicate sequence numbers, file siz
 
 A clean preview is only an intake-format check. It does not verify product identity, image quality, copyright, model releases, consent, provenance or commercial usage rights.
 
+## Match and import into local MySQL
+
+After the Etsy listing CSV has been imported as draft products, run the database-aware preview:
+
+~~~bash
+npm run media:import
+~~~
+
+The importer matches each folder name to an **exact MySQL product slug**. It does not guess by title, SKU or visual similarity. Every matched product must still be a draft. A missing product, non-draft product, malformed folder, invalid image or missing primary image blocks the entire batch.
+
+The preview reports matched products, valid images, duplicate images, per-folder errors and warnings. It is read-only: no image files are copied and no MySQL media rows are written.
+
+After reviewing the preview and confirming that the files are authorized originals, import them into the private media store and MySQL:
+
+~~~bash
+npm run media:import -- --commit --confirm-local-import
+~~~
+
+This command is restricted to a local MySQL host and is blocked in production. It revalidates each file, checks that it has not changed since preview, copies it to the configured private `MEDIA_STORAGE_ROOT`, and inserts `product_media` rows. Image keys are deterministic by product and content hash, so retrying the same batch does not create duplicate media records. Existing primary images are preserved; an incoming primary is selected only when the product has no primary image.
+
+Imported records always have `rights_confirmed=false` and empty rights evidence. The importer never grants publication permission, publishes products, changes stock, prices, variants or product descriptions. It generates a conservative draft alt-text suggestion that the owner must review and edit in the product editor before rights approval and publication.
+
 ## Owner review and publication
 
 After image intake:
-1. Match each product folder to the actual product record and inspect every photograph.
+1. Match each product folder to the actual draft product record by exact slug and inspect every photograph.
 2. Confirm the owner has the rights and permissions needed for commercial use.
-3. Upload the selected originals through the owner product/media workflow. The app stores files under the private MEDIA_STORAGE_ROOT and records product-media metadata.
+3. Either use the individual upload in the owner product editor or run the database-aware bulk import above. Both store files under the private MEDIA_STORAGE_ROOT and record product-media metadata.
 4. Supply descriptive, factual alt text.
 5. Record a rights-evidence reference and explicitly confirm rights.
 6. Choose the primary image and display order.
