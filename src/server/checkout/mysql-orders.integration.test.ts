@@ -44,6 +44,7 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
     const productId = randomUUID();
     const variantId = randomUUID();
     const zoneId = randomUUID();
+    const overlapZoneId = randomUUID();
     const rateId = randomUUID();
     const taxRuleId = randomUUID();
     const customerEmail = "checkout-" + customerId + "@example.test";
@@ -152,6 +153,27 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
         idempotencyKey: checkoutKey,
         now,
       };
+
+      // Ambiguous active destination coverage must fail closed.
+      await db.insert(shippingZones).values({
+        id: overlapZoneId,
+        name: "Overlapping integration zone " + overlapZoneId.slice(0, 8),
+        countryCodes: ["IN"],
+        isActive: true,
+      });
+      await expect(createMySqlOrderDraft(checkoutInput))
+        .rejects.toThrow("Shipping is not configured unambiguously");
+      await db.update(shippingZones).set({ isActive: false })
+        .where(eq(shippingZones.id, overlapZoneId));
+
+      // Missing an active tax policy must fail closed; a zero-rate rule is
+      // explicit configuration, not an implicit assumption that tax is zero.
+      await db.update(checkoutTaxRules).set({ isActive: false })
+        .where(eq(checkoutTaxRules.id, taxRuleId));
+      await expect(createMySqlOrderDraft(checkoutInput))
+        .rejects.toThrow("Tax policy is not configured");
+      await db.update(checkoutTaxRules).set({ isActive: true })
+        .where(eq(checkoutTaxRules.id, taxRuleId));
 
       const created = await createMySqlOrderDraft(checkoutInput);
       orderId = created.orderId;
@@ -295,7 +317,7 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
         await db.delete(inventoryReservations).where(eq(inventoryReservations.id, id));
       }
       await db.delete(shippingRates).where(eq(shippingRates.id, rateId));
-      await db.delete(shippingZones).where(eq(shippingZones.id, zoneId));
+      await db.delete(shippingZones).where(inArray(shippingZones.id, [zoneId, overlapZoneId]));
       await db.delete(checkoutTaxRules).where(eq(checkoutTaxRules.id, taxRuleId));
       await db.delete(productVariants).where(eq(productVariants.id, variantId));
       await db.delete(products).where(eq(products.id, productId));
