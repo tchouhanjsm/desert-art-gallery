@@ -30,13 +30,6 @@ const MIME_TYPES = new Set<EditorialImageMime>([
   "image/jpeg", "image/png", "image/webp", "image/avif",
 ]);
 
-type ProductMatch = {
-  id: string;
-  slug: string;
-  title: string;
-  status: "draft" | "published" | "archived" | string;
-};
-
 export type ProductImageImportFile = {
   filename: string;
   sequence: number;
@@ -379,7 +372,7 @@ export async function commitLocalProductImages(
           id: randomUUID(),
           productId: product.id,
           storageKey: file.storageKey,
-          altText: "Product photograph of " + product.title + " — " + roleDescription(file.role) + ". Review this description before publication.",
+          altText: ("Product photograph of " + product.title + " — " + roleDescription(file.role) + ". Review this description before publication.").slice(0, 300),
           rightsConfirmed: false,
           rightsEvidence: "",
           mimeType: file.mimeType,
