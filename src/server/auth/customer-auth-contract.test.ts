@@ -46,8 +46,13 @@ describe("MySQL customer identity contract", () => {
 
   it("fails closed instead of sending MySQL customer checkout through the legacy Supabase order path", () => {
     expect(checkoutPage).toContain("isMySqlCustomerAuthEnabled()");
-    expect(checkoutPage).toContain("Checkout is the next phase");
+    expect(checkoutPage).toContain("listMySqlCheckoutConfiguration()");
+    expect(checkoutPage).toContain("<CheckoutForm addresses={addresses}");
     expect(orderRoute).toContain("isMySqlCustomerAuthEnabled()");
-    expect(orderRoute).toContain("MySQL order drafts and checkout are the next commerce phase");
+    expect(orderRoute).toContain("createMySqlOrderDraft");
+    const mysqlBranch = orderRoute.indexOf("if (isMySqlCustomerAuthEnabled())");
+    const legacySupabaseCall = orderRoute.indexOf("const supabase = await createSupabaseServerClient()");
+    expect(mysqlBranch).toBeGreaterThanOrEqual(0);
+    expect(legacySupabaseCall).toBeGreaterThan(mysqlBranch);
   });
 });

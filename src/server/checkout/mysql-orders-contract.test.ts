@@ -27,8 +27,14 @@ describe("MySQL order lifecycle contract", () => {
   });
 
   it("uses the MySQL path before legacy Supabase calls", () => {
-    expect(reservationRoute.indexOf("if (isMySqlCustomerAuthEnabled())")).toBeLessThan(reservationRoute.indexOf("createSupabaseServerClient"));
-    expect(checkoutRoute.indexOf("if (isMySqlCustomerAuthEnabled())")).toBeLessThan(checkoutRoute.indexOf("createSupabaseServerClient"));
+    const reservationMysqlBranch = reservationRoute.indexOf("if (isMySqlCustomerAuthEnabled())");
+    const reservationSupabaseCall = reservationRoute.indexOf("const supabase = await createSupabaseServerClient()");
+    const checkoutMysqlBranch = checkoutRoute.indexOf("if (isMySqlCustomerAuthEnabled())");
+    const checkoutSupabaseCall = checkoutRoute.indexOf("const supabase = await createSupabaseServerClient()");
+    expect(reservationMysqlBranch).toBeGreaterThanOrEqual(0);
+    expect(reservationSupabaseCall).toBeGreaterThan(reservationMysqlBranch);
+    expect(checkoutMysqlBranch).toBeGreaterThanOrEqual(0);
+    expect(checkoutSupabaseCall).toBeGreaterThan(checkoutMysqlBranch);
     expect(reservationRoute).toContain("reserveVariantStock");
     expect(checkoutRoute).toContain("createMySqlOrderDraft");
   });
