@@ -605,6 +605,7 @@ suite("real MySQL migration and catalogue integration", () => {
       expect(preview.matchedProducts).toBe(1);
       expect(preview.validImages).toBe(2);
       expect(preview.newImages).toBe(2);
+      await expect(commitLocalProductImages("wrong-confirmation", intakeRoot)).rejects.toThrow("explicit");
 
       const imported = await commitLocalProductImages(PRODUCT_IMAGE_IMPORT_CONFIRMATION, intakeRoot);
       expect(imported.imagesCreated).toBe(2);
