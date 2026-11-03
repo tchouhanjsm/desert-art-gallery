@@ -442,12 +442,14 @@ export async function previewEtsyImageDownloads(
       }
 
       const manifestPath = path.join(folder, ".etsy-download-manifest.json");
-      const manifest = folderUsable
-        ? await readManifest(manifestPath).catch((error: unknown) => {
+      let manifest: DownloadManifest = { version: 1, entries: {} };
+      if (folderUsable) {
+        try {
+          manifest = await readManifest(manifestPath);
+        } catch (error) {
           productErrors.push(error instanceof Error ? error.message : "Unable to read Etsy download manifest.");
-          return { version: 1 as const, entries: {} };
-        })
-        : { version: 1 as const, entries: {} };
+        }
+      }
       for (let index = 0; folderUsable && index < product.imageUrls.length; index += 1) {
         const sequence = index + 1;
         const key = String(sequence);
