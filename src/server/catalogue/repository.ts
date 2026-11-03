@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, like, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, like, or, sql } from "drizzle-orm";
 import type { Product, ProductImage, ProductVariant } from "../../lib/products";
 import { getMySqlDb } from "../db";
 import {
@@ -236,7 +236,7 @@ export async function getAvailableVariantQuantity(variantId: string): Promise<nu
     .where(and(
       eq(inventoryReservationItems.variantId, variantId),
       eq(inventoryReservations.status, "reserved"),
-      sql`${inventoryReservations.expiresAt} > CURRENT_TIMESTAMP(3)`,
+      gt(inventoryReservations.expiresAt, new Date()),
     ));
   const reserved = reservedRows.reduce((total, row) => total + row.quantity, 0);
   return Math.max(0, variant.stock - reserved);
