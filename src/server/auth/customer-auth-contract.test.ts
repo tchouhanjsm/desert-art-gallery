@@ -16,6 +16,21 @@ describe("MySQL customer identity contract", () => {
     expect(auth).toContain("DATABASE_URL");
   });
 
+  it("enforces the feature flag inside customer auth services and serializes failed-login lockout updates", () => {
+    expect(auth).toContain("function requireCustomerAuthEnabled()");
+    expect(auth.match(/requireCustomerAuthEnabled\(\);/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(auth).toContain("if (!isMySqlCustomerAuthEnabled()) return null;");
+    const login = auth.slice(
+      auth.indexOf("export async function createLocalCustomerSession"),
+      auth.indexOf("export async function getCurrentCustomer"),
+    );
+    expect(login).toContain("getMySqlDb().transaction(async (tx)");
+    expect(login).toContain('.for("update")');
+    expect(login).toContain("return { status: \"invalid\" as const };");
+    expect(login).toContain('throw new Error("Email or password is incorrect.");');
+    expect(login).not.toContain("Sign-in is temporarily locked");
+  });
+
   it("hashes passwords and stores only digests of random, expiring browser sessions", () => {
     expect(auth).toContain("hashOwnerPassword(input.password)");
     expect(auth).toContain('createHash("sha256")');
