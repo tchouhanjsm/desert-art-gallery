@@ -439,6 +439,33 @@ export async function revokeMySqlProductImageRights(formData: FormData): Promise
   }
 }
 
+export async function updateMySqlProductImageAltText(formData: FormData): Promise<CatalogueActionResult> {
+  try {
+    await requireCatalogueAdmin();
+    const productId = textValue(formData, "product_id", 36);
+    const imageId = textValue(formData, "image_id", 36);
+    const altText = textValue(formData, "alt_text", 300);
+    if (!/^[0-9a-f-]{36}$/i.test(productId) || !/^[0-9a-f-]{36}$/i.test(imageId)) {
+      throw new Error("Valid product and image IDs are required.");
+    }
+    if (!altText) throw new Error("Descriptive image alt text is required.");
+    const db = getMySqlDb();
+    const [image] = await db.select({ id: productMedia.id }).from(productMedia)
+      .where(and(eq(productMedia.id, imageId), eq(productMedia.productId, productId))).limit(1);
+    if (!image) throw new Error("Product image was not found.");
+    const [product] = await db.select({ slug: products.slug }).from(products)
+      .where(eq(products.id, productId)).limit(1);
+    await db.update(productMedia).set({ altText }).where(eq(productMedia.id, imageId));
+    revalidatePath("/admin/products/" + productId);
+    revalidatePath("/admin/products");
+    revalidatePath("/shop");
+    if (product) revalidatePath("/products/" + product.slug);
+    return { ok: true, id: imageId };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Unable to update image alt text." };
+  }
+}
+
 export async function createMySqlDraftProductState(_previous: CatalogueActionResult, formData: FormData) {
   return createMySqlDraftProduct(formData);
 }
@@ -473,6 +500,10 @@ export async function adjustMySqlVariantInventoryState(_previous: CatalogueActio
 
 export async function uploadMySqlProductImageState(_previous: CatalogueActionResult, formData: FormData) {
   return uploadMySqlProductImage(formData);
+}
+
+export async function updateMySqlProductImageAltTextState(_previous: CatalogueActionResult, formData: FormData) {
+  return updateMySqlProductImageAltText(formData);
 }
 
 export async function confirmMySqlProductImageRightsState(_previous: CatalogueActionResult, formData: FormData) {
