@@ -82,6 +82,24 @@ export async function reserveVariantStock(input: ReservationRequest, now = new D
         if (existing.status === "reserved" && existing.expiresAt <= now) {
           await tx.update(inventoryReservations).set({ status: "expired" })
             .where(eq(inventoryReservations.id, existing.id));
+          const [draftOrder] = await tx.select().from(orders)
+            .where(and(eq(orders.reservationId, existing.id), eq(orders.status, "draft")))
+            .limit(1).for("update");
+          if (draftOrder) {
+            await tx.update(orders).set({ status: "expired", updatedAt: now })
+              .where(eq(orders.id, draftOrder.id));
+            await tx.insert(orderEvents).values({
+              id: randomUUID(),
+              orderId: draftOrder.id,
+              actorType: "system",
+              actorId: null,
+              eventType: "reservation_expired",
+              fromStatus: "draft",
+              toStatus: "expired",
+              note: "The inventory reservation expired before checkout completed.",
+              createdAt: now,
+            });
+          }
           return { reservationId: existing.id, status: "expired", expiresAt: existing.expiresAt };
         }
         if (existing.status === "reserved" || existing.status === "consumed") {
@@ -282,6 +300,24 @@ export async function consumeVariantStockReservation(reservationId: string, now 
     if (reservation.expiresAt <= now) {
       await tx.update(inventoryReservations).set({ status: "expired" })
         .where(eq(inventoryReservations.id, reservationId));
+      const [draftOrder] = await tx.select().from(orders)
+        .where(and(eq(orders.reservationId, reservationId), eq(orders.status, "draft")))
+        .limit(1).for("update");
+      if (draftOrder) {
+        await tx.update(orders).set({ status: "expired", updatedAt: now })
+          .where(eq(orders.id, draftOrder.id));
+        await tx.insert(orderEvents).values({
+          id: randomUUID(),
+          orderId: draftOrder.id,
+          actorType: "system",
+          actorId: null,
+          eventType: "reservation_expired",
+          fromStatus: "draft",
+          toStatus: "expired",
+          note: "The inventory reservation expired before checkout completed.",
+          createdAt: now,
+        });
+      }
       return "expired";
     }
 
