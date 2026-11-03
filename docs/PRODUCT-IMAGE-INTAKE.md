@@ -56,6 +56,28 @@ The preview checks folder slugs, filenames, duplicate sequence numbers, file siz
 
 A clean preview is only an intake-format check. It does not verify product identity, image quality, copyright, model releases, consent, provenance or commercial usage rights.
 
+## Download source photographs directly from Etsy
+
+The Etsy CSV importer retains approved `IMAGE1`–`IMAGE10` source URLs in each product's private source metadata. After the Etsy products have been imported as drafts, inspect the database-aware download preview:
+
+~~~bash
+npm run media:download-etsy
+~~~
+
+The preview lists the Etsy draft products, available photo counts, previous downloads and any blocked rows. It makes no network requests and writes no local files.
+
+After checking the preview, explicitly download the photos:
+
+~~~bash
+npm run media:download-etsy -- --download --confirm-etsy-download
+~~~
+
+Downloads are restricted to HTTPS URLs on `i.etsystatic.com`. Redirects must remain on that exact host. The downloader has a 15-second request timeout, a three-redirect maximum, a 12 MB per-image limit, and verifies the returned MIME type against the actual JPEG/PNG/WebP/AVIF file signature. It does not follow links to other hosts or download arbitrary URLs.
+
+Images are written into the matching product-slug folder using `01-primary`, `02-detail`, etc. A private `.etsy-download-manifest.json` records the source URL digest and file checksum. Re-running the command skips unchanged, verified downloads. Changed source URLs and collisions with manually supplied photographs are blocked rather than silently overwriting files.
+
+The downloader only stages image files. It does not create public media records, change product data, approve image rights or publish products. After inspecting the staged photographs, use the database-aware intake preview and import commands below to attach them to the matching MySQL draft products.
+
 ## Match and import into local MySQL
 
 After the Etsy listing CSV has been imported as draft products, run the database-aware preview:
