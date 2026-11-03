@@ -372,7 +372,7 @@ export async function commitLocalProductImages(
           id: randomUUID(),
           productId: product.id,
           storageKey: file.storageKey,
-          altText: ("Product photograph of " + product.title + " — " + roleDescription(file.role) + ". Review this description before publication.").slice(0, 300),
+          altText: ("Product photograph of " + product.title + " — " + roleDescription(file.role)).slice(0, 300),
           rightsConfirmed: false,
           rightsEvidence: "",
           mimeType: file.mimeType,
