@@ -324,4 +324,189 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
       await db.delete(customerUsers).where(inArray(customerUsers.id, [customerId, otherCustomerId]));
     }
   }, 60_000);
+
+  it("allows only paid orders to advance through processing, shipped and delivered", async () => {
+    const db = getMySqlDb();
+    const customerId = randomUUID();
+    const productId = randomUUID();
+    const variantId = randomUUID();
+    const zoneId = randomUUID();
+    const rateId = randomUUID();
+    const taxRuleId = randomUUID();
+    const email = "fulfilment-" + customerId + "@example.test";
+    const now = new Date();
+    const reservationKey = "fulfilment-reservation-" + randomUUID();
+    const checkoutKey = randomUUID();
+    let reservationId: string | null = null;
+    let orderId: string | null = null;
+    const adminId = randomUUID();
+
+    try {
+      await db.insert(customerUsers).values({
+        id: customerId,
+        email,
+        displayName: "Fulfilment Integration Customer",
+        phone: "",
+        passwordHash: "scrypt$" + "e".repeat(32) + "$" + "f".repeat(128),
+        isActive: true,
+        failedLoginCount: 0,
+      });
+      await db.insert(products).values({
+        id: productId,
+        title: "Fulfilment integration textile",
+        slug: "fulfilment-integration-" + productId,
+        currency: "USD",
+        priceMinor: 4200,
+        status: "published",
+      });
+      await db.insert(productVariants).values({
+        id: variantId,
+        productId,
+        sku: "FULFIL-" + productId.slice(0, 8),
+        label: "Standard",
+        attributes: {},
+        currency: "USD",
+        stockQuantity: 1,
+        isActive: true,
+      });
+      await db.insert(shippingZones).values({
+        id: zoneId,
+        name: "Fulfilment integration zone " + zoneId.slice(0, 8),
+        countryCodes: ["IN"],
+        isActive: true,
+      });
+      await db.insert(shippingRates).values({
+        id: rateId,
+        zoneId,
+        name: "Integration fulfilment rate",
+        currency: "USD",
+        amountMinor: 350,
+        dutiesDisclosure: "Integration-only test fixture; no live shipping terms.",
+        isActive: true,
+      });
+      await db.insert(checkoutTaxRules).values({
+        id: taxRuleId,
+        countryCode: "IN",
+        currency: "USD",
+        taxName: "Integration fulfilment zero-rate",
+        rateBasisPoints: 0,
+        taxableShipping: false,
+        disclosure: "Integration-only explicit zero-rate test rule.",
+        isActive: true,
+      });
+
+      const reservation = await reserveVariantStock({
+        customerReference: customerId,
+        idempotencyKey: reservationKey,
+        items: [{ variantId, quantity: 1 }],
+        expiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+      }, now);
+      reservationId = reservation.reservationId;
+
+      const draft = await createMySqlOrderDraft({
+        customerUserId: customerId,
+        reservationId,
+        shippingRateId: rateId,
+        shippingAddress: {
+          recipient_name: "Fulfilment Recipient",
+          address_line_1: "12 Fort Road",
+          city: "Jaisalmer",
+          region: "Rajasthan",
+          postal_code: "345001",
+          country_code: "IN",
+          phone: "+91 9876543210",
+        },
+        customerNote: null,
+        idempotencyKey: checkoutKey,
+        now,
+      });
+      orderId = draft.orderId;
+      expect(draft.status).toBe("draft");
+
+      const tracking = {
+        carrier: "Integration Carrier",
+        trackingNumber: "TEST-TRACK-0001",
+        trackingUrl: "https://tracking.example.test/TEST-TRACK-0001",
+      };
+      await expect(transitionMySqlOrderFulfilment({
+        adminId, orderId, nextStatus: "processing",
+        carrier: null, trackingNumber: null, trackingUrl: null,
+        now: new Date(now.getTime() + 1_000),
+      })).rejects.toThrow("Only the preceding paid/fulfilment state");
+
+      // Simulate a trusted, verified payment-provider state update only inside
+      // this integration fixture. The application has no public paid-state action.
+      await db.update(orders).set({ status: "paid", updatedAt: new Date(now.getTime() + 500) })
+        .where(eq(orders.id, orderId));
+
+      await expect(transitionMySqlOrderFulfilment({
+        adminId, orderId, nextStatus: "shipped",
+        carrier: tracking.carrier, trackingNumber: tracking.trackingNumber,
+        trackingUrl: tracking.trackingUrl,
+        now: new Date(now.getTime() + 1_000),
+      })).rejects.toThrow("Only the preceding paid/fulfilment state");
+
+      await transitionMySqlOrderFulfilment({
+        adminId, orderId, nextStatus: "processing",
+        carrier: null, trackingNumber: null, trackingUrl: null,
+        now: new Date(now.getTime() + 1_000),
+      });
+
+      await expect(transitionMySqlOrderFulfilment({
+        adminId, orderId, nextStatus: "delivered",
+        carrier: null, trackingNumber: null, trackingUrl: null,
+        now: new Date(now.getTime() + 1_500),
+      })).rejects.toThrow("Only the preceding paid/fulfilment state");
+
+      await expect(transitionMySqlOrderFulfilment({
+        adminId, orderId, nextStatus: "shipped",
+        carrier: null, trackingNumber: null, trackingUrl: null,
+        now: new Date(now.getTime() + 2_000),
+      })).rejects.toThrow("Carrier and tracking number are required");
+
+      await transitionMySqlOrderFulfilment({
+        adminId, orderId, nextStatus: "shipped",
+        carrier: tracking.carrier, trackingNumber: tracking.trackingNumber,
+        trackingUrl: tracking.trackingUrl,
+        now: new Date(now.getTime() + 2_000),
+      });
+      await transitionMySqlOrderFulfilment({
+        adminId, orderId, nextStatus: "delivered",
+        carrier: null, trackingNumber: null, trackingUrl: null,
+        now: new Date(now.getTime() + 3_000),
+      });
+
+      const finalOrder = await getMySqlAdminOrder(orderId);
+      expect(finalOrder?.order.status).toBe("delivered");
+      expect(finalOrder?.order.trackingCarrier).toBe(tracking.carrier);
+      expect(finalOrder?.order.trackingNumber).toBe(tracking.trackingNumber);
+      expect(finalOrder?.order.trackingUrl).toBe(tracking.trackingUrl);
+      expect(finalOrder?.order.shippedAt).toEqual(new Date(now.getTime() + 2_000));
+      expect(finalOrder?.order.deliveredAt).toEqual(new Date(now.getTime() + 3_000));
+      expect(finalOrder?.events.map((event) => [event.fromStatus, event.toStatus])).toEqual([
+        [null, "draft"],
+        ["paid", "processing"],
+        ["processing", "shipped"],
+        ["shipped", "delivered"],
+      ]);
+      expect(finalOrder?.events.every((event) => event.actorId === (event.eventType === "order_draft_created" ? customerId : adminId)))
+        .toBe(true);
+    } finally {
+      if (orderId) {
+        await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
+        await db.delete(orderEvents).where(eq(orderEvents.orderId, orderId));
+        await db.delete(orders).where(eq(orders.id, orderId));
+      }
+      if (reservationId) {
+        await db.delete(inventoryReservationItems).where(eq(inventoryReservationItems.reservationId, reservationId));
+        await db.delete(inventoryReservations).where(eq(inventoryReservations.id, reservationId));
+      }
+      await db.delete(shippingRates).where(eq(shippingRates.id, rateId));
+      await db.delete(shippingZones).where(eq(shippingZones.id, zoneId));
+      await db.delete(checkoutTaxRules).where(eq(checkoutTaxRules.id, taxRuleId));
+      await db.delete(productVariants).where(eq(productVariants.id, variantId));
+      await db.delete(products).where(eq(products.id, productId));
+      await db.delete(customerUsers).where(eq(customerUsers.id, customerId));
+    }
+  }, 60_000);
 });
