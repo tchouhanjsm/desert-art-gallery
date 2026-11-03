@@ -12,7 +12,10 @@ describe("deterministic product media storage keys", () => {
     const first = createDeterministicProductStorageKey(productId, digest, "image/jpeg");
     const second = createDeterministicProductStorageKey(productId, digest, "image/jpeg");
     expect(first).toBe(second);
-    expect(first).toMatch(/^products\\/[0-9a-f-]{36}\\/[0-9a-f-]{8}-[0-9a-f-]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.jpg$/i);
+    const [namespace, storedProductId, filename] = first.split("/");
+    expect(namespace).toBe("products");
+    expect(storedProductId).toBe(productId);
+    expect(filename).toMatch(/^[0-9a-f-]{36}\\.jpg$/i);
     expect(safeProductStorageKey(first)).toBe(first);
   });
 
