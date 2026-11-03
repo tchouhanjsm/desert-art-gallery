@@ -309,6 +309,91 @@ suite("real MySQL migration and catalogue integration", () => {
     }
   }, 45_000);
 
+  it("enforces one-of-a-kind stock and reservations across sibling variants", async () => {
+    const db = getMySqlDb();
+    const productId = randomUUID();
+    const firstVariantId = randomUUID();
+    const secondVariantId = randomUUID();
+    const customerReference = "one-of-a-kind-customer-" + productId;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 20 * 60 * 1000);
+    try {
+      await db.insert(products).values({
+        id: productId,
+        title: "One-of-a-kind multi-option piece",
+        slug: "one-of-a-kind-" + productId,
+        currency: "USD",
+        priceMinor: 1000,
+        status: "published",
+        isOneOfAKind: true,
+      });
+      await db.insert(productVariants).values([
+        {
+          id: firstVariantId,
+          productId,
+          sku: "OOAK-A-" + productId.slice(0, 8),
+          label: "Option A",
+          attributes: { option: "A" },
+          currency: "USD",
+          stockQuantity: 1,
+          isActive: true,
+        },
+        {
+          id: secondVariantId,
+          productId,
+          sku: "OOAK-B-" + productId.slice(0, 8),
+          label: "Option B",
+          attributes: { option: "B" },
+          currency: "USD",
+          stockQuantity: 0,
+          isActive: true,
+        },
+      ]);
+
+      const firstHold = await reserveVariantStock({
+        customerReference,
+        idempotencyKey: "one-of-a-kind-first-" + productId,
+        items: [{ variantId: firstVariantId, quantity: 1 }],
+        expiresAt,
+      }, now);
+      expect(firstHold.status).toBe("reserved");
+
+      // A sibling variant cannot be stocked while the only physical unit is
+      // reserved against another variant of this same one-of-a-kind product.
+      await expect(adjustVariantInventory({
+        variantId: secondVariantId,
+        quantityDelta: 1,
+        reason: "attempt duplicate one-of-a-kind option",
+        referenceKey: "one-of-a-kind-adjust-" + productId,
+        actorId: null,
+      }, now)).rejects.toThrow("one-of-a-kind product");
+
+      // Simulate an out-of-band stock reclassification of a legacy/manual row.
+      // The product still has one physical unit, but its active hold belongs to
+      // the sibling variant. Product-level reservation accounting must fail closed.
+      await db.update(productVariants).set({ stockQuantity: 0 })
+        .where(eq(productVariants.id, firstVariantId));
+      await db.update(productVariants).set({ stockQuantity: 1 })
+        .where(eq(productVariants.id, secondVariantId));
+
+      await expect(reserveVariantStock({
+        customerReference: customerReference + "-sibling",
+        idempotencyKey: "one-of-a-kind-sibling-" + productId,
+        items: [{ variantId: secondVariantId, quantity: 1 }],
+        expiresAt,
+      }, now)).rejects.toThrow("Insufficient available stock");
+    } finally {
+      await db.delete(inventoryReservationItems).where(inArray(
+        inventoryReservationItems.reservationId,
+        db.select({ id: inventoryReservations.id }).from(inventoryReservations)
+          .where(eq(inventoryReservations.customerReference, customerReference)),
+      ));
+      await db.delete(inventoryReservations).where(eq(inventoryReservations.customerReference, customerReference));
+      await db.delete(productVariants).where(inArray(productVariants.id, [firstVariantId, secondVariantId]));
+      await db.delete(products).where(eq(products.id, productId));
+    }
+  }, 45_000);
+
   it("stores only local owner credentials and hashed expiring session tokens", async () => {
     const db = getMySqlDb();
     const ownerId = randomUUID();
