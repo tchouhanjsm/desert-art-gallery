@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentCustomer, isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
 
 type TaxComponent = { name: string; rate_basis_points: number; amount_minor: number };
 type Order = {
@@ -16,6 +17,11 @@ type Item = { id: string; product_title: string; product_sku: string | null; var
 
 export default async function CustomerOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (isMySqlCustomerAuthEnabled()) {
+    const customer = await getCurrentCustomer();
+    if (!customer) redirect("/login");
+    return <div className="page-shell"><div className="breadcrumb"><Link href="/account">MY ACCOUNT</Link></div><div className="page-heading"><div className="section-kicker">ORDER DETAILS</div><h1>Order history is the next phase</h1><p>MySQL customer identity and saved addresses are ready for local acceptance. Customer orders and order detail records have not been migrated yet.</p></div><div className="checkout-notice">This route does not read legacy Supabase orders in MySQL customer mode.</div></div>;
+  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) notFound();
   const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -3,6 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cartLineKey, combineCartLines, normalizeCartLines, shouldMergeSavedCart } from "@/lib/cart";
 import { capPurchasableQuantity, normalizeVariantId } from "@/lib/variants";
 import { isSameOriginRequest } from "@/lib/request-security";
+import { getCurrentCustomer, isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
+import { syncCustomerCart } from "@/server/customer/shopping";
 
 type ExistingCartRow = {
   id: string;
@@ -33,6 +35,18 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid cart request." }, { status: 400 }); }
   const payload = body as { lines?: unknown; syncedUserId?: unknown } | null;
   const guestLines = normalizeCartLines(payload?.lines);
+  if (isMySqlCustomerAuthEnabled()) {
+    const customer = await getCurrentCustomer();
+    if (!customer) return NextResponse.json({ authenticated: false, lines: guestLines }, { headers: { "Cache-Control": "no-store" } });
+    try {
+      const previousUserId = typeof payload?.syncedUserId === "string" ? payload.syncedUserId : null;
+      const accountSwitch = Boolean(previousUserId && previousUserId !== customer.id);
+      const lines = await syncCustomerCart(customer.id, guestLines, payload?.syncedUserId, accountSwitch);
+      return NextResponse.json({ authenticated: true, userId: customer.id, lines }, { headers: { "Cache-Control": "no-store" } });
+    } catch {
+      return NextResponse.json({ error: "Unable to synchronize your saved bag." }, { status: 502, headers: { "Cache-Control": "no-store" } });
+    }
+  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.json({ authenticated: false, lines: guestLines });
   const { data: { user }, error: authError } = await supabase.auth.getUser();

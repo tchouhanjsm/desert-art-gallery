@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CheckoutForm } from "@/components/CheckoutForm";
+import { getCurrentCustomer, isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
 
 export const metadata = {
   title: "Delivery and order review",
@@ -10,6 +11,11 @@ export const metadata = {
 };
 
 export default async function CheckoutPage() {
+  if (isMySqlCustomerAuthEnabled()) {
+    const customer = await getCurrentCustomer();
+    if (!customer) redirect("/login?next=%2Fcheckout");
+    return <div className="page-shell"><div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Checkout is the next phase</h1><p>Your MySQL customer account and shopping bag are available. Order creation, shipping/tax configuration and fulfilment are still being migrated.</p></div><div className="checkout-notice" role="status">No order, inventory reservation or payment has been created. Your bag remains saved while Phase 7 is implemented.</div><Link className="text-link" href="/cart">RETURN TO YOUR BAG</Link></div>;
+  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <div className="page-shell"><div className="page-heading"><div className="section-kicker">SECURE ORDER REVIEW</div><h1>Delivery details</h1><p>Checkout is not configured yet. No order or payment has been created.</p></div><Link className="text-link" href="/cart">RETURN TO YOUR BAG</Link></div>;
 

@@ -36,7 +36,7 @@ The public contact page intentionally does not display an email address until th
 
 The MySQL/Drizzle editorial cutover and one-time legacy content import are documented in docs/MYSQL-EDITORIAL-CUTOVER-PHASE-4.md.
 
-The catalogue, variants, product media and inventory services are added as a separately gated migration in docs/MYSQL-CATALOGUE-MIGRATION-PHASE-5.md. The MySQL owner workspace uses local owner accounts and hashed, expiring sessions; it does not require Supabase Auth.
+The catalogue, variants, product media and inventory services are added as a separately gated migration in docs/MYSQL-CATALOGUE-MIGRATION-PHASE-5.md. The MySQL owner workspace uses local owner accounts and hashed, expiring sessions; it does not require Supabase Auth. The optional customer identity mode uses separate customer records and sessions and is gated by MYSQL_CUSTOMER_AUTH_ENABLED=true together with MYSQL_CATALOGUE_ENABLED=true. Email verification and recovery delivery are not enabled.
 
 ### First local owner
 

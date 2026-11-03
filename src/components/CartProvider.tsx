@@ -21,6 +21,8 @@ type CartContextValue = {
 };
 const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "desert-art-gallery:bag:v1";
+const SYNCED_USER_STORAGE_KEY = "desert-art-gallery:bag-user:v1";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function useCart() {
   const value = useContext(CartContext);
@@ -36,12 +38,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const syncSequence = useRef(0);
+  const syncedUserId = useRef<string | null>(null);
 
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
       if (stored) setLines(normalizeCartLines(JSON.parse(stored)));
-    } catch { window.localStorage.removeItem(STORAGE_KEY); }
+      const storedUserId = window.localStorage.getItem(SYNCED_USER_STORAGE_KEY);
+      syncedUserId.current = storedUserId && UUID_PATTERN.test(storedUserId) ? storedUserId : null;
+    } catch { window.localStorage.removeItem(STORAGE_KEY); window.localStorage.removeItem(SYNCED_USER_STORAGE_KEY); }
     setHydrated(true);
   }, []);
 
@@ -69,8 +75,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { if (hydrated) void refresh(lines); }, [hydrated, lines, refresh]);
 
-  const syncSequence = useRef(0);
-  const syncedUserId = useRef<string | null>(null);
   useEffect(() => {
     if (!hydrated) return;
     const sequence = ++syncSequence.current;
@@ -85,6 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const result = await response.json();
         if (sequence !== syncSequence.current || !result.authenticated || !Array.isArray(result.lines) || typeof result.userId !== "string") return;
         syncedUserId.current = result.userId;
+        window.localStorage.setItem(SYNCED_USER_STORAGE_KEY, result.userId);
         const merged = normalizeCartLines(result.lines);
         if (JSON.stringify(merged) !== JSON.stringify(lines)) setLines(merged);
       } catch {

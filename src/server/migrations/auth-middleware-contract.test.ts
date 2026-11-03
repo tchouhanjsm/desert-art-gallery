@@ -24,6 +24,12 @@ describe("protected route authentication contract", () => {
     expect(adminLayout).toContain('redirect("/owner/login?next=/admin")');
   });
 
+  it("routes MySQL customer accounts to server-validated hashed sessions", () => {
+    expect(middleware).toContain("const mysqlCustomerMode");
+    expect(middleware).toContain('if (mysqlCustomerMode && path.startsWith("/account")) return NextResponse.next({ request })');
+    expect(middleware).toContain("supabase.auth.getUser()");
+  });
+
   it("continues validating the user and administrator role for legacy Supabase routes", () => {
     expect(middleware).toContain("supabase.auth.getUser()");
     expect(middleware).toContain("profile.role)");
