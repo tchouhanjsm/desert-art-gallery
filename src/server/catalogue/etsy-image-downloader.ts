@@ -425,25 +425,30 @@ export async function previewEtsyImageDownloads(
     if (!productErrors.length && product.status === "draft" && product.imageUrls.length) {
       const folder = path.join(root, product.slug);
       let localFiles: string[] = [];
+      let folderUsable = true;
       try {
         const folderStats = await lstat(folder);
         if (!folderStats.isDirectory() || folderStats.isSymbolicLink()) {
           productErrors.push("Existing product image path is not a real directory.");
+          folderUsable = false;
         } else {
           localFiles = await readdir(folder);
         }
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
           productErrors.push(error instanceof Error ? error.message : "Unable to inspect the product image folder.");
+          folderUsable = false;
         }
       }
 
       const manifestPath = path.join(folder, ".etsy-download-manifest.json");
-      const manifest = await readManifest(manifestPath).catch((error: unknown) => {
-        productErrors.push(error instanceof Error ? error.message : "Unable to read Etsy download manifest.");
-        return { version: 1 as const, entries: {} };
-      });
-      for (let index = 0; index < product.imageUrls.length; index += 1) {
+      const manifest = folderUsable
+        ? await readManifest(manifestPath).catch((error: unknown) => {
+          productErrors.push(error instanceof Error ? error.message : "Unable to read Etsy download manifest.");
+          return { version: 1 as const, entries: {} };
+        })
+        : { version: 1 as const, entries: {} };
+      for (let index = 0; folderUsable && index < product.imageUrls.length; index += 1) {
         const sequence = index + 1;
         const key = String(sequence);
         const entry = manifest.entries[key];
