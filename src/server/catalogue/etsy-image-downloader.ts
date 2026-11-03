@@ -131,8 +131,8 @@ async function ensureDirectory(directory: string): Promise<void> {
 async function readManifest(manifestPath: string): Promise<DownloadManifest> {
   try {
     const stats = await lstat(manifestPath);
-    if (!stats.isFile() || stats.isSymbolicLink()) {
-      throw new Error("Etsy image download manifest must be a regular file.");
+    if (!stats.isFile() || stats.isSymbolicLink() || stats.size > 16 * 1024) {
+      throw new Error("Etsy image download manifest must be a small regular file.");
     }
     const parsed: unknown = JSON.parse(await readFile(manifestPath, "utf8"));
     const record = safeRecord(parsed);
@@ -143,17 +143,31 @@ async function readManifest(manifestPath: string): Promise<DownloadManifest> {
     const entries: Record<string, DownloadManifestEntry> = {};
     for (const [sequence, rawEntry] of Object.entries(rawEntries)) {
       const entry = safeRecord(rawEntry);
+      const sequenceNumber = Number(sequence);
+      const prefix = String(sequenceNumber).padStart(2, "0") + (sequenceNumber === 1 ? "-primary." : "-detail.");
+      const validFileName = entry.fileName === "" || (
+        typeof entry.fileName === "string"
+        && entry.fileName.startsWith(prefix)
+        && ["jpg", "png", "webp", "avif"].some((extension) => entry.fileName === prefix + extension)
+      );
       if (!/^(?:[1-9]|10)$/.test(sequence)
         || typeof entry.sourceUrlSha256 !== "string" || !/^[a-f0-9]{64}$/.test(entry.sourceUrlSha256)
-        || typeof entry.fileName !== "string"
+        || typeof entry.fileName !== "string" || !validFileName
         || (entry.status !== "pending" && entry.status !== "complete")) {
         throw new Error("Etsy image download manifest contains an invalid image entry.");
       }
       if (entry.status === "complete"
-        && (typeof entry.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(entry.sha256)
+        && (entry.fileName === ""
+          || typeof entry.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(entry.sha256)
           || typeof entry.mimeType !== "string" || !ALLOWED_MIME_TYPES.has(entry.mimeType as EditorialImageMime)
           || typeof entry.byteSize !== "number" || entry.byteSize < 1 || entry.byteSize > MAX_PRODUCT_IMAGE_BYTES)) {
         throw new Error("Etsy image download manifest contains invalid completed-image metadata.");
+      }
+      if (entry.status === "complete") {
+        const extension = mimeExtension(entry.mimeType as EditorialImageMime);
+        if (entry.fileName !== prefix + extension) {
+          throw new Error("Etsy image download manifest filename and MIME type do not agree.");
+        }
       }
       entries[sequence] = entry as DownloadManifestEntry;
     }
