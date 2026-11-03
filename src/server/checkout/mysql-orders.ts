@@ -133,6 +133,28 @@ export async function createMySqlOrderDraft(input: {
         if (reservationOrder.customerUserId !== input.customerUserId || reservationOrder.checkoutRequestHash !== hash) {
           throw new Error("This reservation is already linked to a different checkout request.");
         }
+        if (reservationOrder.status === "draft" && reservationOrder.expiresAt <= now) {
+          if (reservation.status === "reserved") {
+            await tx.update(inventoryReservations).set({ status: "expired" })
+              .where(eq(inventoryReservations.id, reservation.id));
+          }
+          await tx.update(orders).set({ status: "expired", updatedAt: now })
+            .where(eq(orders.id, reservationOrder.id));
+          await tx.insert(orderEvents).values({
+            id: randomUUID(),
+            orderId: reservationOrder.id,
+            actorType: "system",
+            actorId: null,
+            eventType: "reservation_expired",
+            fromStatus: "draft",
+            toStatus: "expired",
+            note: "The unpaid checkout draft expired before payment was enabled.",
+            createdAt: now,
+          });
+          const [expiredOrder] = await tx.select().from(orders)
+            .where(eq(orders.id, reservationOrder.id)).limit(1);
+          return resultFromOrder(expiredOrder, true);
+        }
         return resultFromOrder(reservationOrder, true);
       }
 
