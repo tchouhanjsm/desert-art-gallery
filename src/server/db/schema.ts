@@ -299,3 +299,79 @@ export const catalogueImportBatches = mysqlTable("catalogue_import_batches", {
   check("catalogue_import_batches_row_count_check", sql`${table.rowCount} BETWEEN 1 AND 500`),
   check("catalogue_import_batches_products_check", sql`${table.productsCreated} BETWEEN 1 AND 500`),
 ]);
+
+
+export const customerUsers = mysqlTable("customer_users", {
+  id: char("id", { length: 36 }).primaryKey(),
+  email: varchar("email", { length: 255 }).notNull(),
+  displayName: varchar("display_name", { length: 160 }).notNull(),
+  phone: varchar("phone", { length: 40 }).notNull().default(""),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  failedLoginCount: int("failed_login_count").notNull().default(0),
+  lockedUntil: datetime("locked_until", { mode: "date", fsp: 3 }),
+  lastLoginAt: datetime("last_login_at", { mode: "date", fsp: 3 }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("customer_users_email_uq").on(table.email),
+  index("customer_users_active_idx").on(table.isActive),
+  check("customer_users_failed_login_count_check", sql`${table.failedLoginCount} BETWEEN 0 AND 100`),
+]);
+
+export const customerSessions = mysqlTable("customer_sessions", {
+  id: char("id", { length: 36 }).primaryKey(),
+  customerUserId: char("customer_user_id", { length: 36 }).notNull().references(() => customerUsers.id, { onDelete: "cascade" }),
+  tokenHash: char("token_hash", { length: 64 }).notNull(),
+  expiresAt: datetime("expires_at", { mode: "date", fsp: 3 }).notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  uniqueIndex("customer_sessions_token_hash_uq").on(table.tokenHash),
+  index("customer_sessions_user_expiry_idx").on(table.customerUserId, table.expiresAt),
+]);
+
+export const customerAddresses = mysqlTable("customer_addresses", {
+  id: char("id", { length: 36 }).primaryKey(),
+  customerUserId: char("customer_user_id", { length: 36 }).notNull().references(() => customerUsers.id, { onDelete: "cascade" }),
+  recipientName: varchar("recipient_name", { length: 160 }).notNull(),
+  addressLine1: varchar("address_line_1", { length: 240 }).notNull(),
+  addressLine2: varchar("address_line_2", { length: 240 }).notNull().default(""),
+  city: varchar("city", { length: 120 }).notNull(),
+  region: varchar("region", { length: 120 }).notNull().default(""),
+  postalCode: varchar("postal_code", { length: 24 }).notNull(),
+  countryCode: char("country_code", { length: 2 }).notNull(),
+  phone: varchar("phone", { length: 40 }).notNull().default(""),
+  isDefaultShipping: boolean("is_default_shipping").notNull().default(false),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  index("customer_addresses_customer_default_idx").on(table.customerUserId, table.isDefaultShipping, table.createdAt),
+  check("customer_addresses_country_check", sql`${table.countryCode} REGEXP '^[A-Z]{2}$'`),
+  check("customer_addresses_required_check", sql`CHAR_LENGTH(TRIM(${table.recipientName})) > 0 AND CHAR_LENGTH(TRIM(${table.addressLine1})) > 0 AND CHAR_LENGTH(TRIM(${table.city})) > 0 AND CHAR_LENGTH(TRIM(${table.postalCode})) > 0`),
+]);
+
+export const customerCartItems = mysqlTable("customer_cart_items", {
+  id: char("id", { length: 36 }).primaryKey(),
+  customerUserId: char("customer_user_id", { length: 36 }).notNull().references(() => customerUsers.id, { onDelete: "cascade" }),
+  productId: char("product_id", { length: 36 }).notNull().references(() => products.id, { onDelete: "cascade" }),
+  variantId: char("variant_id", { length: 36 }).references(() => productVariants.id, { onDelete: "cascade" }),
+  lineKey: varchar("line_key", { length: 240 }).notNull(),
+  quantity: int("quantity", { unsigned: true }).notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("customer_cart_items_line_uq").on(table.customerUserId, table.lineKey),
+  index("customer_cart_items_product_idx").on(table.productId),
+  index("customer_cart_items_variant_idx").on(table.variantId),
+  check("customer_cart_items_quantity_check", sql`${table.quantity} BETWEEN 1 AND 99`),
+]);
+
+export const customerWishlistItems = mysqlTable("customer_wishlist_items", {
+  id: char("id", { length: 36 }).primaryKey(),
+  customerUserId: char("customer_user_id", { length: 36 }).notNull().references(() => customerUsers.id, { onDelete: "cascade" }),
+  productId: char("product_id", { length: 36 }).notNull().references(() => products.id, { onDelete: "cascade" }),
+  createdAt: createdAt(),
+}, (table) => [
+  uniqueIndex("customer_wishlist_items_product_uq").on(table.customerUserId, table.productId),
+  index("customer_wishlist_items_created_idx").on(table.customerUserId, table.createdAt),
+]);

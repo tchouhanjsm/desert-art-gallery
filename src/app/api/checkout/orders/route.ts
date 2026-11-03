@@ -2,12 +2,16 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSameOriginRequest } from "@/lib/request-security";
 import { isCheckoutUuid, normalizeCheckoutAddress } from "@/lib/checkout";
+import { isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request)) {
     return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+  if (isMySqlCustomerAuthEnabled()) {
+    return NextResponse.json({ error: "MySQL order drafts and checkout are the next commerce phase and are not enabled yet." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (Number.isFinite(contentLength) && contentLength > 16_384) {

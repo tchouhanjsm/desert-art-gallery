@@ -22,6 +22,13 @@
       "when": 1793607200000,
       "tag": "0002_etsy_listing_source",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793700000000,
+      "tag": "0003_mysql_customer_identity",
+      "breakpoints": true
     }
   ]
 }

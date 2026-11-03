@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeCartLines } from "@/lib/cart";
 import { normalizeVariantId } from "@/lib/variants";
 import { isSameOriginRequest } from "@/lib/request-security";
+import { isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,9 @@ type ProductRow = { id: string; slug: string; currency: string; product_variants
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request)) {
     return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+  if (isMySqlCustomerAuthEnabled()) {
+    return NextResponse.json({ error: "MySQL checkout reservations are part of the next commerce phase and are not enabled yet." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
   const idempotencyKey = request.headers.get("Idempotency-Key")?.trim() ?? "";
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) {

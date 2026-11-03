@@ -9,6 +9,10 @@ const etsyMigration = readFileSync(
   new URL("../../../drizzle/0002_etsy_listing_source.sql", import.meta.url),
   "utf8",
 );
+const customerMigration = readFileSync(
+  new URL("../../../drizzle/0003_mysql_customer_identity.sql", import.meta.url),
+  "utf8",
+);
 const journal = readFileSync(
   new URL("../../../drizzle/meta/_journal.json", import.meta.url),
   "utf8",
@@ -42,7 +46,18 @@ describe("MySQL editorial CMS migration contract", () => {
       "0000_mysql_editorial_cms",
       "0001_mysql_catalogue_inventory",
       "0002_etsy_listing_source",
+      "0003_mysql_customer_identity",
     ]);
+  });
+
+  it("adds isolated customer identity, session, address and saved-shopping tables", () => {
+    for (const table of ["customer_users", "customer_sessions", "customer_addresses", "customer_cart_items", "customer_wishlist_items"]) {
+      expect(customerMigration).toContain("CREATE TABLE IF NOT EXISTS " + table);
+    }
+    expect(customerMigration).toContain("customer_sessions_token_hash_uq");
+    expect(customerMigration).toContain("customer_cart_items_line_uq");
+    expect(customerMigration).toContain("customer_wishlist_items_product_uq");
+    expect(customerMigration).toContain("REFERENCES customer_users(id) ON DELETE CASCADE");
   });
 
   it("adds Etsy source metadata and expands safe import batch capacity", () => {

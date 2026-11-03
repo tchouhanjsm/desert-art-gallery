@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeWishlistSlugs } from "@/lib/wishlist";
 import { isSameOriginRequest } from "@/lib/request-security";
+import { getCurrentCustomer, isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
+import { syncCustomerWishlist } from "@/server/customer/shopping";
 
 type ExistingWishlistRow = { product_id: string; products: { slug: string } | null };
 type ProductRow = { id: string; slug: string };
@@ -12,8 +14,20 @@ export async function POST(request: NextRequest) {
   }
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid wishlist request." }, { status: 400 }); }
-  const payload = body as { slugs?: unknown } | null;
+  const payload = body as { slugs?: unknown; syncedUserId?: unknown } | null;
   const localSlugs = normalizeWishlistSlugs(payload?.slugs);
+  if (isMySqlCustomerAuthEnabled()) {
+    const customer = await getCurrentCustomer();
+    if (!customer) return NextResponse.json({ authenticated: false, slugs: localSlugs }, { headers: { "Cache-Control": "no-store" } });
+    try {
+      const previousUserId = typeof payload?.syncedUserId === "string" ? payload.syncedUserId : null;
+      const guestWishlist = previousUserId && previousUserId !== customer.id ? [] : localSlugs;
+      const slugs = await syncCustomerWishlist(customer.id, guestWishlist);
+      return NextResponse.json({ authenticated: true, userId: customer.id, slugs }, { headers: { "Cache-Control": "no-store" } });
+    } catch {
+      return NextResponse.json({ error: "Unable to synchronize your saved pieces." }, { status: 502, headers: { "Cache-Control": "no-store" } });
+    }
+  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.json({ authenticated: false, slugs: localSlugs });
   const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { normalizeCartLines } from "@/lib/cart";
 import { capPurchasableQuantity } from "@/lib/variants";
+import { isMySqlCatalogueEnabled } from "@/server/db";
+import { getMySqlCartPreview } from "@/server/customer/shopping";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +44,15 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid cart request." }, { status: 400 }); }
   const payload = body as { lines?: unknown } | null;
   const lines = normalizeCartLines(payload?.lines);
-  if (!lines.length) return NextResponse.json({ items: [] });
+  if (!lines.length) return NextResponse.json({ items: [] }, { headers: { "Cache-Control": "no-store" } });
+  if (isMySqlCatalogueEnabled()) {
+    try {
+      const items = await getMySqlCartPreview(lines);
+      return NextResponse.json({ items }, { headers: { "Cache-Control": "no-store" } });
+    } catch {
+      return NextResponse.json({ error: "Unable to refresh the MySQL catalogue bag." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    }
+  }
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) return NextResponse.json({ error: "The live catalogue is not configured." }, { status: 503 });
