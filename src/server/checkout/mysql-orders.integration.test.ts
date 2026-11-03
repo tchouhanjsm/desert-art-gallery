@@ -54,6 +54,8 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
     const checkoutKey = randomUUID();
     let reservationId: string | null = null;
     let orderId: string | null = null;
+    const additionalReservationIds: string[] = [];
+    const additionalOrderIds: string[] = [];
 
     try {
       await db.insert(customerUsers).values([
@@ -206,15 +208,54 @@ suite("MySQL Phase 7 order checkout acceptance", () => {
         "order_draft_created",
         "reservation_released",
       ]);
+
+      // A retry that discovers an already-expired reservation must also expire
+      // its linked unpaid order and append the corresponding system event.
+      const secondReservationKey = "checkout-expiry-reservation-" + randomUUID();
+      const secondReservationExpiry = new Date(now.getTime() + 60 * 60 * 1000);
+      const secondReservation = await reserveVariantStock({
+        customerReference: customerId,
+        idempotencyKey: secondReservationKey,
+        items: [{ variantId, quantity: 1 }],
+        expiresAt: secondReservationExpiry,
+      }, now);
+      additionalReservationIds.push(secondReservation.reservationId);
+
+      const secondDraft = await createMySqlOrderDraft({
+        ...checkoutInput,
+        reservationId: secondReservation.reservationId,
+        idempotencyKey: randomUUID(),
+      });
+      additionalOrderIds.push(secondDraft.orderId);
+
+      const expiredRetry = await reserveVariantStock({
+        customerReference: customerId,
+        idempotencyKey: secondReservationKey,
+        items: [{ variantId, quantity: 1 }],
+        expiresAt: new Date(secondReservationExpiry.getTime() + 30 * 60 * 1000),
+      }, secondReservationExpiry);
+      expect(expiredRetry.status).toBe("expired");
+
+      const [expiredOrder] = await db.select().from(orders)
+        .where(eq(orders.id, secondDraft.orderId)).limit(1);
+      if (!expiredOrder) throw new Error("The linked draft order was not found after reservation expiry.");
+      expect(expiredOrder.status).toBe("expired");
+      const expiredAdminOrder = await getMySqlAdminOrder(secondDraft.orderId);
+      expect(expiredAdminOrder?.events.map((event) => event.eventType)).toEqual([
+        "order_draft_created",
+        "reservation_expired",
+      ]);
     } finally {
-      if (orderId) {
-        await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
-        await db.delete(orderEvents).where(eq(orderEvents.orderId, orderId));
-        await db.delete(orders).where(eq(orders.id, orderId));
+      const allOrderIds = [...additionalOrderIds, ...(orderId ? [orderId] : [])];
+      for (const id of allOrderIds) {
+        await db.delete(orderItems).where(eq(orderItems.orderId, id));
+        await db.delete(orderEvents).where(eq(orderEvents.orderId, id));
+        await db.delete(orders).where(eq(orders.id, id));
       }
-      if (reservationId) {
-        await db.delete(inventoryReservationItems).where(eq(inventoryReservationItems.reservationId, reservationId));
-        await db.delete(inventoryReservations).where(eq(inventoryReservations.id, reservationId));
+      const allReservationIds = [...additionalReservationIds, ...(reservationId ? [reservationId] : [])];
+      for (const id of allReservationIds) {
+        await db.delete(inventoryReservationItems).where(eq(inventoryReservationItems.reservationId, id));
+        await db.delete(inventoryReservations).where(eq(inventoryReservations.id, id));
       }
       await db.delete(shippingRates).where(eq(shippingRates.id, rateId));
       await db.delete(shippingZones).where(eq(shippingZones.id, zoneId));
