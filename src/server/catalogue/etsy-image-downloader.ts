@@ -419,14 +419,66 @@ export async function previewEtsyImageDownloads(
     let alreadyDownloaded = 0;
     if (!productErrors.length && product.imageUrls.length) {
       const folder = path.join(root, product.slug);
+      let localFiles: string[] = [];
+      try {
+        const folderStats = await lstat(folder);
+        if (!folderStats.isDirectory() || folderStats.isSymbolicLink()) {
+          productErrors.push("Existing product image path is not a real directory.");
+        } else {
+          localFiles = await readdir(folder);
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+          productErrors.push(error instanceof Error ? error.message : "Unable to inspect the product image folder.");
+        }
+      }
+
       const manifestPath = path.join(folder, ".etsy-download-manifest.json");
       const manifest = await readManifest(manifestPath).catch((error: unknown) => {
         productErrors.push(error instanceof Error ? error.message : "Unable to read Etsy download manifest.");
         return { version: 1 as const, entries: {} };
       });
       for (let index = 0; index < product.imageUrls.length; index += 1) {
-        const entry = manifest.entries[String(index + 1)];
-        if (entry?.status === "complete") alreadyDownloaded += 1;
+        const sequence = index + 1;
+        const key = String(sequence);
+        const entry = manifest.entries[key];
+        const prefix = String(sequence).padStart(2, "0") + "-";
+        if (entry && entry.sourceUrlSha256 !== digest(product.imageUrls[index])) {
+          productErrors.push("IMAGE" + sequence + " source URL changed since the prior download; inspect the existing photograph before replacing it.");
+          continue;
+        }
+        const untrackedFiles = localFiles.filter((file) => file.startsWith(prefix) && !file.startsWith(".")
+          && (!entry || (entry.status === "complete" && file !== entry.fileName)
+            || (entry.status === "pending" && Boolean(entry.fileName) && file !== entry.fileName)));
+        if (!entry && untrackedFiles.length) {
+          productErrors.push("IMAGE" + sequence + " already has a local photograph without an Etsy download manifest; refusing to overwrite it.");
+        } else if (untrackedFiles.length) {
+          productErrors.push("IMAGE" + sequence + " has an extra untracked photograph that would collide with the downloaded sequence.");
+        }
+
+        if (entry?.status === "complete") {
+          try {
+            const filePath = path.join(folder, entry.fileName);
+            const fileStats = await lstat(filePath);
+            if (!fileStats.isFile() || fileStats.isSymbolicLink()
+              || fileStats.size !== entry.byteSize || fileStats.size > MAX_PRODUCT_IMAGE_BYTES) {
+              productErrors.push("IMAGE" + sequence + " previously downloaded file failed its manifest size or file-type check.");
+              continue;
+            }
+            const bytes = await readFile(filePath);
+            if (digest(bytes) !== entry.sha256 || detectProductImageMime(bytes) !== entry.mimeType) {
+              productErrors.push("IMAGE" + sequence + " previously downloaded file failed its checksum or signature check.");
+              continue;
+            }
+            alreadyDownloaded += 1;
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+              productWarnings.push("IMAGE" + sequence + " is missing locally and will be downloaded again.");
+            } else {
+              productErrors.push(error instanceof Error ? error.message : "Unable to verify a previously downloaded image.");
+            }
+          }
+        }
       }
     }
 
