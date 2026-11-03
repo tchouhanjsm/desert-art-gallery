@@ -91,4 +91,4 @@ After image intake:
 
 The public product-media route checks the published product and its rights-confirmed media record before returning an image. The intake folder is never served directly by Next.js.
 
-Do not bulk-import or publish images based solely on filenames. A future bulk association tool can be added after the owner's actual folder contents and product catalogue have been reviewed.
+Do not bulk-import or publish images based solely on filenames. Review the photo-to-product matches, image content, generated alt text and commercial-use permission before confirming rights or publishing.
