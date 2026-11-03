@@ -316,7 +316,7 @@ export const customerUsers = mysqlTable("customer_users", {
 }, (table) => [
   uniqueIndex("customer_users_email_uq").on(table.email),
   index("customer_users_active_idx").on(table.isActive),
-  check("customer_users_failed_login_count_check", sql\`\${table.failedLoginCount} BETWEEN 0 AND 100\`),
+  check("customer_users_failed_login_count_check", sql`${table.failedLoginCount} BETWEEN 0 AND 100`),
 ]);
 
 export const customerSessions = mysqlTable("customer_sessions", {
@@ -346,8 +346,8 @@ export const customerAddresses = mysqlTable("customer_addresses", {
   updatedAt: updatedAt(),
 }, (table) => [
   index("customer_addresses_customer_default_idx").on(table.customerUserId, table.isDefaultShipping, table.createdAt),
-  check("customer_addresses_country_check", sql\`\${table.countryCode} REGEXP '^[A-Z]{2}$'\`),
-  check("customer_addresses_required_check", sql\`CHAR_LENGTH(TRIM(\${table.recipientName})) > 0 AND CHAR_LENGTH(TRIM(\${table.addressLine1})) > 0 AND CHAR_LENGTH(TRIM(\${table.city})) > 0 AND CHAR_LENGTH(TRIM(\${table.postalCode})) > 0\`),
+  check("customer_addresses_country_check", sql`${table.countryCode} REGEXP '^[A-Z]{2}$'`),
+  check("customer_addresses_required_check", sql`CHAR_LENGTH(TRIM(${table.recipientName})) > 0 AND CHAR_LENGTH(TRIM(${table.addressLine1})) > 0 AND CHAR_LENGTH(TRIM(${table.city})) > 0 AND CHAR_LENGTH(TRIM(${table.postalCode})) > 0`),
 ]);
 
 export const customerCartItems = mysqlTable("customer_cart_items", {
@@ -363,7 +363,7 @@ export const customerCartItems = mysqlTable("customer_cart_items", {
   uniqueIndex("customer_cart_items_line_uq").on(table.customerUserId, table.lineKey),
   index("customer_cart_items_product_idx").on(table.productId),
   index("customer_cart_items_variant_idx").on(table.variantId),
-  check("customer_cart_items_quantity_check", sql\`\${table.quantity} BETWEEN 1 AND 99\`),
+  check("customer_cart_items_quantity_check", sql`${table.quantity} BETWEEN 1 AND 99`),
 ]);
 
 export const customerWishlistItems = mysqlTable("customer_wishlist_items", {
