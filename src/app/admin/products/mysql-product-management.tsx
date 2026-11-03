@@ -11,6 +11,7 @@ import {
   publishMySqlProductState,
   revokeMySqlProductImageRightsState,
   updateMySqlProductVariantState,
+  updateMySqlProductImageAltTextState,
   uploadMySqlProductImageState,
 } from "./mysql-actions";
 
@@ -86,6 +87,23 @@ function UploadMediaForm({ productId }: { productId: string }) {
       <label>Original product photograph<input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/avif" required /></label>
       <label>Descriptive alt text<input name="alt_text" maxLength={300} required placeholder="Describe the visible object and view" /></label>
       <button className="button-outline" type="submit" disabled={pending}>{pending ? "UPLOADING…" : "UPLOAD PRIVATE IMAGE"}</button>
+      <ResultMessage state={state} />
+    </form>
+  );
+}
+
+function MediaAltTextForm({ productId, media }: { productId: string; media: Media }) {
+  const [state, action, pending] = useActionState(updateMySqlProductImageAltTextState, initialState);
+  return (
+    <form action={action} className="rights-form">
+      <input type="hidden" name="product_id" value={productId} />
+      <input type="hidden" name="image_id" value={media.id} />
+      <label>Image alt text
+        <input name="alt_text" defaultValue={media.altText} maxLength={300} required />
+      </label>
+      <button className="button-outline" type="submit" disabled={pending}>
+        {pending ? "SAVING…" : "SAVE ALT TEXT"}
+      </button>
       <ResultMessage state={state} />
     </form>
   );
@@ -225,7 +243,7 @@ export function MySqlProductManagement({
           {media.map((image) => (
             <article className="admin-image-card" key={image.id}>
               <Image src={image.url} alt={image.altText} width={500} height={620} unoptimized />
-              <strong>{image.altText}</strong>
+              <MediaAltTextForm productId={productId} media={image} />
               {image.isPrimary && <span className="admin-status status-active">Primary image</span>}
               <span className={image.rightsConfirmed ? "admin-status status-active" : "admin-status status-draft"}>
                 {image.rightsConfirmed ? "Rights confirmed" : "Private · rights pending"}
