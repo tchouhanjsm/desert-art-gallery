@@ -4,9 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { afterAll, describe, expect, it } from "vitest";
+import type { RowDataPacket } from "mysql2";
 import { createHash } from "node:crypto";
 import { asc, eq, inArray, sql } from "drizzle-orm";
-import { closeMySqlPool, getMySqlDb } from "./index";
+import { closeMySqlPool, getMySqlDb, getMySqlPool } from "./index";
 import {
   expireVariantStockReservations, reserveVariantStock,
   releaseVariantStockReservation, consumeVariantStockReservation, adjustVariantInventory,
@@ -38,6 +39,16 @@ const suite = enabled ? describe : describe.skip;
 
 suite("real MySQL migration and catalogue integration", () => {
   afterAll(async () => { await closeMySqlPool(); });
+
+  it("reads information_schema table names through stable aliases", async () => {
+    const [rows] = await getMySqlPool().query<(RowDataPacket & { name: string; type: string })[]>(
+      "SELECT TABLE_NAME AS name, TABLE_TYPE AS type FROM information_schema.tables WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME",
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => typeof row.name === "string" && row.name.length > 0)).toBe(true);
+    expect(rows.every((row) => typeof row.type === "string" && row.type.length > 0)).toBe(true);
+    expect(rows.some((row) => row.name === "__drizzle_migrations")).toBe(true);
+  }, 15_000);
 
   it("keeps the applied Drizzle migration set safe to rerun", () => {
     const repeat = spawnSync("npm", ["run", "db:migrate"], { encoding: "utf8", env: process.env });
