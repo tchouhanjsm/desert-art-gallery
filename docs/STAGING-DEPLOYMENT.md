@@ -135,6 +135,7 @@ The existing `npm run db:bootstrap-admin` remains restricted to local loopback M
 - [ ] Order draft and shipping/tax pages load; no real payment can be initiated.
 - [ ] Product image upload/read works with persistent `MEDIA_STORAGE_ROOT`.
 - [ ] Draft media stays private and unapproved until explicit rights review.
+- [ ] Draft/unapproved photos can be previewed only through the authenticated `/api/admin/product-media/` route; unauthenticated requests return no image bytes.
 - [ ] Restarting/redeploying the app does not delete the media directory or staging database.
 - [ ] `robots.txt` disallows the staging site; host-level access protection remains enabled.
 - [ ] Database and media backups are tested.
