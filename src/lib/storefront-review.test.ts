@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { storefrontReviewRoutes, storefrontReviewViewports } from "./storefront-review";
+import { isExpectedNavigationAbort, storefrontReviewRoutes, storefrontReviewViewports } from "./storefront-review";
 
 describe("storefront visual review matrix", () => {
   it("defines unique, rooted route entries with explicit accepted statuses", () => {
@@ -31,5 +31,20 @@ describe("storefront visual review matrix", () => {
   it("covers the required mobile, tablet, desktop and wide-desktop widths", () => {
     expect(storefrontReviewViewports.map((viewport) => viewport.width))
       .toEqual([360, 414, 768, 1440, 1600]);
+  });
+});
+
+
+describe("visual review navigation request handling", () => {
+  it("ignores Chromium navigation cancellations and intentionally blocked prefetches", () => {
+    expect(isExpectedNavigationAbort("net::ERR_ABORTED")).toBe(true);
+    expect(isExpectedNavigationAbort("net::ERR_CANCELED")).toBe(true);
+    expect(isExpectedNavigationAbort("net::ERR_BLOCKED_BY_CLIENT")).toBe(true);
+  });
+
+  it("does not hide actual network failures", () => {
+    expect(isExpectedNavigationAbort("net::ERR_FAILED")).toBe(false);
+    expect(isExpectedNavigationAbort("net::ERR_CONNECTION_REFUSED")).toBe(false);
+    expect(isExpectedNavigationAbort(null)).toBe(false);
   });
 });
