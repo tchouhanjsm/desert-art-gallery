@@ -1038,3 +1038,26 @@ These are source-export observations only. They do not mean the CSV was imported
 - Added footer links for shopping guide and policy pages. Account and wishlist header controls remain visible at mobile widths rather than being hidden.
 - Native-speaker Japanese copy review, merchant/legal approval, visual QA and CI validation remain release gates.
 - Footer layout now switches from five desktop columns to a two-column layout below 1000px, keeping the expanded Japanese guide/policy navigation readable on tablet widths.
+
+
+## Implementation addendum — 2026-11-04 — storefront isolation, navigation and indexing
+
+### Engineering review findings and decisions
+
+- Root `globals.css` now contains only neutral reset rules and design tokens. Previous public-storefront layout selectors were removed from the global cascade; Japanese customer presentation is owned by `src/styles/japan-storefront.css`. Owner/admin presentation remains in `src/styles/admin-theme.css` and admin component styles. This is a CSS ownership boundary, not proof of visual isolation: admin and storefront browser screenshots remain required.
+- The announcement strip selector is scoped beneath `.jp-storefront`; public responsive styling remains in the Japanese storefront stylesheet.
+- The collection dropdown now has an explicit keyboard-operable disclosure button with `aria-expanded` and `aria-controls`. Escape closes mobile navigation or the collection disclosure and returns focus to its trigger; outside pointer interaction closes open navigation. Automated source checks do not replace real keyboard and screen-reader testing.
+- The sitemap reads the published storefront projections from the existing catalogue service instead of importing development preview arrays. Product sitemap entries require a persisted product ID. The catalogue service remains responsible for publication state and the MySQL/Supabase source-specific media-rights rules.
+- Production robots rules now disallow both `/admin/` and `/owner/`. Staging continues to disallow all crawlers. Authentication and middleware remain the access controls; robots directives are not access-control mechanisms.
+- Added a unit-testable persisted-record predicate for published product selection. Development preview records remain non-published.
+- No schema, database, authentication, inventory, checkout, shipping/tax, payment, merchant legal/policy, currency or media-rights contracts were changed.
+
+### Remaining acceptance work
+
+- Exact-head GitHub Actions typecheck, tests, lint and production build.
+- Browser screenshots for every customer route and admin/owner isolation at mobile, tablet, desktop and wide desktop.
+- Keyboard-only interaction, focus return, touch targets, screen-reader labels, contrast and reduced-motion review.
+- Japanese font source/licence/subset decision, glyph coverage and line-breaking on real target devices. The current Noto-first CSS stack is a system fallback; no Japanese font has been bundled.
+- Native-speaker copy review, all-route untranslated-string audit, verified legal disclosures, product taxonomy, merchant-approved JPY pricing/tax/shipping/returns and customer-support details.
+- Lighthouse HTML/JSON and measured Core Web Vitals review, ideally from Japan/Asia-Pacific.
+- No screenshot or production/staging visual acceptance is claimed by this source-level review.
