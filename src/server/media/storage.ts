@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import {
   getMediaStorageDriver,
@@ -55,7 +56,7 @@ export function safeStorageKey(key: string): string {
 
 export function createEditorialStorageKey(target: EditorialTarget, recordId: string, mimeType: EditorialImageMime): string {
   if (!/^[0-9a-f-]{36}$/i.test(recordId)) throw new Error("Editorial record identifier is invalid.");
-  return safeStorageKey("editorial/" + target + "/" + recordId + "/" + crypto.randomUUID() + "." + extensions[mimeType]);
+  return safeStorageKey("editorial/" + target + "/" + recordId + "/" + randomUUID() + "." + extensions[mimeType]);
 }
 
 export function getEditorialMediaUrl(key: string): string {
