@@ -5,6 +5,7 @@ import "./globals.css";
 import "@/styles/theme.css";
 import "@/styles/admin-theme.css";
 import "@/styles/editorial.css";
+import "@/styles/phase1.css";
 import { SiteChrome } from "@/components/SiteChrome";
 import { CartProvider } from "@/components/CartProvider";
 import { WishlistProvider } from "@/components/WishlistProvider";

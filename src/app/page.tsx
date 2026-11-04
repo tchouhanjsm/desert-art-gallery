@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { TrustStrip } from "@/components/TrustStrip";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 import { getPublishedHomepageContent } from "@/lib/site-content";
@@ -39,6 +40,8 @@ export default async function HomePage() {
           <span>TEXTILES</span><i>✳</i><span>OBJECTS</span><i>✳</i><span>STORIES</span>
         </div>
       </section>
+
+      <TrustStrip />
 
       <div className="atelier-note-bar" aria-label="Gallery information">
         <span>BASED IN JAISALMER, RAJASTHAN</span>

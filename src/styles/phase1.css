@@ -1,0 +1,48 @@
+/* Phase 1 — impact layer. Loaded last; overrides theme.css without touching commerce logic. */
+:root{
+  --madder:#8f2f2a; --indigo:#1f2f4d; --turmeric:#d9a441; --cream:#fbf6ec;
+}
+/* Readability: raise the 7–10px metadata floor */
+.announcement{font-size:11px;letter-spacing:.14em;min-height:34px}
+.wordmark small{font-size:10px}
+.main-nav a{font-size:12px;letter-spacing:.12em}
+.section-kicker,.eyebrow{font-size:12px;letter-spacing:.16em}
+.button-primary,.button-outline{font-size:12px;min-height:50px}
+.text-link,.atelier-hero-secondary{font-size:12px}
+.atelier-product-meta p{font-size:13px}
+.atelier-product-action{font-size:11px}
+.atelier-product-category,.product-category{font-size:11px}
+.footer-main nav a,.footer-email{font-size:14px}
+.footer-main h4,.footer-bottom,.footer-brand>span{font-size:11px}
+.atelier-note-bar{font-size:11px}
+/* Slimmer sticky chrome */
+.utility-row{min-height:68px}
+.main-nav{min-height:40px;padding-bottom:8px}
+/* Hero: let the colour through */
+.hero--atelier .hero-image{opacity:1!important;filter:none!important}
+.hero--atelier::after{background:linear-gradient(90deg,rgba(20,16,13,.72) 0%,rgba(20,16,13,.38) 45%,rgba(20,16,13,0) 80%)!important}
+.atelier-hero-art{background:
+  radial-gradient(circle at 78% 30%,rgba(217,164,65,.45),transparent 42%),
+  linear-gradient(135deg,var(--madder),var(--indigo))!important}
+.atelier-hero-content h1{font-size:clamp(48px,8.4vw,112px);line-height:.92}
+.atelier-hero-content>p{font-size:clamp(16px,1.6vw,19px);max-width:540px}
+.hero--atelier .button-primary{background:var(--turmeric);border-color:var(--turmeric);color:#1b1511;min-height:56px;padding:16px 30px;font-size:13px}
+.hero--atelier .button-primary:hover{background:#f0bd5a;border-color:#f0bd5a}
+/* Trust strip */
+.trust-strip{display:grid;grid-template-columns:repeat(4,1fr);background:var(--cream);border-bottom:1px solid var(--atelier-line)}
+.trust-strip>div{display:flex;align-items:center;gap:12px;padding:18px clamp(14px,2vw,28px);border-right:1px solid var(--atelier-line);font-size:13px;line-height:1.35;color:var(--atelier-ink)}
+.trust-strip>div:last-child{border-right:0}
+.trust-strip svg{flex:none;color:var(--madder)}
+.trust-strip b{display:block;font-weight:600}
+.trust-strip span{color:var(--atelier-muted);font-size:12px}
+@media(max-width:760px){.trust-strip{grid-template-columns:1fr 1fr}.trust-strip>div{border-bottom:1px solid var(--atelier-line)}}
+/* Product card: richer hover, always-visible CTA */
+.atelier-product-card{transition:transform .35s cubic-bezier(.2,.65,.25,1)}
+.atelier-product-card:hover{transform:translateY(-4px)}
+.atelier-product-card:hover .atelier-product-media{box-shadow:var(--atelier-shadow)}
+.atelier-product-action{display:inline-block;padding:9px 14px;background:var(--atelier-ink);color:#fff!important}
+.atelier-product-card:hover .atelier-product-action{background:var(--madder)}
+/* Colour sections */
+.atelier-story{background:linear-gradient(135deg,var(--indigo),#14203a)!important}
+.atelier-contact{background:var(--madder)!important;color:#fff}
+.atelier-contact h2 em,.atelier-contact .section-kicker{color:var(--turmeric)!important}
