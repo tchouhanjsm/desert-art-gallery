@@ -27,25 +27,25 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
           sizes="(max-width:700px) 90vw, 55vw"
         />
         {images.length > 1 && (
-          <div className="product-gallery-navigation" aria-label="商品画像の操作">
-            <button type="button" onClick={previous} aria-label="前の商品画像を見る">
+          <div className="product-gallery-navigation" aria-label="Product image navigation">
+            <button type="button" onClick={previous} aria-label="View previous product image">
               <ChevronLeft size={19} aria-hidden="true" />
             </button>
             <span aria-hidden="true">{String(activeIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}</span>
-            <button type="button" onClick={next} aria-label="次の商品画像を見る">
+            <button type="button" onClick={next} aria-label="View next product image">
               <ChevronRight size={19} aria-hidden="true" />
             </button>
           </div>
         )}
       </div>
       {images.length > 1 && (
-        <div className="product-gallery-thumbnails" role="group" aria-label="商品画像を選択する">
+        <div className="product-gallery-thumbnails" role="group" aria-label="Choose a product image">
           {images.map((image, index) => (
             <button
               className="product-gallery-thumb"
               type="button"
               key={image.id}
-              aria-label={"商品画像 " + (index + 1) + " / " + images.length}
+              aria-label={"Product image " + (index + 1) + " / " + images.length}
               aria-pressed={activeIndex === index}
               onClick={() => setActiveIndex(index)}
             >
@@ -61,7 +61,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
         </div>
       )}
       <span className="visually-hidden" aria-live="polite">
-        {activeIndex + 1}枚目 / 全{images.length}枚: {active.altText || title}
+        {activeIndex + 1} of {images.length} images: {active.altText || title}
       </span>
     </div>
   );
