@@ -1,4 +1,4 @@
-# Japan-first storefront quality gates
+# Japanese-Inspired English-Language Storefront Quality Gates
 
 **Source of truth:** [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md)  
 **Status:** Required before staging or release. A green CI workflow alone is not visual or merchant acceptance.
@@ -32,7 +32,7 @@ At minimum test:
 - 1280–1440 px laptop/desktop
 - 1600 px and wider desktop
 
-Use Japanese production-length strings, long English source product names, mixed Japanese/Latin, full-width punctuation, numerals, prices and long material descriptions. Verify line wrapping and kinsoku shori. Do not validate using only short English placeholders.
+Use realistic English production-length strings, long merchant-supplied product names, mixed-language source product details, numerals, prices and long material descriptions. Verify readable line wrapping at every required viewport. Do not use short placeholders as the only content test.
 
 ## 3. Visual and usability checks
 
@@ -40,12 +40,12 @@ Use Japanese production-length strings, long English source product names, mixed
 - [ ] Product/category discovery appears early; no tourism/hotel/destination-led hero or long introduction above shopping.
 - [ ] Search, navigation, category links, breadcrumbs, filters and sort are functional, discoverable and URL-stable.
 - [ ] Actual product names, prices, currencies, stock, options and images match their source records.
-- [ ] Price/tax labels do not claim JPY or tax inclusion until the merchant price/tax setup supports it.
+- [ ] Price and tax labels use the actual currency and approved tax configuration from merchant records; never convert to JPY or imply tax inclusion without evidence.
 - [ ] Shipping/returns/payment/legal content appears only when approved and implemented.
 - [ ] No fake reviews, popularity, best-seller markers, maker biographies, urgency or free-shipping claims.
 - [ ] Mobile two-column product cards remain large enough to assess textile detail.
 - [ ] Keyboard, focus-visible, touch-target, screen-reader announcement and reduced-motion behaviour work.
-- [ ] No horizontal overflow, clipped Japanese glyphs, broken images, console errors or dead links.
+- [ ] No horizontal overflow, clipped text, broken images, console errors or dead links.
 - [ ] Customer header/footer do not leak into admin/owner routes.
 
 ## 4. Image and media checks
@@ -84,7 +84,7 @@ Run the available browser/E2E suite as applicable and inspect migration/security
 Attach to the PR or release record:
 
 1. Route-by-route screenshots at the required breakpoints.
-2. Japanese copy and typography review notes, ideally by a native speaker.
+2. English UI copy and typography review notes; preserve merchant source-language content without machine translation.
 3. Accessibility/keyboard checklist and remediation.
 4. Lighthouse report and measured Core Web Vitals.
 5. Commerce regression results for cart, inventory, shipping/tax fail-closed behaviour and order-draft idempotency.
@@ -117,4 +117,4 @@ Start the local application first and ensure `/api/health` returns success. Set 
 
 CI runs the same matrix against a production build and uploads the capture set as a seven-day workflow artifact. The CI database is intentionally blank: product and collection routes may return 404, which is recorded as an expected data-empty outcome. That does not prove a real product page has passed visual review. The `/admin` route is unauthenticated and may redirect to owner login; the capture does not authenticate or test privileged workflows.
 
-Review every artifact manually. Automated captures do not provide pixel-diff baselines, screen-reader acceptance, native-speaker approval, complete keyboard testing, real merchant media validation or authenticated customer/owner UAT. Do not mark visual or production acceptance complete based on artifact generation alone.
+Review every artifact manually. Automated captures do not provide pixel-diff baselines, screen-reader acceptance, complete keyboard testing, real merchant media validation or authenticated customer/owner UAT. Do not mark visual or production acceptance complete based on artifact generation alone.
