@@ -108,7 +108,7 @@ describe("recovered product photo approval and staging", () => {
   });
 
   it("requires a stronger note for a product override not listed as a title candidate", () => {
-    const parsed = parseRecoveredPhotoApprovalCsv(csvRow({ candidate_product_ids: "", candidate_product_slugs: "" }));
+    const parsed = parseRecoveredPhotoApprovalCsv(csvRow({ candidate_product_ids: "", candidate_product_slugs: "", owner_note: "Reviewed photos." }));
     expect(validateRecoveredPhotoApprovalsAgainstCatalogue(parsed.approvals, [product()])).toContainEqual(
       expect.stringContaining("manual product overrides require"),
     );
