@@ -34,7 +34,7 @@ This application currently requires **Oracle MySQL 8.0.16 or newer**. It rejects
 - GoDaddy's published Web Hosting (cPanel) software list includes MySQL 5.6/5.7 and MariaDB 10.6, which do not meet this project's Oracle MySQL 8.0.16+ requirement. A GoDaddy VPS with Oracle MySQL 8, or a separate verified Oracle MySQL 8 service, is required for the current database contract.
 - Do not assume a product labelled "MySQL" is Oracle MySQL 8. Check the actual engine and version. Do not substitute MariaDB or switch database providers without explicit compatibility work.
 
-Next.js should run as a Node.js server, not a static export. The repository already contains `build` and `start` scripts. Use Node.js 22 LTS for the initial staging deployment unless the selected host requires a different supported version; verify it against the host's current runtime choices.
+Next.js should run as a Node.js server, not a static export. The repository already contains `build` and `start` scripts. Use Node.js 24 for the initial staging deployment where the selected host supports it, matching the current local Node major. Otherwise select a host-supported Node.js major compatible with Next.js 15 and use the same major for build and runtime.
 
 ## Required environment
 
