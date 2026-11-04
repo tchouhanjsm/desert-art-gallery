@@ -22,7 +22,8 @@
     "media:preview": "node --import=tsx scripts/preview-product-images.ts",
     "media:import": "node --env-file=.env --import=tsx scripts/import-product-images-to-mysql.ts",
     "media:download-etsy": "node --env-file=.env --import=tsx scripts/download-etsy-images.ts",
-    "media:map-recovered": "node --env-file=.env --import=tsx scripts/preview-recovered-product-mapping.ts"
+    "media:map-recovered": "node --env-file=.env --import=tsx scripts/preview-recovered-product-mapping.ts",
+    "media:audit-recovered": "node --env-file=.env --import=tsx scripts/audit-recovered-product-photos.ts"
   },
   "dependencies": {
     "next": "^15.1.6",

@@ -107,6 +107,27 @@ The preview is read-only. It does not read image bytes, calculate content hashes
 
 Keep the recovered originals untouched until the mapping report has been reviewed and a separate staging preview is clean. Never run the existing exact-slug media importer directly against the Etsy title-named recovery folders.
 
+## Deep audit and owner-review reports
+
+Run the full read-only audit before staging any recovered original photographs:
+
+~~~bash
+npm run media:audit-recovered
+~~~
+
+This command scans only the immediate files in each recovered product folder. It calculates SHA-256 checksums using streaming reads, detects JPEG/PNG/WebP/AVIF signatures, checks extension/MIME agreement, reports image dimensions when the format header exposes them, enforces the existing 12 MB intake limit, and detects byte-identical duplicates across products. It also reports unsupported files, empty folders, folders without supported photos, macOS metadata sidecars, nested directories, symbolic links and filesystem errors.
+
+It reads the local MySQL catalogue to produce a conservative folder-title mapping report. Matching remains normalized exact-title matching; no fuzzy matching, punctuation stripping or automatic product association is introduced. The report separately summarizes product statuses and source providers so a missing title match can be diagnosed without changing catalogue data.
+
+Three timestamped reports are written under `.local-data/recovery/reports/`:
+- `recovered-photo-audit-*.json`: complete audit, catalogue diagnostics, duplicate groups and mapping candidates.
+- `recovered-photo-inventory-*.csv`: per-file size, detected MIME, SHA-256, dimensions and validation issues.
+- `recovered-photo-mapping-review-*.csv`: candidate product IDs/slugs/titles and an explicit `NOT_REVIEWED` owner-decision column.
+
+The output directory is private and ignored by Git. Reports are created with exclusive file creation; a repeated run creates new timestamped reports rather than overwriting earlier evidence. The scan does not modify, rename, move or delete originals, write MySQL, create media rows, approve rights or publish products. Duplicate detection is diagnostic only: no duplicate is deleted or automatically excluded from a later owner-approved import.
+
+The recovered originals under `public/images/products/` are explicitly ignored by the repository-level `.gitignore`. Do not remove this rule or force-add the collection. Normalized importer-ready copies belong under `.local-data/imports/product-images/<verified-product-slug>/`, not in the public directory.
+
 ## Match and import into local MySQL
 
 After the Etsy listing CSV has been imported as draft products, run the database-aware preview:

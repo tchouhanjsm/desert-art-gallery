@@ -160,4 +160,18 @@ describe("recovered product folder mapping", () => {
     expect(inventory.productFolders[0].unsupportedFiles).toEqual(["notes.txt"]);
     expect(inventory.productFolders[0].nestedDirectories).toEqual(["nested"]);
   });
+
+  it("exports an owner-review CSV without approving or silently resolving any row", async () => {
+    const { recoveredProductMappingCsv } = await import("./recovered-product-folder-mapping");
+    const report = buildRecoveredProductMapping(
+      inventoryWith(["=HYPERLINK(\"https://example.invalid\")"]),
+      [],
+    );
+    const csv = recoveredProductMappingCsv(report);
+    expect(csv).toContain("\"NOT_REVIEWED\"");
+    expect(csv).toContain("\"' =HYPERLINK");
+    expect(report.mappings[0].manualReviewRequired).toBe(true);
+    expect(report.mappings[0].status).toBe("unmatched");
+  });
+
 });

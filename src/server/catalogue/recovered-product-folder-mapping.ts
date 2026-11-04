@@ -267,3 +267,36 @@ export function buildRecoveredProductMapping(
     mappings,
   };
 }
+
+export function recoveredProductMappingCsv(report: RecoveredProductMappingReport): string {
+  const columns = [
+    "recovered_folder",
+    "normalized_title",
+    "mapping_status",
+    "image_count",
+    "image_bytes",
+    "candidate_product_ids",
+    "candidate_product_slugs",
+    "candidate_product_titles",
+    "manual_review_required",
+    "owner_decision",
+  ];
+  const safe = (value: string) => /^[\s]*[=+\-@]/.test(value) ? "'" + value : value;
+  const cell = (value: string | number | boolean) => {
+    const text = safe(String(value));
+    return '"' + text.replace(/"/g, '""') + '"';
+  };
+  const rows = report.mappings.map((row) => [
+    row.folderName,
+    row.normalizedTitle,
+    row.status,
+    row.imageCount,
+    row.imageBytes,
+    row.candidateProducts.map((product) => product.id).join(";"),
+    row.candidateProducts.map((product) => product.slug).join(";"),
+    row.candidateProducts.map((product) => product.title).join(";"),
+    row.manualReviewRequired,
+    "NOT_REVIEWED",
+  ]);
+  return [columns, ...rows].map((row) => row.map((value) => cell(value)).join(",")).join("\\n") + "\\n";
+}
