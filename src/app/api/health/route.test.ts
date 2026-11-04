@@ -4,12 +4,17 @@ const databaseMocks = vi.hoisted(() => ({
   hasMySqlDatabase: vi.fn(),
   pingMySql: vi.fn(),
   query: vi.fn(),
+  validateMediaStorageConfiguration: vi.fn(),
 }));
 
 vi.mock("../../../server/db", () => ({
   hasMySqlDatabase: databaseMocks.hasMySqlDatabase,
   pingMySql: databaseMocks.pingMySql,
   getMySqlPool: () => ({ query: databaseMocks.query }),
+}));
+
+vi.mock("../../../server/media/object-storage", () => ({
+  validateMediaStorageConfiguration: databaseMocks.validateMediaStorageConfiguration,
 }));
 
 import { GET } from "./route";
@@ -20,6 +25,7 @@ describe("GET /api/health", () => {
     databaseMocks.hasMySqlDatabase.mockReturnValue(true);
     databaseMocks.pingMySql.mockResolvedValue(true);
     databaseMocks.query.mockResolvedValue([[{ migration_count: 3 }]]);
+    databaseMocks.validateMediaStorageConfiguration.mockReturnValue("local");
   });
 
   it("reports missing local database configuration without leaking environment details", async () => {
@@ -34,10 +40,34 @@ describe("GET /api/health", () => {
         application: "ok",
         database: "not_configured",
         migrations: "not_checked",
+        mediaStorage: "configured",
       },
     });
     expect(databaseMocks.pingMySql).not.toHaveBeenCalled();
     expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("blocks readiness when private media storage is misconfigured without leaking details", async () => {
+    databaseMocks.validateMediaStorageConfiguration.mockImplementation(() => {
+      throw new Error("s3 secret or endpoint must never be returned");
+    });
+
+    const response = await GET();
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload).toEqual({
+      status: "degraded",
+      checks: {
+        application: "ok",
+        database: "not_checked",
+        migrations: "not_checked",
+        mediaStorage: "misconfigured",
+      },
+    });
+    expect(JSON.stringify(payload)).not.toContain("s3 secret");
+    expect(databaseMocks.pingMySql).not.toHaveBeenCalled();
+    expect(databaseMocks.query).not.toHaveBeenCalled();
   });
 
   it("reports an unavailable local database", async () => {
@@ -63,6 +93,7 @@ describe("GET /api/health", () => {
         application: "ok",
         database: "connected",
         migrations: "applied",
+        mediaStorage: "configured",
       },
     });
   });
