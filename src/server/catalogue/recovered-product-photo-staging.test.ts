@@ -89,6 +89,18 @@ describe("recovered product photo approval and staging", () => {
     );
   });
 
+  it("rejects duplicate product assignment and misaligned candidate identifiers", () => {
+    const duplicateCsv = [
+      csvRow(),
+      csvRow({ recovered_folder: "Second Recovered Folder" }).split("\r\n")[1],
+    ].join("");
+    expect(() => parseRecoveredPhotoApprovalCsv(duplicateCsv)).toThrow(/more than one recovered folder/i);
+    expect(() => parseRecoveredPhotoApprovalCsv(csvRow({
+      candidate_product_ids: "product-12345678;product-87654321",
+      candidate_product_slugs: "banjara-jacket-123",
+    }))).toThrow(/not aligned/i);
+  });
+
   it("requires a stronger note for a product override not listed as a title candidate", () => {
     const parsed = parseRecoveredPhotoApprovalCsv(csvRow({ candidate_product_ids: "", candidate_product_slugs: "" }));
     expect(validateRecoveredPhotoApprovalsAgainstCatalogue(parsed.approvals, [product()])).toContainEqual(
