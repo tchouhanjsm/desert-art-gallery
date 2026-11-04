@@ -23,10 +23,6 @@ export default async function ShopPage() {
         <div className="section-kicker">DESERT ART GALLERY · ONLINE STORE</div>
         <h1>All products</h1>
         <p>Explore the pieces currently available in our online catalogue. Contact us with any questions about a listing, materials or specifications.</p>
-        <div className="atelier-heading-meta">
-          <span>All products</span>
-          <span>{products.length.toLocaleString("en-IN")} products available</span>
-        </div>
       </header>
       <Suspense fallback={<ShopBrowserFallback />}>
         <ShopBrowser products={products} />
