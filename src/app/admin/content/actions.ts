@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupportedImageSignature } from "@/lib/image-signature";
 import { hasMySqlDatabase } from "@/server/db";
@@ -82,6 +82,7 @@ function splitList(value: string) {
 }
 
 function revalidateEditorial() {
+  revalidateTag("storefront-collections");
   for (const path of ["/", "/shop", "/artisans", "/journal", "/admin", "/admin/content", "/admin/media"]) {
     revalidatePath(path);
   }

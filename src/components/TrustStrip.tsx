@@ -1,19 +1,21 @@
-import { MapPin, Hand, MessageCircle, Sparkles } from "lucide-react";
+import { MapPin, MessageCircle, PackageCheck } from "lucide-react";
 
-// Only facts the gallery has already stated. Add shipping/returns/authenticity
-// items here once the owner confirms the exact wording.
+// Keep reassurance grounded in information the gallery already publishes.
+// Shipping, returns, authenticity and review claims require separate owner approval.
 const items = [
   { icon: MapPin, title: "Based in Jaisalmer", text: "Rajasthan, India" },
-  { icon: Hand, title: "Handcrafted textiles", text: "Embroidery, zari & vintage" },
-  { icon: Sparkles, title: "Rare, one-of-a-kind", text: "Pieces with a past" },
-  { icon: MessageCircle, title: "Talk to the gallery", text: "Ask before you decide" },
+  { icon: PackageCheck, title: "Considered product details", text: "See the information supplied for each piece" },
+  { icon: MessageCircle, title: "Speak with the gallery", text: "Ask about a piece before you decide" },
 ];
 
 export function TrustStrip() {
   return (
-    <div className="trust-strip" aria-label="Why shop with us">
+    <div className="trust-strip" aria-label="Gallery information">
       {items.map(({ icon: Icon, title, text }) => (
-        <div key={title}><Icon size={22} aria-hidden="true" /><p style={{ margin: 0 }}><b>{title}</b><span>{text}</span></p></div>
+        <div key={title}>
+          <Icon size={22} aria-hidden="true" />
+          <p style={{ margin: 0 }}><b>{title}</b><span>{text}</span></p>
+        </div>
       ))}
     </div>
   );

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -47,7 +48,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
   return <article className="page-shell">
     <div className="breadcrumb"><Link href="/journal">JOURNAL</Link> / {post.category.toUpperCase()}</div>
     <div className="page-heading"><div className="section-kicker">{post.category}</div><h1>{post.title}</h1><p>{post.excerpt}</p></div>
-    {cover && <div className="journal-article-cover"><Image src={cover} alt={post.cover_image_alt?.trim() || post.title} fill sizes="100vw" unoptimized /></div>}
+    {cover && <div className="journal-article-cover"><Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={cover} alt={post.cover_image_alt?.trim() || post.title} fill sizes="100vw" /></div>}
     <div className="journal-body">{paragraphs.map((block, index) => {
       if (block.startsWith("## ")) return <h2 key={index}>{block.slice(3)}</h2>;
       if (block.startsWith("### ")) return <h3 key={index}>{block.slice(4)}</h3>;

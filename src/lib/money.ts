@@ -1,10 +1,19 @@
+export function amountInMajorUnits(amountMinor: number, currency: string): number {
+  try {
+    const fractionDigits = new Intl.NumberFormat("en", { style: "currency", currency })
+      .resolvedOptions().maximumFractionDigits ?? 2;
+    return amountMinor / (10 ** fractionDigits);
+  } catch {
+    // A malformed ISO currency is blocked before publication; retain a safe display fallback.
+    return amountMinor / 100;
+  }
+}
+
 export function formatMoneyFromMinor(amountMinor: number, currency: string) {
   try {
-    const formatter = new Intl.NumberFormat("en", { style: "currency", currency });
-    const fractionDigits = formatter.resolvedOptions().maximumFractionDigits ?? 2;
-    return formatter.format(amountMinor / (10 ** fractionDigits));
+    return new Intl.NumberFormat("en", { style: "currency", currency })
+      .format(amountInMajorUnits(amountMinor, currency));
   } catch {
-    // A malformed ISO currency must not crash the product page; admin validation blocks publication.
     return `${currency.toUpperCase()} ${(amountMinor / 100).toFixed(2)}`;
   }
 }

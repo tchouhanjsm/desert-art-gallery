@@ -1,0 +1,36 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "http://127.0.0.1:4173/",
+        "http://127.0.0.1:4173/shop"
+      ],
+      "numberOfRuns": 1,
+      "startServerCommand": "npm run start -- --hostname 127.0.0.1 --port 4173",
+      "startServerReadyPattern": "Ready",
+      "startServerReadyTimeout": 30000,
+      "settings": {
+        "formFactor": "mobile",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 390,
+          "height": 844,
+          "deviceScaleFactor": 1,
+          "disabled": false
+        },
+        "throttlingMethod": "simulate",
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.8 }],
+        "largest-contentful-paint": ["warn", { "maxNumericValue": 2500 }]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci"
+    }
+  }
+}

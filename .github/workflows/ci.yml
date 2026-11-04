@@ -69,6 +69,18 @@ jobs:
         run: npm run lint
       - name: Production build
         run: npm run build
+      - name: Set up Chrome for Lighthouse
+        uses: browser-actions/setup-chrome@v1
+      - name: Lighthouse mobile performance budget
+        run: npx --yes @lhci/cli@0.14.0 autorun --config=.lighthouserc.json
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-mobile-${{ github.sha }}
+          path: .lighthouseci
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Package self-hosted staging artifact
         shell: bash
         run: |

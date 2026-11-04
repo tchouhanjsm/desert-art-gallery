@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStorefrontProduct } from "@/lib/catalogue";
 import { products, type ProductImage } from "@/lib/products";
-import { formatMoneyFromMinor } from "@/lib/money";
+import { amountInMajorUnits, formatMoneyFromMinor } from "@/lib/money";
 import { formatProductMeasurements } from "@/lib/product-details";
 import { buildProductEnquiryHref } from "@/lib/product-enquiry";
 import type { Metadata } from "next";
@@ -76,7 +76,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       offers: {
         "@type": "Offer",
         priceCurrency: product.currency,
-        price: (resolvedVariantPrices[0] ?? product.priceMinor) / 100,
+        price: amountInMajorUnits(resolvedVariantPrices[0] ?? product.priceMinor, product.currency),
         availability: hasAvailableStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
         url: new URL("/products/" + product.slug, siteUrl).toString(),
       },
@@ -162,10 +162,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <>
             {product.description && <p className="product-long-description">{product.description}</p>}
             <div className="product-accordion">
-              {materials.length > 0 && <details open><summary>Materials</summary><p>{materials.join(", ")}</p></details>}
-              {sizes.length > 0 && <details open><summary>Sizes</summary><p>{sizes.join(", ")}</p></details>}
+              {materials.length > 0 && <details><summary>Materials</summary><p>{materials.join(", ")}</p></details>}
+              {sizes.length > 0 && <details><summary>Sizes</summary><p>{sizes.join(", ")}</p></details>}
               {measurements.length > 0 && (
-                <details open><summary>Measurements</summary>
+                <details><summary>Measurements</summary>
                   <dl className="product-measurements">
                     {measurements.map((measurement) => (
                       <div key={measurement.label}><dt>{measurement.label}</dt><dd>{measurement.value}</dd></div>
@@ -173,16 +173,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   </dl>
                 </details>
               )}
-              {product.conditionNotes && <details open><summary>Condition notes</summary><p>{product.conditionNotes}</p></details>}
-              {product.provenance && <details open><summary>Provenance</summary><p>{product.provenance}</p></details>}
+              {product.conditionNotes && <details><summary>Condition notes</summary><p>{product.conditionNotes}</p></details>}
+              {product.provenance && <details><summary>Provenance</summary><p>{product.provenance}</p></details>}
               {product.craftStory && <details><summary>Additional story</summary><p>{product.craftStory}</p></details>}
-            </div></dd>
-                </div>
-              )}
-              {product.conditionNotes && <div><dt>Condition notes</dt><dd>{product.conditionNotes}</dd></div>}
-              {product.provenance && <div><dt>Provenance</dt><dd>{product.provenance}</dd></div>}
-              {product.craftStory && <div><dt>Additional story</dt><dd>{product.craftStory}</dd></div>}
-            </dl>
+            </div>
           </>
         ) : (
           <div className="atelier-product-details-pending">

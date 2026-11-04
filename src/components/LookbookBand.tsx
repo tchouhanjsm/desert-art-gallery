@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { isRemoteImage } from "@/lib/image";
+import { galleryBlurDataUrl } from "@/lib/image";
 import type { Product } from "@/lib/products";
 
 /** Editorial lookbook: an asymmetric mosaic of real published pieces. Hidden until
@@ -17,7 +17,7 @@ export function LookbookBand({ products }: { products: Product[] }) {
       <div className="lookbook-grid">
         {real.map((p, i) => (
           <Link key={p.slug} href={"/products/" + p.slug} className={"lookbook-tile lookbook-tile-" + (i + 1)}>
-            <Image src={p.image} alt={p.imageAlt} fill sizes="(max-width:760px) 100vw, 40vw" unoptimized={isRemoteImage(p.image)} />
+            <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={p.image} alt={p.imageAlt} fill sizes="(max-width:760px) 100vw, 40vw" />
             <span className="lookbook-caption"><b>{p.name}</b><i>{p.category}</i></span>
           </Link>
         ))}

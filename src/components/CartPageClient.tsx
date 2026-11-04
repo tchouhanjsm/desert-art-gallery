@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { useCart } from "@/components/CartProvider";
@@ -20,7 +21,7 @@ export function CartPageClient() {
       {isLoading && <p className="cart-state">Refreshing current product and stock details…</p>}
       {error && <p className="cart-error" role="status">{error}</p>}
       {preview.map((item) => <article className="cart-page-line" key={cartLineKey(item.slug, item.variantId ?? undefined)}>
-        {item.image ? <Image src={item.image} alt={item.imageAlt} width={160} height={210} unoptimized /> : <div className="cart-line-placeholder" />}
+        {item.image ? <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={item.image} alt={item.imageAlt} width={160} height={210} /> : <div className="cart-line-placeholder" />}
         <div className="cart-line-details"><div className="section-kicker">DESERT ART GALLERY</div><h2>{item.name}</h2>
           <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price unavailable"}</p>
           {item.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}

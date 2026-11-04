@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { galleryBlurDataUrl } from "@/lib/image";
 import { LookbookBand } from "@/components/LookbookBand";
 import { TrustStrip } from "@/components/TrustStrip";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
@@ -17,7 +18,7 @@ export default async function HomePage() {
     <div className="atelier-home">
       <section className="hero hero--atelier">
         {homeContent?.heroImage ? (
-          <Image className="hero-image" src={homeContent.heroImage} alt={homeContent.heroImageAlt} fill priority unoptimized sizes="100vw" />
+          <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} className="hero-image" src={homeContent.heroImage} alt={homeContent.heroImageAlt} fill priority sizes="100vw" />
         ) : (
           <div className="atelier-hero-art" aria-hidden="true">
             <span className="atelier-hero-art-mark">DAG</span>
@@ -89,7 +90,7 @@ export default async function HomePage() {
                       <span>0{index + 1}</span><strong>{item.name}</strong><i>GALLERY COLLECTION</i>
                     </div>
                   ) : (
-                    <Image src={item.image} alt={item.imageAlt || item.name} fill sizes="(max-width: 760px) 75vw, 25vw" unoptimized />
+                    <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={item.image} alt={item.imageAlt || item.name} fill sizes="(max-width: 760px) 75vw, 25vw" />
                   )}
                   <span className="atelier-collection-arrow" aria-hidden="true">↗</span>
                 </div>

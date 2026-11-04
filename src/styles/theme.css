@@ -24,6 +24,8 @@
 
 html { background: var(--atelier-ivory); scroll-padding-top: 130px; }
 body {
+  --atelier-display: var(--font-display, "Cormorant Garamond Variable", Georgia, serif);
+  --atelier-body: var(--font-body, "DM Sans Variable", Arial, sans-serif);
   background: var(--atelier-ivory);
   color: var(--atelier-ink);
   font-family: var(--atelier-body);

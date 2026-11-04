@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatMoneyFromMinor } from "@/lib/money";
@@ -31,7 +32,7 @@ export function WishlistPageClient() {
     {loading && <p className="cart-state">Refreshing saved pieces…</p>}
     <div className="wishlist-grid">{items.map((item) => <article className="wishlist-card" key={item.slug}>
       <Link href={"/products/" + item.slug}>
-        {item.image ? <Image src={item.image} alt={item.imageAlt} width={500} height={620} unoptimized /> : <div className="wishlist-placeholder" />}
+        {item.image ? <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={item.image} alt={item.imageAlt} width={500} height={620} /> : <div className="wishlist-placeholder" />}
         <div className="product-category">DESERT ART GALLERY</div><h2>{item.name}</h2>
         <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price on enquiry"}</p>
       </Link>
