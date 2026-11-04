@@ -9,15 +9,15 @@ export default function StoryPage() {
   return (
     <div className="atelier-story-page">
       <header className="atelier-story-masthead">
-        <div className="section-kicker">DESERT ART GALLERY · JAISALMER</div>
+        <div className="section-kicker">ジャイサルメール · ラージャスターン州</div>
         <h1>テキスタイルと品物、<br /><em>その背景。</em></h1>
         <p>ラージャスターン州ジャイサルメールから。</p>
       </header>
 
       <figure className="atelier-story-visual">
-        <div className="atelier-story-visual-art" role="img" aria-label="Textile-inspired geometric design study, not a product photograph">
+        <div className="atelier-story-visual-art" role="img" aria-label="テキスタイルをイメージした幾何学模様のデザインです。商品写真ではありません。">
           <span className="atelier-story-visual-monogram">DAG</span>
-          <span className="atelier-story-visual-caption">MATERIAL · MEMORY · MAKING</span>
+          <span className="atelier-story-visual-caption">素材 · 記憶 · 手仕事</span>
         </div>
         <figcaption><span>デザインスタディ · テキスタイルパターン</span><span>ギャラリーのオリジナル写真は準備中</span></figcaption>
       </figure>
