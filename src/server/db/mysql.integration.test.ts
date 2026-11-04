@@ -12,6 +12,7 @@ import {
   releaseVariantStockReservation, consumeVariantStockReservation, adjustVariantInventory,
 } from "../catalogue/inventory";
 import { commitLocalCatalogueCsv, previewLocalCatalogueCsv } from "../catalogue/import-csv";
+import { getMySqlAdminDashboard } from "../admin/mysql-dashboard";
 import {
   commitLocalProductImages,
   previewLocalProductImageImport,
@@ -121,6 +122,72 @@ suite("real MySQL migration and catalogue integration", () => {
     const rows = await db.select().from(siteContent).where(eq(siteContent.id, id));
     expect(rows).toHaveLength(0);
   }, 30_000);
+
+  it("builds the MySQL admin dashboard from catalogue, media and variant inventory records", async () => {
+    const db = getMySqlDb();
+    const before = await getMySqlAdminDashboard();
+    const publishedId = randomUUID();
+    const draftId = randomUUID();
+    const variantId = randomUUID();
+    const mediaId = randomUUID();
+    const storageKey = "products/" + publishedId + "/" + randomUUID() + ".jpg";
+
+    try {
+      await db.insert(products).values([
+        {
+          id: publishedId,
+          title: "Dashboard low stock integration",
+          slug: "dashboard-low-stock-" + publishedId,
+          currency: "USD",
+          priceMinor: 1500,
+          status: "published",
+        },
+        {
+          id: draftId,
+          title: "Dashboard draft integration",
+          slug: "dashboard-draft-" + draftId,
+          currency: "USD",
+          priceMinor: 2500,
+          status: "draft",
+        },
+      ]);
+      await db.insert(productVariants).values({
+        id: variantId,
+        productId: publishedId,
+        sku: "DASH-" + variantId.slice(0, 8),
+        label: "One size",
+        attributes: {},
+        currency: "USD",
+        stockQuantity: 2,
+        isActive: true,
+      });
+      await db.insert(productMedia).values({
+        id: mediaId,
+        productId: publishedId,
+        storageKey,
+        altText: "Dashboard integration photograph",
+        rightsConfirmed: false,
+        rightsEvidence: "",
+        mimeType: "image/jpeg",
+        byteSize: 128,
+        position: 0,
+        isPrimary: true,
+      });
+
+      const dashboard = await getMySqlAdminDashboard();
+      expect(dashboard.totalProducts).toBe(before.totalProducts + 2);
+      expect(dashboard.publishedProducts).toBe(before.publishedProducts + 1);
+      expect(dashboard.draftProducts).toBe(before.draftProducts + 1);
+      expect(dashboard.totalProductImages).toBe(before.totalProductImages + 1);
+      expect(dashboard.imagesAwaitingRights).toBe(before.imagesAwaitingRights + 1);
+      expect(dashboard.recentProducts.some((product) => product.id === publishedId)).toBe(true);
+      expect(dashboard.lowStockProducts.some((product) => product.id === publishedId && product.stockQuantity === 2)).toBe(true);
+    } finally {
+      await db.delete(productMedia).where(eq(productMedia.id, mediaId));
+      await db.delete(productVariants).where(eq(productVariants.id, variantId));
+      await db.delete(products).where(inArray(products.id, [publishedId, draftId]));
+    }
+  }, 45_000);
 
   it("enforces real media rights, MIME type and size constraints", async () => {
     const db = getMySqlDb();
