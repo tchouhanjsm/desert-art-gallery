@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Typecheck, tests, lint and production build
+    name: Typecheck, tests, lint, build and staging artifact
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -42,6 +42,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Restore npm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-node22-${{ hashFiles('package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-node22-
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Wait for MySQL
@@ -62,3 +69,22 @@ jobs:
         run: npm run lint
       - name: Production build
         run: npm run build
+      - name: Package self-hosted staging artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .release/standalone/.next
+          cp -R .next/standalone/. .release/standalone/
+          mkdir -p .release/standalone/.next/static
+          cp -R .next/static/. .release/standalone/.next/static/
+          mkdir -p .release/standalone/public
+          if [ -d public ]; then cp -R public/. .release/standalone/public/; fi
+          printf 'commit=%s\n' "$GITHUB_SHA" > .release/standalone/BUILD_INFO.txt
+          tar -czf desert-art-gallery-staging.tar.gz -C .release/standalone .
+      - name: Upload staging artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desert-art-gallery-staging-${{ github.sha }}
+          path: desert-art-gallery-staging.tar.gz
+          if-no-files-found: error
+          retention-days: 7
