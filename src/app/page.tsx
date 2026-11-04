@@ -1,173 +1,135 @@
 import Link from "next/link";
 import Image from "next/image";
-import { galleryBlurDataUrl } from "@/lib/image";
-import { LookbookBand } from "@/components/LookbookBand";
-import { TrustStrip } from "@/components/TrustStrip";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
-import { getPublishedHomepageContent } from "@/lib/site-content";
+
+export const metadata = {
+  title: "ラージャスターンのテキスタイルと手仕事",
+  description: "Desert Art Galleryのオンラインストア。インド・ラージャスターン州ジャイサルメールから、テキスタイルと手仕事の品をご紹介します。",
+};
 
 export default async function HomePage() {
-  const [collections, products, homeContent] = await Promise.all([
+  const [collections, products] = await Promise.all([
     getStorefrontCollections(),
     getStorefrontProducts(),
-    getPublishedHomepageContent(),
   ]);
+  const heroProduct = products[0] ?? null;
 
   return (
-    <div className="atelier-home">
-      <section className="hero hero--atelier">
-        {homeContent?.heroImage ? (
-          <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} className="hero-image" src={homeContent.heroImage} alt={homeContent.heroImageAlt} fill priority sizes="100vw" />
-        ) : (
-          <div className="atelier-hero-art" aria-hidden="true">
-            <span className="atelier-hero-art-mark">DAG</span>
-            <span className="atelier-hero-art-caption">DESERT / 26</span>
+    <div className="jp-home">
+      <section className="jp-home-hero" aria-labelledby="home-heading">
+        <div className="jp-home-hero-copy">
+          <div className="jp-home-hero-kicker">DESERT ART GALLERY · JAISALMER, RAJASTHAN</div>
+          <h1 id="home-heading">テキスタイルと手仕事を、<em>日々の暮らしへ。</em></h1>
+          <p>
+            インド・ラージャスターン州ジャイサルメールを拠点に、
+            一点ずつの表情や素材感を大切にしながら、暮らしの中で楽しめる品をご紹介します。
+          </p>
+          <div className="jp-home-hero-actions">
+            <Link className="button-primary" href="/shop">商品を見る</Link>
+            <Link className="text-link" href="/story">ブランドについて</Link>
           </div>
-        )}
-        <div className="hero-content atelier-hero-content">
-          <div className="eyebrow">{homeContent?.eyebrow || "A CURATED GALLERY · JAISALMER, RAJASTHAN"}</div>
-          <h1>{homeContent?.lineOne || "Objects with"} <em>{homeContent?.accentOne || "stories."}</em><br />{homeContent?.lineTwo || "Textiles with"} <em>{homeContent?.accentTwo || "character."}</em></h1>
-          <p>{homeContent?.description || "Discover a considered collection of textiles and objects, presented with the detail and context each piece deserves."}</p>
-          <div className="atelier-hero-actions">
-            <Link className="button-primary" href="/shop">{homeContent?.primaryCtaLabel || "Explore the collection"}</Link>
-            <Link className="atelier-hero-secondary" href="/story">{homeContent?.secondaryCtaLabel || "Our story"}</Link>
-          </div>
-          <div className="atelier-hero-foot">
-            <span>DESERT ART GALLERY</span>
-            <span>JAISALMER · RAJASTHAN · INDIA</span>
-          </div>
+          <p className="jp-home-hero-note">掲載内容・写真・在庫情報を確認できた商品から順次ご案内しています。</p>
         </div>
-        <div className="atelier-hero-stamp" aria-hidden="true">
-          <span>TEXTILES</span><i>·</i><span>OBJECTS</span><i>·</i><span>STORIES</span>
+        <div className="jp-home-hero-media">
+          {heroProduct ? (
+            <Link href={"/products/" + heroProduct.slug} aria-label={heroProduct.name + " の商品ページを見る"}>
+              <Image
+                src={heroProduct.image}
+                alt={heroProduct.imageAlt || heroProduct.name}
+                fill
+                priority
+                sizes="(max-width: 760px) 100vw, 46vw"
+              />
+              <span className="jp-home-hero-product">
+                <small>オンラインストア掲載商品</small>
+                <strong>{heroProduct.name}</strong>
+              </span>
+            </Link>
+          ) : (
+            <div className="jp-home-hero-empty">
+              <span>ONLINE STORE · CATALOGUE IN PREPARATION</span>
+              <strong>商品写真と情報を確認しながら、オンラインストアを準備しています。</strong>
+              <small>確認済みの商品から順次公開します。</small>
+            </div>
+          )}
         </div>
       </section>
 
-      <TrustStrip />
-
-      <div className="atelier-note-bar" aria-label="Gallery information">
-        <span>BASED IN JAISALMER, RAJASTHAN</span>
-        <span>TEXTILES · OBJECTS · STORIES</span>
-        <Link href="/contact">SPEAK WITH THE GALLERY</Link>
-      </div>
-
-      <section className="atelier-intro">
-        <div className="atelier-intro-art">
-          <div className="atelier-intro-artwork" role="img" aria-label="Abstract textile-inspired design study, not a product photograph">
-            <span className="atelier-intro-artwork-mark">D</span>
-            <span className="atelier-intro-artwork-caption">MATERIAL STUDY / 01</span>
-          </div>
-          <span className="atelier-art-index">A DESIGN STUDY · NOT PRODUCT PHOTOGRAPHY</span>
-        </div>
-        <div className="atelier-intro-copy">
-          <div className="section-kicker">THE GALLERY&apos;S POINT OF VIEW</div>
-          <h2 className="section-title">A slower way to discover <em>objects.</em></h2>
-          <p>Based in Jaisalmer, Desert Art Gallery brings textiles and objects into focus through considered presentation, clear details and the stories that can be responsibly shared.</p>
-          <p>Every listing should help you understand the piece before you enquire. Where information is still being confirmed, we say so clearly.</p>
-          <Link className="text-link" href="/story">Discover the gallery</Link>
-        </div>
+      <section className="jp-home-utility-strip" aria-label="ご案内">
+        <div><span aria-hidden="true">01</span><div><b>商品情報を確認して掲載</b><small>確認できた情報をもとにご案内します。</small></div></div>
+        <div><span aria-hidden="true">02</span><div><b>写真と掲載許可を確認</b><small>確認が済んだ写真のみ公開します。</small></div></div>
+        <div><span aria-hidden="true">03</span><div><b>商品についてのお問い合わせ</b><small>気になる点は商品ごとにご相談ください。</small></div></div>
       </section>
 
       {collections.length > 0 && (
-        <section className="atelier-collections">
-          <div className="atelier-section-heading">
-            <div>
-              <div className="section-kicker">CURATED PATHS THROUGH THE GALLERY</div>
-              <h2 className="section-title">Find your <em>starting point.</em></h2>
+        <section className="jp-home-section jp-home-section--muted" aria-labelledby="collections-heading">
+          <div className="jp-home-section-inner">
+            <div className="jp-home-section-heading">
+              <div>
+                <div className="section-kicker">CURATED COLLECTIONS</div>
+                <h2 id="collections-heading" className="section-title">コレクションから探す</h2>
+              </div>
+              <Link href="/shop" className="text-link">すべての商品を見る</Link>
             </div>
-            <Link className="text-link" href="/shop">View all pieces</Link>
-          </div>
-          <div className="atelier-collection-grid">
-            {collections.slice(0, 4).map((item, index) => (
-              <Link
-                className={"atelier-collection-card atelier-collection-card-" + (index + 1)}
-                href={"/collections/" + item.slug}
-                key={item.slug}
-              >
-                <div className="atelier-collection-image">
-                  {item.image === "/images/textile-placeholder.svg" ? (
-                    <div className={"atelier-collection-placeholder atelier-collection-placeholder--" + (index + 1)} aria-hidden="true">
-                      <span>0{index + 1}</span><strong>{item.name}</strong><i>GALLERY COLLECTION</i>
-                    </div>
-                  ) : (
-                    <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={item.image} alt={item.imageAlt || item.name} fill sizes="(max-width: 760px) 75vw, 25vw" />
-                  )}
-                  <span className="atelier-collection-arrow" aria-hidden="true">↗</span>
-                </div>
-                <div className="atelier-collection-copy">
-                  <h3>{item.name}</h3>
-                  <p>{item.description}</p>
-                </div>
-              </Link>
-            ))}
+            <div className="jp-home-collection-grid">
+              {collections.slice(0, 4).map((collection) => (
+                <Link className="jp-home-collection-card" href={"/collections/" + collection.slug} key={collection.slug}>
+                  <div className="jp-home-collection-media">
+                    <Image
+                      src={collection.image}
+                      alt={collection.imageAlt || collection.name}
+                      fill
+                      sizes="(max-width: 760px) 46vw, 24vw"
+                    />
+                  </div>
+                  <h3>{collection.name}</h3>
+                  <p>{collection.description}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      <section className="atelier-featured">
-        <div className="atelier-section-heading atelier-featured-heading">
-          <div>
-            <div className="section-kicker">SELECTED FROM THE ONLINE CATALOGUE</div>
-            <h2 className="section-title">{products.length > 0 ? <>Pieces to <em>discover.</em></> : <>The catalogue is being <em>prepared.</em></>}</h2>
-            <p>{products.length > 0 ? "Explore the pieces currently published by the gallery." : "New pieces will appear as their descriptions and image permissions are confirmed."}</p>
+      <section className="jp-home-section" aria-labelledby="catalogue-heading">
+        <div className="jp-home-section-inner">
+          <div className="jp-home-section-heading">
+            <div>
+              <div className="section-kicker">THE ONLINE CATALOGUE</div>
+              <h2 id="catalogue-heading" className="section-title">オンラインストアの商品</h2>
+            </div>
+            {products.length > 0 && <Link href="/shop" className="text-link">商品をもっと見る</Link>}
           </div>
-          {products.length > 0 && <Link className="text-link" href="/shop">Browse the catalogue</Link>}
-        </div>
-        {products.length > 0 ? (
-          <div className="atelier-product-grid">
-            {products.slice(0, 8).map((product) => (
-              <StorefrontProductCard key={product.slug} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="atelier-empty-catalogue">
-            <span className="atelier-empty-mark" aria-hidden="true">✳</span>
-            <h3>A new collection is taking shape.</h3>
-            <p>Contact the gallery for current availability and product enquiries.</p>
-            <Link className="button-outline" href="/contact">Contact the gallery</Link>
-          </div>
-        )}
-      </section>
-
-      <LookbookBand products={products} />
-
-      <section className="atelier-story">
-        <div className="atelier-story-mark" aria-hidden="true">DAG<br /><span>JAISALMER</span></div>
-        <div className="atelier-story-copy">
-          <div className="section-kicker">A GALLERY ROOTED IN PLACE</div>
-          <h2 className="section-title">A place for <em>material,</em><br />meaning and discovery.</h2>
-          <p>Explore the gallery&apos;s approach to textiles, objects and the care taken when presenting the people and processes connected to them.</p>
-          <Link className="atelier-light-link" href="/story">Read our story</Link>
-        </div>
-        <div className="atelier-story-image" role="img" aria-label="Abstract gallery design study, not product photography">
-          <div className="atelier-story-image-art" aria-hidden="true"><span>D</span></div>
-          <span>DESIGN STUDY · ORIGINAL PHOTOGRAPHY TO FOLLOW</span>
+          {products.length > 0 ? (
+            <div className="jp-home-products">
+              {products.slice(0, 8).map((product) => (
+                <StorefrontProductCard key={product.slug} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="jp-home-empty">
+              <h3>商品を準備しています</h3>
+              <p>商品情報と写真の確認が済み次第、こちらに掲載します。現在の取り扱いについてはお問い合わせください。</p>
+              <Link href="/contact" className="button-outline">お問い合わせ</Link>
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="atelier-values" aria-label="Our approach">
-        <div className="atelier-value">
-          <span>01</span>
-          <h3>Clear details</h3>
-          <p>Product information is presented as it is supplied and verified.</p>
+      <section className="jp-home-story" aria-labelledby="home-story-heading">
+        <div className="jp-home-story-copy">
+          <div className="section-kicker">ABOUT DESERT ART GALLERY</div>
+          <h2 id="home-story-heading" className="section-title">品物の背景まで、<em>ていねいに。</em></h2>
+          <p>
+            Desert Art Galleryは、ラージャスターン州ジャイサルメールを拠点とするオンラインストアです。
+            商品そのものの魅力と、確認できる情報を大切にしてご紹介します。
+          </p>
+          <Link href="/story" className="text-link">私たちについて</Link>
         </div>
-        <div className="atelier-value">
-          <span>02</span>
-          <h3>Considered stories</h3>
-          <p>Images and personal stories are shared with appropriate permission.</p>
+        <div className="jp-home-story-art" role="img" aria-label="Desert Art Galleryのロゴを使ったデザインパネル">
+          <span>DAG</span>
         </div>
-        <div className="atelier-value">
-          <span>03</span>
-          <h3>Direct conversation</h3>
-          <p>Ask the gallery for clarification on a piece before making a decision.</p>
-        </div>
-      </section>
-
-      <section className="atelier-contact">
-        <div className="section-kicker">A QUESTION ABOUT A PIECE?</div>
-        <h2>Some things are better <em>discovered together.</em></h2>
-        <p>For product details, availability or delivery questions, start a conversation with the gallery.</p>
-        <Link className="button-primary" href="/contact">Contact the gallery</Link>
       </section>
     </div>
   );
