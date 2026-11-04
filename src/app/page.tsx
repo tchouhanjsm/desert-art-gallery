@@ -20,7 +20,7 @@ export default async function HomePage() {
     <div className="jp-home">
       <section className="jp-home-hero" aria-labelledby="home-heading">
         <div className="jp-home-hero-copy">
-          <div className="jp-home-hero-kicker">DESERT ART GALLERY · JAISALMER, RAJASTHAN</div>
+          <div className="jp-home-hero-kicker">ジャイサルメール · ラージャスターン州 · インド</div>
           <h1 id="home-heading">テキスタイルと手仕事を、<em>日々の暮らしへ。</em></h1>
           <p>
             インド・ラージャスターン州ジャイサルメールを拠点に、
@@ -49,7 +49,7 @@ export default async function HomePage() {
             </Link>
           ) : (
             <div className="jp-home-hero-empty">
-              <span>ONLINE STORE · CATALOGUE IN PREPARATION</span>
+              <span>オンラインストア · 商品情報を準備中</span>
               <strong>商品写真と情報を確認しながら、オンラインストアを準備しています。</strong>
               <small>確認済みの商品から順次公開します。</small>
             </div>
@@ -68,7 +68,7 @@ export default async function HomePage() {
           <div className="jp-home-section-inner">
             <div className="jp-home-section-heading">
               <div>
-                <div className="section-kicker">CURATED COLLECTIONS</div>
+                <div className="section-kicker">厳選コレクション</div>
                 <h2 id="collections-heading" className="section-title">コレクションから探す</h2>
               </div>
               <Link href="/shop" className="text-link">すべての商品を見る</Link>
@@ -97,7 +97,7 @@ export default async function HomePage() {
         <div className="jp-home-section-inner">
           <div className="jp-home-section-heading">
             <div>
-              <div className="section-kicker">THE ONLINE CATALOGUE</div>
+              <div className="section-kicker">オンラインカタログ</div>
               <h2 id="catalogue-heading" className="section-title">オンラインストアの商品</h2>
             </div>
             {products.length > 0 && <Link href="/shop" className="text-link">商品をもっと見る</Link>}
@@ -120,7 +120,7 @@ export default async function HomePage() {
 
       <section className="jp-home-story" aria-labelledby="home-story-heading">
         <div className="jp-home-story-copy">
-          <div className="section-kicker">ABOUT DESERT ART GALLERY</div>
+          <div className="section-kicker">Desert Art Galleryについて</div>
           <h2 id="home-story-heading" className="section-title">品物の背景まで、<em>ていねいに。</em></h2>
           <p>
             Desert Art Galleryは、ラージャスターン州ジャイサルメールを拠点とするオンラインストアです。
