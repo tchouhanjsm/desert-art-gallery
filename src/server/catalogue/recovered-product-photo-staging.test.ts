@@ -69,6 +69,12 @@ describe("recovered product photo approval and staging", () => {
     expect(parsed.pendingFolders).toBe(1);
   });
 
+  it("parses quoted commas and embedded newlines in owner review notes", () => {
+    const note = 'Reviewed "front, collar" and the full reverse side.\nConfirmed the product against the source listing.';
+    const parsed = parseRecoveredPhotoApprovalCsv(csvRow({ owner_note: note }));
+    expect(parsed.approvals[0]?.ownerNote).toBe(note);
+  });
+
   it("requires an owner note, exact product identifiers and an explicit primary image", () => {
     expect(() => parseRecoveredPhotoApprovalCsv(csvRow({ owner_note: "ok" }))).toThrow(/owner note/i);
     expect(() => parseRecoveredPhotoApprovalCsv(csvRow({ approved_product_slug: "../outside" }))).toThrow(/product slug/i);
