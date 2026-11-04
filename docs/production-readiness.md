@@ -257,3 +257,4 @@ Production activation requires merchant-authorized catalogue data and original p
 - Shipping, returns, privacy and terms carry visible draft notices. The privacy/terms pages explicitly state that they are not final legal notices; merchant identity, actual policies and jurisdictional review remain required.
 - Added guide and policy destinations to the Japanese footer. The mobile header no longer hides the account and wishlist links; source-level regression checks cover their availability.
 - Japanese copy is an initial translation for engineering review, not a native-speaker approval. Exact-head CI, browser visual QA, policy approval and accessibility testing remain outstanding.
+- Added a tablet footer breakpoint: the new five-column desktop information architecture collapses to a two-column grid below 1000px, with the brand block spanning the row. The existing narrower mobile breakpoint remains intact.

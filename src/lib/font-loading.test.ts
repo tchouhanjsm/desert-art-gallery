@@ -43,9 +43,14 @@ describe("Japanese storefront style isolation", () => {
 });
 
 
-describe("mobile customer account navigation", () => {
+describe("mobile customer navigation and footer layout", () => {
   it("keeps account and wishlist controls available in the compact header", () => {
     expect(japanStyles).not.toContain('.jp-utility-actions .icon-button[aria-label^="マイページ"]');
     expect(japanStyles).not.toContain(".jp-utility-actions .wishlist-link{ display:none");
+  });
+
+  it("collapses the five-column footer before tablet widths become cramped", () => {
+    expect(japanStyles).toContain("@media (max-width: 1000px)");
+    expect(japanStyles).toContain(".jp-storefront .jp-footer-main { grid-template-columns: repeat(2, minmax(0, 1fr)); }");
   });
 });

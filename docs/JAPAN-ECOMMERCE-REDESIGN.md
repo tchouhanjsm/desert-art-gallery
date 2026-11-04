@@ -1037,3 +1037,4 @@ These are source-export observations only. They do not mean the CSV was imported
 - Legal and merchant policy content remains expressly provisional. Privacy and terms notices do not claim a final legal operator, processor list, governing law, shipping promise, fee or returns entitlement. The missing Japanese legal seller disclosure is not fabricated.
 - Added footer links for shopping guide and policy pages. Account and wishlist header controls remain visible at mobile widths rather than being hidden.
 - Native-speaker Japanese copy review, merchant/legal approval, visual QA and CI validation remain release gates.
+- Footer layout now switches from five desktop columns to a two-column layout below 1000px, keeping the expanded Japanese guide/policy navigation readable on tablet widths.
