@@ -153,8 +153,8 @@ export function CheckoutForm({
         <h2>利用可能な配送方法</h2>
         {!currency && <p className="checkout-blocker">ご注文を続けるには、カート内の商品価格が同一通貨である必要があります。</p>}
         {matchingZones.length > 1 && <p className="checkout-blocker">この国に複数の配送地域が設定されています。設定が整理されるまで注文手続きはできません。</p>}
-        {currency && matchingZones.length === 0 && <p className="checkout-blocker">このお届け先を対象とする配送地域が設定されていません（{address.country_code || "このお届け先"}. 未確認の送料や配送日数は表示しません。</p>}
-        {currency && matchingZones.length === 1 && matchingRates.length === 0 && <p className="checkout-blocker">承認済みの送料設定がありません（{address.country_code || "このお届け先"} in {currency}. 未確認の送料や配送日数は表示しません。</p>}
+        {currency && matchingZones.length === 0 && <p className="checkout-blocker">配送先 {address.country_code || "未選択"} に対応する配送地域が設定されていません。未確認の送料や配送日数は表示しません。</p>}
+        {currency && matchingZones.length === 1 && matchingRates.length === 0 && <p className="checkout-blocker">配送先 {address.country_code || "未選択"}・通貨 {currency} に対応する承認済みの送料設定がありません。未確認の送料や配送日数は表示しません。</p>}
         {matchingRates.length > 0 && <label>配送方法
           <select value={effectiveRateId} onChange={(event) => setShippingRateId(event.target.value)} required>
             <option value="" disabled>配送方法を選択してください</option>
