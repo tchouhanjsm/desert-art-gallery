@@ -39,7 +39,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   return (
     <div className="page-shell atelier-page-shell">
       <header className="atelier-page-heading atelier-collection-heading">
-        <div className="section-kicker">COLLECTION</div>
+        <div className="section-kicker">コレクション</div>
         <h1>{collection.name}<em>.</em></h1>
         <p>{collection.description}</p>
         <Link className="text-link" href="/shop">すべての商品を見る</Link>
