@@ -303,8 +303,8 @@ export const catalogueImportBatches = mysqlTable("catalogue_import_batches", {
 }, (table) => [
   uniqueIndex("catalogue_import_batches_source_sha_uq").on(table.sourceSha256),
   index("catalogue_import_batches_created_idx").on(table.createdAt),
-  check("catalogue_import_batches_row_count_check", sql`${table.rowCount} BETWEEN 1 AND 500`),
-  check("catalogue_import_batches_products_check", sql`${table.productsCreated} BETWEEN 1 AND 500`),
+  check("catalogue_import_batches_row_count_check", sql`${table.rowCount} BETWEEN 1 AND 1000`),
+  check("catalogue_import_batches_products_check", sql`${table.productsCreated} BETWEEN 1 AND 1000`),
 ]);
 
 
