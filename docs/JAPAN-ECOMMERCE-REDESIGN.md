@@ -1069,3 +1069,10 @@ These are source-export observations only. They do not mean the CSV was imported
 - Translated the legacy customer order-detail unpaid-draft warning and its expiry fallback; it explicitly states that no payment was requested or received.
 - Localised design-study accessibility text, brand tagline and footer location. Merchant-source product names/descriptions, categories, collection names and artisan details remain unchanged pending owner-approved Japanese equivalents.
 - Added source-level regression assertions in `src/lib/japanese-copy-contract.test.ts`. These assertions do not replace native-speaker review or browser accessibility testing.
+
+
+## CI and regression-test addendum — 2026-11-04
+
+- Run #343 at `73237825b157e9152960921178df79259541adc9` passed MySQL setup/migrations and TypeScript typecheck. Its test step reported 5 stale contract failures and 299 passes out of 304 tests.
+- Corrected the stale assumptions: Japanese storefront fonts use the local/system fallback stack (not layout imports of the retired Latin font packages); support pages are generated from the enumerated `[slug]` route registry; and accessibility, unpaid-order and product-information text is tested in Japanese.
+- Lint, production build, Lighthouse and staging artifact generation did not run in #343 because the test step failed. A new exact-head workflow run is required before these gates can be marked green.
