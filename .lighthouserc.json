@@ -6,7 +6,7 @@
         "http://127.0.0.1:4173/shop"
       ],
       "numberOfRuns": 1,
-      "startServerCommand": "npm run start -- --hostname 127.0.0.1 --port 4173",
+      "startServerCommand": "NODE_ENV=production npm run start -- --hostname 127.0.0.1 --port 4173",
       "startServerReadyPattern": "Ready",
       "startServerReadyTimeout": 30000,
       "settings": {
