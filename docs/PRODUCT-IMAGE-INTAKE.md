@@ -107,6 +107,28 @@ The preview is read-only. It does not read image bytes, calculate content hashes
 
 Keep the recovered originals untouched until the mapping report has been reviewed and a separate staging preview is clean. Never run the existing exact-slug media importer directly against the Etsy title-named recovery folders.
 
+## Owner-approved recovery staging
+
+The audit's mapping-review CSV includes four empty owner fields: `approved_product_id`, `approved_product_slug`, `primary_image_filename` and `owner_note`. Review the original folder visually, choose the actual draft product and select the correct primary image. Then set `owner_decision` to exactly `APPROVED`. Keep other rows as `NOT_REVIEWED`, `HOLD` or `REJECTED`. A manual override outside the exact-title candidate list needs a detailed owner note.
+
+Generate a read-only staging preview using the edited mapping CSV:
+
+~~~bash
+npm run media:stage-recovered -- ./.local-data/recovery/reports/recovered-photo-mapping-review-YYYY-MM-DD.csv
+~~~
+
+The preview validates that every approved product ID and slug identify the same existing Etsy draft in the configured local MySQL catalogue. It validates the selected primary image, every file signature and extension, the 12 MB limit, source image count, path safety and destination conflicts. Secondary images are assigned deterministic detail filenames in lexical filename order. Nothing is written during preview.
+
+After reviewing the complete preview, copy the approved originals into private importer-compatible folders with the explicit confirmation:
+
+~~~bash
+npm run media:stage-recovered -- ./.local-data/recovery/reports/recovered-photo-mapping-review-YYYY-MM-DD.csv --commit --confirm-recovered-photo-staging
+~~~
+
+This operation **copies** files; it never renames, moves, deletes or edits the originals under `public/images/products/`. It writes only under `.local-data/imports/product-images/<verified-product-slug>/`, refuses to overwrite different existing files, verifies copied SHA-256 hashes, and rolls back files created in the current batch if a later copy fails. Re-running identical staging is idempotent.
+
+Staging does not write MySQL, attach media records, approve image rights, update product data or publish products. Once copies have been staged, run `npm run media:import` to inspect the existing exact-slug private-media import preview. Keep the separate explicit media-import confirmation for the later database/media operation.
+
 ## Diagnose the MySQL catalogue before photo mapping
 
 The recovered-photo audit requires a non-empty local MySQL product catalogue. Before trying to resolve unmatched folders, run:
