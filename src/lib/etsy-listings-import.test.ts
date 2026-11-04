@@ -86,4 +86,32 @@ describe("native Etsy listing export parser", () => {
     expect(result.rows[0].warnings.join(" ")).toContain("purchasable variants");
     expect(result.rows[0].quantity_on_hand).toBe(1);
   });
+
+  it("accepts the supplied 527-listing export size while retaining the 1,000-row ceiling", () => {
+    const rows = Array.from({ length: 527 }, (_, index) => {
+      const number = index + 1;
+      return [
+        "Recovered textile listing " + number,
+        "Verified listing description " + number,
+        "10.00",
+        "USD",
+        "1",
+        "heritage textile",
+        "Cotton",
+        "https://i.etsystatic.com/22307146/" + number + ".jpg",
+        "",
+        "SKU-" + number,
+        "",
+        "",
+        "",
+      ];
+    });
+    const source = csv(rows);
+    expect(isEtsyListingsCsv(source)).toBe(true);
+    const result = parseEtsyListingsCsv(source);
+    expect(result.errors).toEqual([]);
+    expect(result.rows).toHaveLength(527);
+    expect(result.rows.every((row) => row.errors.length === 0)).toBe(true);
+    expect(new Set(result.rows.map((row) => row.slug)).size).toBe(527);
+  });
 });
