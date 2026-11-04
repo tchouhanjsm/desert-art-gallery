@@ -9,7 +9,7 @@ function healthResponse(
   status: "ok" | "degraded",
   checks: {
     application: "ok";
-    database: "connected" | "not_configured" | "unavailable";
+    database: "connected" | "not_configured" | "unavailable" | "not_checked";
     migrations: "applied" | "pending" | "not_checked";
     mediaStorage: "configured" | "misconfigured";
   },
@@ -35,7 +35,7 @@ export async function GET() {
   if (mediaStorage === "misconfigured") {
     return healthResponse("degraded", {
       application: "ok",
-      database: hasMySqlDatabase() ? "unavailable" : "not_configured",
+      database: hasMySqlDatabase() ? "not_checked" : "not_configured",
       migrations: "not_checked",
       mediaStorage,
     }, 503);
