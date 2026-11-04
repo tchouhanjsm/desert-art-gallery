@@ -24,6 +24,8 @@ The private workspace reserves .local-data/mysql for a dedicated local MySQL dat
 
 ## Product photography intake
 
+Recovered originals are kept out of Git and staged only after explicit owner approval. The read-only mapping review can be turned into private importer-compatible copies with `npm run media:stage-recovered`; it never modifies the recovered originals or writes product-media rows. See docs/PRODUCT-IMAGE-INTAKE.md.
+
 Place authorized original photographs under .local-data/imports/product-images/<verified-product-slug>/ and run npm run media:preview. The read-only preview checks filenames, supported image signatures, size and sequence rules. It does not upload or publish photos. See docs/PRODUCT-IMAGE-INTAKE.md.
 
 ## Site URL and contact identity
