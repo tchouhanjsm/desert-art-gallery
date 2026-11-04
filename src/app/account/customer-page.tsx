@@ -11,6 +11,21 @@ import {
   updateLocalCustomerProfile,
 } from "./mysql-actions";
 
+function formatOrderStatus(status: string) {
+  const labels: Record<string, string> = {
+    draft: "注文案",
+    pending_payment: "お支払い待ち",
+    paid: "お支払い済み",
+    processing: "準備中",
+    shipped: "発送済み",
+    delivered: "お届け済み",
+    cancelled: "キャンセル",
+    refunded: "返金済み",
+    expired: "期限切れ",
+  };
+  return labels[status] ?? "注文状況を確認中";
+}
+
 export async function CustomerAccountPage() {
   const customer = await getCurrentCustomer();
   if (!customer) redirect("/login");
@@ -50,7 +65,7 @@ export async function CustomerAccountPage() {
               <label>都道府県・州・地域<input name="region" defaultValue={address.region} maxLength={120} /></label>
               <label>郵便番号<input name="postal_code" defaultValue={address.postalCode} required maxLength={24} /></label>
               <label>国コード<input name="country_code" defaultValue={address.countryCode} required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
-              <label>Phone<input name="phone" defaultValue={address.phone} maxLength={40} /></label>
+              <label>電話番号<input name="phone" defaultValue={address.phone} maxLength={40} /></label>
               <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" defaultChecked={address.isDefaultShipping} /> 既定の配送先にする</label>
               <button type="submit" className="button-outline">住所を保存</button>
             </form></details>
@@ -65,7 +80,7 @@ export async function CustomerAccountPage() {
           <label>都道府県・州・地域<input name="region" maxLength={120} /></label>
           <label>郵便番号<input name="postal_code" required maxLength={24} /></label>
           <label>国コード<input name="country_code" placeholder="例：JP、IN、US" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
-          <label>Phone<input name="phone" maxLength={40} /></label>
+          <label>電話番号<input name="phone" maxLength={40} /></label>
           <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" /> 既定の配送先にする</label>
           <button type="submit" className="button-primary dark-button">住所を保存</button>
         </form></details>
@@ -74,7 +89,7 @@ export async function CustomerAccountPage() {
         <div className="section-kicker">注文履歴</div><h2>ご注文</h2>
         {savedOrders.length ? <div className="account-order-list">{savedOrders.map((order) => (
           <article className="account-order-row" key={order.id}>
-            <div><strong><Link href={"/account/orders/" + order.id}>{order.orderNumber}</Link></strong><p>{new Date(order.createdAt).toLocaleDateString("en-IN")} · {order.status.replaceAll("_", " ")}</p></div>
+            <div><strong><Link href={"/account/orders/" + order.id}>{order.orderNumber}</Link></strong><p>{new Date(order.createdAt).toLocaleDateString("ja-JP")} · {formatOrderStatus(order.status)}</p></div>
             <strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong>
           </article>
         ))}</div> : <div className="empty-note">このアカウントで作成された注文はありません。</div>}
