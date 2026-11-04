@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { assertLocalMySqlTarget } from "./safety";
+import { assertCatalogueImportEnvironmentAllowed, assertLocalMySqlTarget } from "./safety";
 
 const original = process.env.DATABASE_URL;
 
@@ -28,5 +28,34 @@ describe("local MySQL write safety", () => {
   it("blocks a missing or malformed database URL", () => {
     expect(() => assertLocalMySqlTarget("")).toThrow("DATABASE_URL is required");
     expect(() => assertLocalMySqlTarget("not-a-database-url")).toThrow("valid MySQL URL");
+  });
+});
+
+describe("catalogue import environment gate", () => {
+  it("allows local development and test imports", () => {
+    expect(() => assertCatalogueImportEnvironmentAllowed({ NODE_ENV: "development" })).not.toThrow();
+    expect(() => assertCatalogueImportEnvironmentAllowed({ NODE_ENV: "test" })).not.toThrow();
+  });
+
+  it("blocks production catalogue writes by default", () => {
+    expect(() => assertCatalogueImportEnvironmentAllowed({ NODE_ENV: "production" })).toThrow(/disabled in production/i);
+    expect(() => assertCatalogueImportEnvironmentAllowed({
+      NODE_ENV: "production",
+      APP_ENV: "production",
+      STAGING_CATALOGUE_IMPORT_ENABLED: "true",
+    })).toThrow(/disabled in production/i);
+  });
+
+  it("allows staging writes only with both explicit staging controls", () => {
+    expect(() => assertCatalogueImportEnvironmentAllowed({
+      NODE_ENV: "production",
+      APP_ENV: "staging",
+      STAGING_CATALOGUE_IMPORT_ENABLED: "true",
+    })).not.toThrow();
+    expect(() => assertCatalogueImportEnvironmentAllowed({
+      NODE_ENV: "production",
+      APP_ENV: "staging",
+      STAGING_CATALOGUE_IMPORT_ENABLED: "false",
+    })).toThrow(/disabled in production/i);
   });
 });
