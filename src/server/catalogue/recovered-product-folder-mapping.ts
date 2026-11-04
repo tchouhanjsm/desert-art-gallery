@@ -280,6 +280,10 @@ export function recoveredProductMappingCsv(report: RecoveredProductMappingReport
     "candidate_product_titles",
     "manual_review_required",
     "owner_decision",
+    "approved_product_id",
+    "approved_product_slug",
+    "primary_image_filename",
+    "owner_note",
   ];
   const safe = (value: string) => /^[\s]*[=+\-@]/.test(value) ? "'" + value : value;
   const cell = (value: string | number | boolean) => {
@@ -297,6 +301,10 @@ export function recoveredProductMappingCsv(report: RecoveredProductMappingReport
     row.candidateProducts.map((product) => product.title).join(";"),
     row.manualReviewRequired,
     "NOT_REVIEWED",
+    "",
+    "",
+    "",
+    "",
   ]);
   return [columns, ...rows].map((row) => row.map((value) => cell(value)).join(",")).join("\n") + "\n";
 }
