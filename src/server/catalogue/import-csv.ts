@@ -4,7 +4,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { parseProductCsv, type ProductImportRow } from "../../lib/product-import";
 import { isEtsyListingsCsv, parseEtsyListingsCsv, type EtsyListingImportRow } from "../../lib/etsy-listings-import";
 import { getMySqlDb } from "../db";
-import { assertLocalMySqlTarget } from "../db/safety";
+import { assertCatalogueImportEnvironmentAllowed, assertLocalMySqlTarget } from "../db/safety";
 import {
   catalogueImportBatches, inventoryMovements, productCategories,
   productCategoryLinks, products, productVariants,
@@ -207,13 +207,12 @@ export async function commitLocalCatalogueCsv(
   sourceName: string,
   bytes: Uint8Array,
   confirmation: string,
+  actorId: string | null = null,
 ): Promise<LocalCatalogueImportResult> {
   if (confirmation !== "IMPORT_TO_LOCAL_MYSQL") {
     throw new Error("Pass the explicit IMPORT_TO_LOCAL_MYSQL confirmation before writing product data.");
   }
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("CSV catalogue import is blocked when NODE_ENV=production.");
-  }
+  assertCatalogueImportEnvironmentAllowed();
   assertLocalMySqlTarget();
   const preview = await previewLocalCatalogueCsv(sourceName, bytes);
   if (!preview.canCommit) {
@@ -312,6 +311,7 @@ export async function commitLocalCatalogueCsv(
       rowCount: input.rows.length,
       productsCreated: input.rows.length,
       stockUnitsAdded,
+      createdBy: actorId,
       report: {
         source_sha256: input.sourceSha256,
         source_name: input.sourceName,
