@@ -8,7 +8,15 @@
 
 ---
 
-## Owner clarification — 4 November 2026 (supersedes conflicting language assumptions below)\n\n**The storefront must remain in English.** “Japanese-inspired” refers only to ecommerce design and interaction conventions: clear information hierarchy, useful content density, direct shopping navigation, category discovery, product specifications, reassurance, editorial craft storytelling and disciplined visual composition. It does not mean Japanese-language UI, Japanese metadata, Japanese checkout forms, Japanese address conventions, JPY pricing, or a change of the store’s market. Desert Art Gallery is based in Jaisalmer, Rajasthan, India.\n\nKeep `<html lang="en">`, all customer-facing headings, navigation, buttons, form labels, accessibility names, status messages, SEO metadata and support copy in English. Use local Inter and Playfair Display typography. Format local counts/dates with `en-IN`; preserve actual source currencies. Never machine-translate merchant-owned product, collection, artisan or editorial data. Do not add Japanese localization requirements unless the owner explicitly commissions a separate localization project with professional review.\n\nThis decision supersedes any later section in this document that calls for Japanese-language content, `lang="en"`, Japanese glyph testing, Japanese English UI copy review, furigana, Japanese address forms or currency conversion. Those are not current requirements.\n\n## 0. Instruction to the AI agent — read this before changing code
+## Owner clarification — 4 November 2026 (supersedes conflicting language assumptions below)
+
+**The storefront must remain in English.** “Japanese-inspired” refers only to ecommerce design and interaction conventions: clear information hierarchy, useful content density, direct shopping navigation, category discovery, product specifications, reassurance, editorial craft storytelling and disciplined visual composition. It does not mean Japanese-language UI, Japanese metadata, Japanese checkout forms, Japanese address conventions, JPY pricing, or a change of the store’s market. Desert Art Gallery is based in Jaisalmer, Rajasthan, India.
+
+Keep \`<html lang="en">\`, all customer-facing headings, navigation, buttons, form labels, accessibility names, status messages, SEO metadata and support copy in English. Use local Inter and Playfair Display typography. Format local counts/dates with \`en-IN\`; preserve actual source currencies. Never machine-translate merchant-owned product, collection, artisan or editorial data. Do not add Japanese localization requirements unless the owner explicitly commissions a separate localization project with professional review.
+
+This decision supersedes any later section in this document that calls for Japanese-language content, a \`lang="ja"\` document, Japanese glyph testing, English UI copy review and owner approval, Japanese-language taglines, furigana, Japanese address forms, Japan-market user testing or JPY conversion. Those items are not current requirements. Historical references to Japanese retail examples describe design inspiration only.
+ 
+## 0. Instruction to the AI agent — read this before changing code
 
 You are acting as a senior Japanese ecommerce product-design and frontend engineering team. Your task is to **replace the existing public-facing storefront theme and redesign the complete customer-facing shopping experience**, not to make a few CSS adjustments to the current theme.
 
@@ -81,7 +89,7 @@ Design for Japanese customers who may be interested in:
 - Natural materials, texture, pattern and objects with a meaningful story.
 - Discovering products that are not generic mass-market items.
 
-Do not assume all Japanese customers have identical tastes. Validate decisions with Japanese-language reviews, real device testing and, where possible, feedback from target customers in Japan.
+Do not assume customers have identical tastes. Validate design decisions with real device testing and feedback from the gallery’s intended audience.
 
 ### 1.4 Customer-facing narrative
 
@@ -121,7 +129,7 @@ Use it to understand:
 - A friendly, curated retail proposition rather than an intimidating luxury posture.
 - Everyday lifestyle framing: products are selected because they add something worthwhile to daily life.
 - Clear top-level category organisation such as Kitchen, Living, Food and Daily.
-- Japanese-language category naming and approachable copy.
+- Clear English category naming, concise descriptions and approachable copy.
 - A concise About page that explains what the store selects and why.
 - Clear company/contact and Japanese legal-policy destinations.
 
@@ -180,7 +188,7 @@ The target customer should immediately feel:
 4. “This store seems credible enough to explore.”
 5. “I know where to click to shop.”
 
-A possible Japanese brand message (subject to native-speaker review):
+An English brand message direction (subject to owner review):
 
 > **日々の暮らしに、特別な手仕事を。**  
 > Special craftsmanship for everyday living.
@@ -190,7 +198,7 @@ A supporting line, only if it accurately describes the real catalogue:
 > ラージャスターンの手仕事を、毎日の暮らしへ。  
 > Handcrafted work from Rajasthan, brought into everyday life.
 
-Do not use these as final legal or factual claims without owner verification and professional Japanese copy review.
+Do not use these as final legal or factual claims without owner verification and English copy and legal review.
 
 ### 3.3 Visual balance
 
@@ -282,7 +290,7 @@ Rework customer-facing navigation around shopping first. Actual category labels 
 
 ### 5.1 Suggested primary navigation
 
-Japanese-first examples:
+Japanese-inspired retail layout examples:
 
 - すべての商品 — Shop all
 - テキスタイル — Textiles
@@ -299,7 +307,7 @@ Header utility controls:
 - Account (ログイン / マイページ)
 - Wishlist (お気に入り), only if implemented
 - Cart (カート)
-- Japanese locale and JPY display where supported
+- Consistent English labels and display of the actual configured catalogue currency
 - Customer support / delivery information access
 
 ### 5.2 Desktop header
@@ -489,7 +497,7 @@ Put the following near the gallery and buy controls, based on available verified
 2. Main image gallery with thumbnails and mobile swipe behaviour.
 3. Japanese product name; optional original/English name as secondary text if useful.
 4. Genuine review summary only if reviews exist.
-5. Price in JPY and appropriate tax disclosure (never guess or hard-code tax treatment).
+5. Price in the actual configured catalogue currency with appropriate tax disclosure (never guess or hard-code tax treatment).
 6. Availability/stock state from the inventory source.
 7. Product variants/options when supported.
 8. Quantity selector with valid limits.
@@ -570,7 +578,7 @@ English-language storefront requirements and market-specific merchant settings:
 - Furigana field where appropriate for the customer/business workflow.
 - Polite, specific field-level error messages.
 - Clear distinction between required and optional fields.
-- Correct JPY formatting and tax/shipping disclosures.
+- Correct formatting for the actual recorded currency and approved tax/shipping disclosures.
 
 ### 9.3 Payment methods
 
@@ -602,7 +610,7 @@ Japanese-inspired means thoughtful retail structure and interaction patterns, no
 
 ### 10.2 Currency, prices and tax
 
-- Use JPY for the Japan market where the commerce configuration supports it.
+- Display only the currency supplied by the merchant catalogue/order; do not convert to JPY.
 - Format prices naturally, e.g. `¥8,800`.
 - Show tax treatment clearly and consistently; use `税込` only after tax configuration and legal treatment have been confirmed.
 - Do not derive live prices from a rough FX conversion in frontend code.
@@ -723,7 +731,7 @@ At minimum test:
 - Laptop: 1280–1440px.
 - Wide desktop: 1600px and above.
 
-Test real Japanese copy lengths; a layout that works with short English placeholders is not sufficient.
+Test realistic long English copy and long merchant-supplied product names; do not rely on short placeholders.
 
 ---
 
@@ -834,7 +842,7 @@ Test real Japanese copy lengths; a layout that works with short English placehol
 
 ## 15. Documentation update obligations
 
-**Do not finish the task after creating this file.** Audit every tracked Markdown document and relevant CSV/template/documentation file in the repository. Update each document that is affected by the new Japanese-first ecommerce direction, and add links to this master brief where useful.
+**Do not finish the task after creating this file.** Audit every tracked Markdown document and relevant CSV/template/documentation file in the repository. Update each document that is affected by the new Japanese-inspired English-language ecommerce direction, and add links to this master brief where useful.
 
 Do not indiscriminately rewrite unrelated operational documents. Preserve their technical precision. When a document is not affected, leave it unchanged and record why it was excluded if the scope is ambiguous.
 
@@ -850,7 +858,7 @@ Do not indiscriminately rewrite unrelated operational documents. Preserve their 
 | `docs/LOCAL-MYSQL-DEVELOPMENT.md` | Usually no content changes required. Do not rewrite database installation/safety instructions for a theme project. Add only a link if it helps developers find the redesign brief. |
 | Other docs under `docs/` | Audit all. Update any old theme, route, customer-facing copy, localisation, SEO, launch, visual QA or production-readiness assumptions affected by this brief. Preserve unrelated infrastructure/security instructions. |
 | `data/product-import-template.csv` and related schemas | Inspect, but do not casually add columns or change importer contracts. If Japanese fields are needed, design a backwards-compatible schema/import plan and tests first. Never lose source product data. |
-| `AGENTS.md` / agent instructions (if present) | Add a short pointer that this brief is the source of truth for the Japan-first storefront redesign, without duplicating the entire document. |
+| `AGENTS.md` / agent instructions (if present) | Add a short pointer that this brief is the source of truth for the Japanese-inspired English-language storefront redesign, without duplicating the entire document. |
 
 ### Documentation consistency rules
 
@@ -923,7 +931,7 @@ At the end of implementation, provide:
 5. **Documentation summary:** every Markdown/documentation file updated and why.
 6. **Validation summary:** commands run and exact pass/fail results.
 7. **Visual QA evidence:** desktop and mobile screenshots or an explicit statement explaining what could not be captured.
-8. **Merchant dependencies:** product data, images/rights, Japanese copy, shipping/tax/policies, legal operator details, payment provider or customer support information still needed.
+8. **Merchant dependencies:** product data, images/rights, English UI copy, source product content, shipping/tax/policies, legal operator details, payment provider or customer support information still needed.
 9. **Release recommendation:** ready for internal review, ready for staging, or not ready—and why.
 
 Do not provide a blanket “complete” status if any of the above areas have not been checked.
@@ -961,7 +969,7 @@ This addendum records the initial implementation branch without changing the ori
 - Branch: `feat/japan-first-storefront-redesign`
 - Target: `main`
 - Status: implementation in progress; pull request and exact-head CI validation are pending at the time of this addendum.
-- The previous Desert Atelier / Desert Modern public themes are superseded. Use only this brief and the active Japanese-first system for future public-storefront work.
+- The previous Desert Atelier / Desert Modern public themes are superseded. Use only this brief and the active Japanese-inspired English-language system for future public-storefront work.
 
 ### Route/component map
 
@@ -970,7 +978,7 @@ This addendum records the initial implementation branch without changing the ori
 | Shared shell | `src/app/layout.tsx`, `src/components/SiteChrome.tsx`, `Header.tsx`, `Footer.tsx` | Japanese document language/metadata; new shared header, visible search, shopping nav and Japanese footer. Admin/owner shell stays separate. |
 | Home | `src/app/page.tsx` | Product-led Japanese ecommerce home, shop CTA, verified collection and product sections; empty-catalogue state. |
 | Shop | `src/app/shop/page.tsx`, `src/components/ShopBrowser.tsx` | Japanese labels for search, category, count, sorting and empty states; existing URL-synced filter logic retained. |
-| Collections | `src/app/collections/[slug]/page.tsx` | Japanese UI labels; owner collection names/descriptions preserved. |
+| Collections | `src/app/collections/[slug]/page.tsx` | English UI labels; owner collection names/descriptions preserved. |
 | Product detail | `src/app/products/[slug]/page.tsx`, `ProductGallery.tsx`, `StorefrontProductCard.tsx`, `AddToBagButton.tsx`, `WishlistToggle.tsx` | Japanese purchase-decision UI and gallery controls; source product facts preserved. |
 | Cart | `src/app/cart/page.tsx`, `CartPageClient.tsx`, `CartProvider.tsx` | Japanese cart page/drawer, summary and actions. |
 | Checkout | `src/app/checkout/page.tsx`, `CheckoutForm.tsx` | Japanese labels and postal-first field order; generic backend address schema retained. |
@@ -983,14 +991,14 @@ This addendum records the initial implementation branch without changing the ori
 - Public CSS: `src/styles/japan-storefront.css`; root layout imports this layer.
 - Palette: warm ivory, soft ivory, ink, restrained terracotta, muted sand, warm grey and fine borders as listed in the design system.
 - The public layout sets `lang="ja"`. Current font declarations are system-stack candidates; no bundled Japanese font is yet adopted.
-- Product names, descriptions and source attribute values are not auto-translated. Japanese UI is not a substitute for reviewed Japanese catalogue content.
-- No JPY conversion, tax-included labels, shipping rates, returns promises, legal seller details, payment methods, reviews or ranking data are invented.
+- Product names, descriptions and source attribute values are not auto-translated. English UI does not change the source language or factual content of merchant records.
+- No currency conversion, tax-included labels, shipping rates, returns promises, legal seller details, payment methods, reviews or ranking data are invented.
 
 ### Work completed versus release blockers
 
 **Implemented in code on this branch:** shared shell replacement, English-language homepage/shop/product/collection/story/artisan/journal/contact/cart/checkout/account/auth UI, initial Japanese design system, and documentation updates.
 
-**Not yet verified or complete:** exact-head CI; browser screenshots for all routes and viewports; English UI copy review and owner approval of merchant source content; actual JP font/glyph and line-break behaviour; WCAG contrast and keyboard/screen-reader review; usability with Japanese customers; JPY retail pricing and tax configuration; shipping/duties/returns/policies; legal operator disclosures; photo-to-product mapping, rights and publication.
+**Not yet verified or complete:** exact-head CI; browser screenshots for all routes and viewports; English UI copy review and owner approval of merchant source content; English typography and line-wrap behaviour; WCAG contrast and keyboard/screen-reader review; usability with the intended customer audience; merchant-approved currency and tax configuration; shipping/duties/returns/policies; legal operator disclosures; photo-to-product mapping, rights and publication.
 
 ### Documentation ownership and exclusions
 
@@ -1020,12 +1028,12 @@ These are source-export observations only. They do not mean the CSV was imported
 
 ### Verified finding and follow-up
 
-- GitHub Actions CI run #317 for PR #17, head `2e61b635b31e67728251366dab401d45589e461c`, stopped during `npm run typecheck` because two Supabase SDK method names in the legacy login form had been altered during Japanese UI localisation. The patch restores `resetPasswordForEmail` and `signInWithPassword`; SDK/API identifiers must never be translated.
+- GitHub Actions CI run #317 for PR #17, head `2e61b635b31e67728251366dab401d45589e461c`, stopped during `npm run typecheck` because two Supabase SDK method names in the legacy login form had been altered during Japanese-inspired UI redesign. The patch restores `resetPasswordForEmail` and `signInWithPassword`; SDK/API identifiers must never be translated.
 - The homepage now uses a dedicated hero-product selector that requires a persisted catalogue ID and a non-empty image URL. Development preview records have no persisted ID and remain clearly labelled preview artwork in product cards; they cannot be mistaken for published hero photography.
 - Added regression tests for preview-only catalogue data, mixed preview/persisted products and empty image URLs.
 - Lighthouse artifacts are uploaded only when the expected manifest exists, so a previous validation failure is not obscured by an unrelated missing-artifact error.
 - PR #17 is open as a draft against `main`. At this addendum, the fixes have been committed for a new exact-head CI run; typecheck, tests, lint, build and Lighthouse results are not yet claimed.
-- Browser visual QA across the required viewport matrix, Japanese native-speaker copy review, bundled Japanese glyph/line-break validation and accessibility review remain release gates. No catalogue import, photo matching, rights approval, payment activation or production deployment is part of this patch.
+- Browser visual QA across the required viewport matrix, English UI copy review and owner approval, bundled English typography and line-break validation and accessibility review remain release gates. No catalogue import, photo matching, rights approval, payment activation or production deployment is part of this patch.
 
 - Follow-up interface hardening: the mobile search toggle now references the search form in `aria-controls`, and tablet responsive product-grid selectors are scoped beneath `.jp-storefront` so the customer theme cannot style matching owner-workspace selectors. A source-level regression test covers the scope; browser and screen-reader review remain open.
 
@@ -1036,7 +1044,7 @@ These are source-export observations only. They do not mean the CSV was imported
 - Added Japanese route metadata and `noindex, follow` until customer-support and policy text has been reviewed. Added static params for the six intended routes so unknown slugs return not-found.
 - Legal and merchant policy content remains expressly provisional. Privacy and terms notices do not claim a final legal operator, processor list, governing law, shipping promise, fee or returns entitlement. The missing Japanese legal seller disclosure is not fabricated.
 - Added footer links for shopping guide and policy pages. Account and wishlist header controls remain visible at mobile widths rather than being hidden.
-- Native-speaker Japanese copy review, merchant/legal approval, visual QA and CI validation remain release gates.
+- English UI copy review, merchant/legal approval, visual QA and CI validation remain release gates.
 - Footer layout now switches from five desktop columns to a two-column layout below 1000px, keeping the expanded Japanese guide/policy navigation readable on tablet widths.
 
 
@@ -1068,7 +1076,7 @@ These are source-export observations only. They do not mean the CSV was imported
 - Translated static English headings and overlines on homepage, shop, collection, story, artisans, journal and contact screens.
 - Translated the legacy customer order-detail unpaid-draft warning and its expiry fallback; it explicitly states that no payment was requested or received.
 - Localised design-study accessibility text, brand tagline and footer location. Merchant-source product names/descriptions, categories, collection names and artisan details remain unchanged pending owner-approved Japanese equivalents.
-- Added source-level regression assertions in `src/lib/japanese-copy-contract.test.ts`. These assertions do not replace native-speaker review or browser accessibility testing.
+- Added source-level regression assertions in `src/lib/japanese-copy-contract.test.ts`. These assertions do not replace English UI copy review or browser accessibility testing.
 
 
 ## CI and regression-test addendum — 2026-11-04
