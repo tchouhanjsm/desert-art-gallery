@@ -9,6 +9,10 @@ const styles = readFileSync(
   new URL("../app/globals.css", import.meta.url),
   "utf8",
 );
+const japanStyles = readFileSync(
+  new URL("../styles/japan-storefront.css", import.meta.url),
+  "utf8",
+);
 const packageJson = JSON.parse(readFileSync(
   new URL("../../package.json", import.meta.url),
   "utf8",
@@ -26,5 +30,14 @@ describe("self-hosted typography", () => {
     expect(packageJson.dependencies?.["@fontsource-variable/inter"]).toMatch(/^\^?5\./);
     expect(styles).toContain("--font-display:");
     expect(styles).toContain("--font-body:");
+  });
+});
+
+
+describe("Japanese storefront style isolation", () => {
+  it("scopes responsive product and utility selectors to the customer shell", () => {
+    expect(japanStyles).toContain(".jp-storefront .utility-row.jp-utility-row");
+    expect(japanStyles).toContain(".jp-storefront .product-grid");
+    expect(japanStyles).not.toContain(".atelier-product-grid, .product-grid");
   });
 });

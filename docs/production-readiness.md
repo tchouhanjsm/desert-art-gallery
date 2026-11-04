@@ -246,3 +246,5 @@ Production activation requires merchant-authorized catalogue data and original p
 - Added unit coverage for preview-only catalogues, selecting a persisted product after preview records, and rejecting empty image URLs.
 - The Lighthouse report upload now runs only when its manifest exists. This avoids a secondary missing-artifact failure when an earlier validation step stops the job; it does not suppress the underlying typecheck/test/lint/build failure.
 - The new exact-head workflow run is required to verify the patch. Visual screenshots, Japanese native-speaker review, accessibility and performance evidence remain outstanding. This update does not authorise product publication, photo rights approval, payment activation or production deployment.
+
+- Follow-up UI isolation review: the tablet breakpoint's legacy generic product-grid selector is now explicitly scoped to `.jp-storefront`; the Japanese search toggle's `aria-controls` now targets the actual search form rather than its input. A regression assertion covers the responsive CSS scope. This does not replace browser/assistive-technology testing.

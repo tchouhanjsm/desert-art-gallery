@@ -1026,3 +1026,5 @@ These are source-export observations only. They do not mean the CSV was imported
 - Lighthouse artifacts are uploaded only when the expected manifest exists, so a previous validation failure is not obscured by an unrelated missing-artifact error.
 - PR #17 is open as a draft against `main`. At this addendum, the fixes have been committed for a new exact-head CI run; typecheck, tests, lint, build and Lighthouse results are not yet claimed.
 - Browser visual QA across the required viewport matrix, Japanese native-speaker copy review, bundled Japanese glyph/line-break validation and accessibility review remain release gates. No catalogue import, photo matching, rights approval, payment activation or production deployment is part of this patch.
+
+- Follow-up interface hardening: the mobile search toggle now references the search form in `aria-controls`, and tablet responsive product-grid selectors are scoped beneath `.jp-storefront` so the customer theme cannot style matching owner-workspace selectors. A source-level regression test covers the scope; browser and screen-reader review remain open.

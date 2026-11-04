@@ -33,7 +33,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
             <small>TEXTILES · OBJECTS · STORIES</small>
           </Link>
 
-          <form className={searchOpen ? "header-search is-open" : "header-search"} action="/shop" role="search">
+          <form id="site-search-form" className={searchOpen ? "header-search is-open" : "header-search"} action="/shop" role="search">
             <label className="visually-hidden" htmlFor="site-product-search">商品を検索</label>
             <Search size={17} aria-hidden="true" />
             <input id="site-product-search" name="q" type="search" maxLength={100} placeholder="商品名・キーワードで検索" />
@@ -46,7 +46,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
               type="button"
               aria-label={searchOpen ? "検索を閉じる" : "検索を開く"}
               aria-expanded={searchOpen}
-              aria-controls="site-product-search"
+              aria-controls="site-search-form"
               onClick={() => { setSearchOpen((open) => !open); setMenuOpen(false); }}
             >
               {searchOpen ? <X size={19} /> : <Search size={19} />}
