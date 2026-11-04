@@ -100,4 +100,16 @@ describe("S3-compatible private media storage", () => {
     const adapter = createS3MediaAdapter(send, "gallery-private");
     await expect(adapter.get({ key: "products/product-id/image.jpg" })).rejects.toThrow("network failure");
   });
+
+  it("rejects traversal and non-media namespaces before calling the S3 client", async () => {
+    const send = vi.fn<S3CommandSender>(async () => ({}));
+    const adapter = createS3MediaAdapter(send, "gallery-private");
+    await expect(adapter.get({ key: "products/../outside.jpg" })).rejects.toThrow(/object key is invalid/i);
+    await expect(adapter.put({
+      key: "public/assets/image.jpg",
+      bytes: new Uint8Array([1]),
+      contentType: "image/jpeg",
+    })).rejects.toThrow(/approved namespace/i);
+    expect(send).not.toHaveBeenCalled();
+  });
 });
