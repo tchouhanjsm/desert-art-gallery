@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { inspect } from "node:util";
+import type { RowDataPacket } from "mysql2";
 import { migrate } from "drizzle-orm/mysql2/migrator";
 import { isSupportedMySqlServer } from "../src/lib/local-mysql-runtime";
 import { closeMySqlPool, getMySqlDb, getMySqlPool, hasMySqlDatabase } from "../src/server/db";
@@ -10,12 +11,12 @@ if (existsSync(".env")) {
   process.loadEnvFile(".env");
 }
 
-type DatabaseIdentityRow = {
+type DatabaseIdentityRow = RowDataPacket & {
   database_name: string;
   server_version: string;
   server_comment: string;
 };
-type TableNameRow = {
+type TableNameRow = RowDataPacket & {
   name: string;
 };
 
