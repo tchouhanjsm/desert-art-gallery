@@ -107,6 +107,20 @@ describe("recovered product photo approval and staging", () => {
     }))).toThrow(/not aligned/i);
   });
 
+  it("does not treat ranked fuzzy suggestions as exact title candidates for staging approval", () => {
+    const suggestedOnly = parseRecoveredPhotoApprovalCsv(csvRow({
+      candidate_product_ids: "",
+      candidate_product_slugs: "",
+      suggested_product_ids: "product-12345678",
+      suggested_product_slugs: "banjara-jacket-123",
+      suggested_product_scores: "0.914",
+      owner_note: "Reviewed photos.",
+    }));
+    expect(validateRecoveredPhotoApprovalsAgainstCatalogue(suggestedOnly.approvals, [product()])).toContainEqual(
+      expect.stringContaining("manual product overrides require"),
+    );
+  });
+
   it("requires a stronger note for a product override not listed as a title candidate", () => {
     const parsed = parseRecoveredPhotoApprovalCsv(csvRow({ candidate_product_ids: "", candidate_product_slugs: "", owner_note: "Reviewed photos." }));
     expect(validateRecoveredPhotoApprovalsAgainstCatalogue(parsed.approvals, [product()])).toContainEqual(
