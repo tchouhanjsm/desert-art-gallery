@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { galleryBlurDataUrl } from "@/lib/image";
 import { formatMoneyFromMinor } from "@/lib/money";
 import type { Product } from "@/lib/products";
 import { PreviewArtwork } from "@/components/PreviewArtwork";
@@ -33,12 +34,11 @@ export function StorefrontProductCard({ product }: { product: Product }) {
               variant={previewVariant(product.category)}
             />
           ) : (
-            <Image
+            <Image placeholder="blur" blurDataURL={galleryBlurDataUrl}
               src={product.image}
               alt={product.imageAlt}
               fill
               sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 23vw"
-              unoptimized
             />
           )}
           {isPreview && <span className="atelier-preview-label">Photography pending</span>}

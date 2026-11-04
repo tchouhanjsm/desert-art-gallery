@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { galleryBlurDataUrl } from "@/lib/image";
 import type { ProductImage } from "@/lib/products";
 
 export function ProductGallery({ images, title }: { images: ProductImage[]; title: string }) {
@@ -17,14 +18,13 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
   return (
     <div className="detail-gallery">
       <div className="product-image-wrap detail-image detail-gallery-main">
-        <Image
+        <Image placeholder="blur" blurDataURL={galleryBlurDataUrl}
           key={active.id}
           src={active.url}
           alt={active.altText || title}
           fill
           priority
           sizes="(max-width:700px) 90vw, 55vw"
-          unoptimized
         />
         {images.length > 1 && (
           <div className="product-gallery-navigation" aria-label="Gallery navigation">
@@ -49,13 +49,12 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
               aria-pressed={activeIndex === index}
               onClick={() => setActiveIndex(index)}
             >
-              <Image
+              <Image placeholder="blur" blurDataURL={galleryBlurDataUrl}
                 src={image.url}
                 alt=""
                 width={76}
                 height={96}
                 sizes="76px"
-                unoptimized
               />
             </button>
           ))}

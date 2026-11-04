@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { collections as previewCollections, products as previewProducts, type Product, type ProductImage, type ProductVariant } from "@/lib/products";
 import { isPresentableProductImage, sortProductImages } from "@/lib/product-details";
@@ -178,8 +179,8 @@ export async function getStorefrontProducts(): Promise<Product[]> {
   return resolved.filter((product): product is Product => product !== null);
 }
 
-export async function getStorefrontCollections(): Promise<StorefrontCollection[]> {
-  if (hasMySqlDatabase()) {
+const getCachedMySqlStorefrontCollections = unstable_cache(
+  async (): Promise<StorefrontCollection[]> => {
     const rows = await getPublishedCollections();
     return rows.map((row) => {
       const approvedImage = row.hero_image_path && row.hero_image_rights_confirmed &&
@@ -192,7 +193,16 @@ export async function getStorefrontCollections(): Promise<StorefrontCollection[]
         imageAlt: row.hero_image_alt.trim() || row.name,
       };
     });
-  }
+  },
+  ["storefront-published-collections-v1"],
+  { revalidate: 300, tags: ["storefront-collections"] },
+);
+
+export async function getStorefrontCollections(): Promise<StorefrontCollection[]> {
+  // The MySQL path is shared by the root layout menu and homepage. Cache the
+  // published collection projection and invalidate it from CMS writes.
+  // The legacy Supabase path stays request-scoped because it can read cookies.
+  if (hasMySqlDatabase()) return getCachedMySqlStorefrontCollections();
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) {

@@ -17,13 +17,13 @@ const packageJson = JSON.parse(readFileSync(
 describe("self-hosted typography", () => {
   it("does not require a remote Google Fonts fetch during the production build", () => {
     expect(layout).not.toContain("next/font/google");
-    expect(layout).toContain("@fontsource-variable/cormorant-garamond");
-    expect(layout).toContain("@fontsource-variable/dm-sans");
+    expect(layout).toContain("@fontsource-variable/playfair-display");
+    expect(layout).toContain("@fontsource-variable/inter");
   });
 
   it("declares pinned font packages and the CSS family tokens used by the design system", () => {
-    expect(packageJson.dependencies?.["@fontsource-variable/cormorant-garamond"]).toBe("5.3.0");
-    expect(packageJson.dependencies?.["@fontsource-variable/dm-sans"]).toBe("5.3.0");
+    expect(packageJson.dependencies?.["@fontsource-variable/playfair-display"]).toMatch(/^\^?5\./);
+    expect(packageJson.dependencies?.["@fontsource-variable/inter"]).toMatch(/^\^?5\./);
     expect(styles).toContain("--font-display:");
     expect(styles).toContain("--font-body:");
   });

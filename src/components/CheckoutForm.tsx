@@ -123,7 +123,7 @@ export function CheckoutForm({
     }
   }
 
-  if (!lines.length) return <div className="empty-note">Your bag is empty. <Link href="/shop" className="empty-link">EXPLORE THE COLLECTION ↗</Link></div>;
+  if (!lines.length) return <div className="empty-note">Your bag is empty. <Link href="/shop" className="empty-link">EXPLORE THE COLLECTION</Link></div>;
 
   return <div className="checkout-layout">
     <form className="checkout-form" onSubmit={handleSubmit}>

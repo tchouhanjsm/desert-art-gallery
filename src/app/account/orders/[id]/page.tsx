@@ -62,7 +62,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
           <div className="cart-summary-row"><span>Tax</span><strong>{formatMoneyFromMinor(order.taxMinor, order.currency)}</strong></div>
           <div className="cart-summary-row"><span>Discount</span><strong>−{formatMoneyFromMinor(order.discountMinor, order.currency)}</strong></div>
           <div className="cart-summary-row"><span>Total</span><strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong></div>
-          {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">TRACK SHIPMENT ↗</a></p>}
+          {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">TRACK SHIPMENT</a></p>}
           {order.trackingNumber && <p>Tracking number: {order.trackingNumber}</p>}
           {order.status === "draft" && <p>No payment method is connected to this draft. Do not send payment outside an approved gallery checkout flow.</p>}
         </aside>
@@ -109,7 +109,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
         <div className="cart-summary-row"><span>Tax</span><strong>{formatMoneyFromMinor(row.tax_minor,row.currency)}</strong></div>
         <div className="cart-summary-row"><span>Discount</span><strong>−{formatMoneyFromMinor(row.discount_minor,row.currency)}</strong></div>
         <div className="cart-summary-row"><span>Total</span><strong>{formatMoneyFromMinor(row.total_minor,row.currency)}</strong></div>
-        {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">TRACK SHIPMENT ↗</a></p>}{row.tracking_number && <p>Tracking number: {row.tracking_number}</p>}
+        {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">TRACK SHIPMENT</a></p>}{row.tracking_number && <p>Tracking number: {row.tracking_number}</p>}
         {row.status === "draft" && <p>No payment method is connected to this draft. Do not send payment outside an approved gallery checkout flow.</p>}
       </aside>
     </div>

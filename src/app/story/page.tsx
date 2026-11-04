@@ -43,7 +43,7 @@ export default function StoryPage() {
           <span>RAJASTHAN · INDIA</span>
           <div className="atelier-story-aside-rule" />
           <p>Textiles. Objects. Stories.</p>
-          <Link className="text-link" href="/shop">Explore the gallery ↗</Link>
+          <Link className="text-link" href="/shop">Explore the gallery</Link>
         </aside>
       </div>
 
@@ -51,7 +51,7 @@ export default function StoryPage() {
         <span className="section-kicker">A DIRECT CONVERSATION</span>
         <h2>Have a piece in mind?</h2>
         <p>Send the gallery the name or link and your question. We will help confirm the details available.</p>
-        <Link className="button-primary" href="/contact">Contact the gallery ↗</Link>
+        <Link className="button-primary" href="/contact">Contact the gallery</Link>
       </section>
     </div>
   );

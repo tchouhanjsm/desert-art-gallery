@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasMySqlDatabase } from "@/server/db";
@@ -37,7 +38,7 @@ export default async function ArtisansPage() {
           <div className="info-copy">
             <p>This space is reserved for profiles that have been reviewed and approved by the people featured. No names, portraits, biographies or experience claims will be published here without their permission.</p>
             <p>For questions about the making or details of a particular piece, contact the gallery.</p>
-            <Link className="contact-link" href="/contact">CONTACT THE GALLERY ↗</Link>
+            <Link className="contact-link" href="/contact">CONTACT THE GALLERY</Link>
           </div>
         </div>
       );
@@ -72,7 +73,7 @@ export default async function ArtisansPage() {
             <article className="artisan-card" key={artisan.id}>
               {artisan.portrait ? (
                 <div className="artisan-photo">
-                  <Image src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || ("Portrait of " + artisan.full_name)} fill sizes="(max-width:700px) 88vw, 30vw" unoptimized />
+                  <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || ("Portrait of " + artisan.full_name)} fill sizes="(max-width:700px) 88vw, 30vw" />
                 </div>
               ) : (
                 <div className="artisan-photo artisan-photo-empty" aria-hidden="true">PORTRAIT NOT PUBLISHED</div>

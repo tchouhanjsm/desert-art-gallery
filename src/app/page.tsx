@@ -1,5 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
+import { galleryBlurDataUrl } from "@/lib/image";
+import { LookbookBand } from "@/components/LookbookBand";
+import { TrustStrip } from "@/components/TrustStrip";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 import { getPublishedHomepageContent } from "@/lib/site-content";
@@ -15,7 +18,7 @@ export default async function HomePage() {
     <div className="atelier-home">
       <section className="hero hero--atelier">
         {homeContent?.heroImage ? (
-          <Image className="hero-image" src={homeContent.heroImage} alt={homeContent.heroImageAlt} fill priority unoptimized sizes="100vw" />
+          <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} className="hero-image" src={homeContent.heroImage} alt={homeContent.heroImageAlt} fill priority sizes="100vw" />
         ) : (
           <div className="atelier-hero-art" aria-hidden="true">
             <span className="atelier-hero-art-mark">DAG</span>
@@ -27,8 +30,8 @@ export default async function HomePage() {
           <h1>{homeContent?.lineOne || "Objects with"} <em>{homeContent?.accentOne || "stories."}</em><br />{homeContent?.lineTwo || "Textiles with"} <em>{homeContent?.accentTwo || "character."}</em></h1>
           <p>{homeContent?.description || "Discover a considered collection of textiles and objects, presented with the detail and context each piece deserves."}</p>
           <div className="atelier-hero-actions">
-            <Link className="button-primary" href="/shop">{homeContent?.primaryCtaLabel || "Explore the collection"} <span aria-hidden="true">↗</span></Link>
-            <Link className="atelier-hero-secondary" href="/story">{homeContent?.secondaryCtaLabel || "Our story"} <span aria-hidden="true">↗</span></Link>
+            <Link className="button-primary" href="/shop">{homeContent?.primaryCtaLabel || "Explore the collection"}</Link>
+            <Link className="atelier-hero-secondary" href="/story">{homeContent?.secondaryCtaLabel || "Our story"}</Link>
           </div>
           <div className="atelier-hero-foot">
             <span>DESERT ART GALLERY</span>
@@ -36,14 +39,16 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="atelier-hero-stamp" aria-hidden="true">
-          <span>TEXTILES</span><i>✳</i><span>OBJECTS</span><i>✳</i><span>STORIES</span>
+          <span>TEXTILES</span><i>·</i><span>OBJECTS</span><i>·</i><span>STORIES</span>
         </div>
       </section>
+
+      <TrustStrip />
 
       <div className="atelier-note-bar" aria-label="Gallery information">
         <span>BASED IN JAISALMER, RAJASTHAN</span>
         <span>TEXTILES · OBJECTS · STORIES</span>
-        <Link href="/contact">SPEAK WITH THE GALLERY ↗</Link>
+        <Link href="/contact">SPEAK WITH THE GALLERY</Link>
       </div>
 
       <section className="atelier-intro">
@@ -59,7 +64,7 @@ export default async function HomePage() {
           <h2 className="section-title">A slower way to discover <em>objects.</em></h2>
           <p>Based in Jaisalmer, Desert Art Gallery brings textiles and objects into focus through considered presentation, clear details and the stories that can be responsibly shared.</p>
           <p>Every listing should help you understand the piece before you enquire. Where information is still being confirmed, we say so clearly.</p>
-          <Link className="text-link" href="/story">Discover the gallery <span aria-hidden="true">↗</span></Link>
+          <Link className="text-link" href="/story">Discover the gallery</Link>
         </div>
       </section>
 
@@ -70,7 +75,7 @@ export default async function HomePage() {
               <div className="section-kicker">CURATED PATHS THROUGH THE GALLERY</div>
               <h2 className="section-title">Find your <em>starting point.</em></h2>
             </div>
-            <Link className="text-link" href="/shop">View all pieces <span aria-hidden="true">↗</span></Link>
+            <Link className="text-link" href="/shop">View all pieces</Link>
           </div>
           <div className="atelier-collection-grid">
             {collections.slice(0, 4).map((item, index) => (
@@ -85,7 +90,7 @@ export default async function HomePage() {
                       <span>0{index + 1}</span><strong>{item.name}</strong><i>GALLERY COLLECTION</i>
                     </div>
                   ) : (
-                    <Image src={item.image} alt={item.imageAlt || item.name} fill sizes="(max-width: 760px) 75vw, 25vw" unoptimized />
+                    <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={item.image} alt={item.imageAlt || item.name} fill sizes="(max-width: 760px) 75vw, 25vw" />
                   )}
                   <span className="atelier-collection-arrow" aria-hidden="true">↗</span>
                 </div>
@@ -106,7 +111,7 @@ export default async function HomePage() {
             <h2 className="section-title">{products.length > 0 ? <>Pieces to <em>discover.</em></> : <>The catalogue is being <em>prepared.</em></>}</h2>
             <p>{products.length > 0 ? "Explore the pieces currently published by the gallery." : "New pieces will appear as their descriptions and image permissions are confirmed."}</p>
           </div>
-          {products.length > 0 && <Link className="text-link" href="/shop">Browse the catalogue <span aria-hidden="true">↗</span></Link>}
+          {products.length > 0 && <Link className="text-link" href="/shop">Browse the catalogue</Link>}
         </div>
         {products.length > 0 ? (
           <div className="atelier-product-grid">
@@ -124,13 +129,15 @@ export default async function HomePage() {
         )}
       </section>
 
+      <LookbookBand products={products} />
+
       <section className="atelier-story">
         <div className="atelier-story-mark" aria-hidden="true">DAG<br /><span>JAISALMER</span></div>
         <div className="atelier-story-copy">
           <div className="section-kicker">A GALLERY ROOTED IN PLACE</div>
           <h2 className="section-title">A place for <em>material,</em><br />meaning and discovery.</h2>
           <p>Explore the gallery&apos;s approach to textiles, objects and the care taken when presenting the people and processes connected to them.</p>
-          <Link className="atelier-light-link" href="/story">Read our story <span aria-hidden="true">↗</span></Link>
+          <Link className="atelier-light-link" href="/story">Read our story</Link>
         </div>
         <div className="atelier-story-image" role="img" aria-label="Abstract gallery design study, not product photography">
           <div className="atelier-story-image-art" aria-hidden="true"><span>D</span></div>
@@ -160,7 +167,7 @@ export default async function HomePage() {
         <div className="section-kicker">A QUESTION ABOUT A PIECE?</div>
         <h2>Some things are better <em>discovered together.</em></h2>
         <p>For product details, availability or delivery questions, start a conversation with the gallery.</p>
-        <Link className="button-primary" href="/contact">Contact the gallery <span aria-hidden="true">↗</span></Link>
+        <Link className="button-primary" href="/contact">Contact the gallery</Link>
       </section>
     </div>
   );
