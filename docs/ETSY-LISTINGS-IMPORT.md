@@ -10,7 +10,7 @@ With a disposable local MySQL database migrated and the local owner catalogue co
 npm run db:import-products -- ./EtsyListingsDownload.csv
 ```
 
-This command performs a read-only preview. A write requires both `--commit --confirm-local-import`, a strictly local MySQL target, an empty product table and a previously unused CSV content hash. Production mode and live/Hostinger-looking database targets are blocked.
+This command performs a read-only preview. A write requires both `--commit --confirm-local-import`, a strictly local MySQL target, an empty product table and a previously unused CSV content hash. Production mode and live/Hostinger-looking database targets are blocked. Separately, `db:migrate` refuses to initialize any database that already has tables/views but lacks the Drizzle migration journal; use a verified empty local database rather than attempting to overwrite a legacy schema.
 
 ## Field mapping
 
