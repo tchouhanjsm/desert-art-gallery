@@ -951,3 +951,66 @@ These are design research references, not legal advice or a substitute for usabi
 | 2026-11-04 | Initial master brief created. Establishes full public-facing theme replacement; POJ Studio × Macaroni Shoten creative direction; Japanese ecommerce information architecture, localisation, trust, commerce safeguards, implementation phases, documentation obligations and acceptance criteria. |
 
 **Ongoing rule:** The AI agent must update this file as the implementation evolves and keep it consistent with the code, route map, design tokens, production-readiness register and all affected project documentation.
+
+## Implementation addendum — 2026-11-04
+
+This addendum records the initial implementation branch without changing the original requirements above.
+
+### Current implementation branch
+
+- Branch: `feat/japan-first-storefront-redesign`
+- Target: `main`
+- Status: implementation in progress; pull request and exact-head CI validation are pending at the time of this addendum.
+- The previous Desert Atelier / Desert Modern public themes are superseded. Use only this brief and the active Japanese-first system for future public-storefront work.
+
+### Route/component map
+
+| Customer journey | Current route/components | Work in this branch |
+|---|---|---|
+| Shared shell | `src/app/layout.tsx`, `src/components/SiteChrome.tsx`, `Header.tsx`, `Footer.tsx` | Japanese document language/metadata; new shared header, visible search, shopping nav and Japanese footer. Admin/owner shell stays separate. |
+| Home | `src/app/page.tsx` | Product-led Japanese ecommerce home, shop CTA, verified collection and product sections; empty-catalogue state. |
+| Shop | `src/app/shop/page.tsx`, `src/components/ShopBrowser.tsx` | Japanese labels for search, category, count, sorting and empty states; existing URL-synced filter logic retained. |
+| Collections | `src/app/collections/[slug]/page.tsx` | Japanese UI labels; owner collection names/descriptions preserved. |
+| Product detail | `src/app/products/[slug]/page.tsx`, `ProductGallery.tsx`, `StorefrontProductCard.tsx`, `AddToBagButton.tsx`, `WishlistToggle.tsx` | Japanese purchase-decision UI and gallery controls; source product facts preserved. |
+| Cart | `src/app/cart/page.tsx`, `CartPageClient.tsx`, `CartProvider.tsx` | Japanese cart page/drawer, summary and actions. |
+| Checkout | `src/app/checkout/page.tsx`, `CheckoutForm.tsx` | Japanese labels and postal-first field order; generic backend address schema retained. |
+| Account/auth | `src/app/login/*`, `src/app/register/*`, `src/app/account/*`, `src/app/wishlist/page.tsx`, `WishlistPageClient.tsx` | Initial Japanese customer-facing labels; identity boundaries unchanged. |
+| Story/support | `src/app/story/page.tsx`, `artisans/page.tsx`, `journal/page.tsx`, `contact/page.tsx`, `not-found.tsx` | Japanese page labels; editorial content and consent rules retained. |
+| Owner/admin | `/admin/*`, `/owner/*` | Separate operational UI and permissions. |
+
+### Active design implementation
+
+- Public CSS: `src/styles/japan-storefront.css`; root layout imports this layer.
+- Palette: warm ivory, soft ivory, ink, restrained terracotta, muted sand, warm grey and fine borders as listed in the design system.
+- The public layout sets `lang="ja"`. Current font declarations are system-stack candidates; no bundled Japanese font is yet adopted.
+- Product names, descriptions and source attribute values are not auto-translated. Japanese UI is not a substitute for reviewed Japanese catalogue content.
+- No JPY conversion, tax-included labels, shipping rates, returns promises, legal seller details, payment methods, reviews or ranking data are invented.
+
+### Work completed versus release blockers
+
+**Implemented in code on this branch:** shared shell replacement, Japanese-first homepage/shop/product/collection/story/artisan/journal/contact/cart/checkout/account/auth UI, initial Japanese design system, and documentation updates.
+
+**Not yet verified or complete:** exact-head CI; browser screenshots for all routes and viewports; native-speaker Japanese copy review; actual JP font/glyph and line-break behaviour; WCAG contrast and keyboard/screen-reader review; usability with Japanese customers; JPY retail pricing and tax configuration; shipping/duties/returns/policies; legal operator disclosures; photo-to-product mapping, rights and publication.
+
+### Documentation ownership and exclusions
+
+README, design system, quality gates, visual review, Etsy import, photo intake, commerce plan, checkout phase, owner-portal boundary, production-readiness register and the former Desert Modern milestone are aligned or cross-referenced in this branch. Infrastructure and migration documents not directly changed—such as local MySQL setup, CI artifact packaging, staging deployment and schema/identity migration records—remain technical history and are not rewritten for a presentation-layer redesign.
+
+### Uploaded CSV audit
+
+- 527 listing rows and 27 columns; every row has a title and non-empty description.
+- USD is the only source currency; every source quantity is 1.
+- 5,216 non-empty image URL references across IMAGE1–IMAGE10. Every row has at least two references; 496 rows have all ten image slots.
+- 60 blank SKU values; 13 duplicate SKU groups affecting 26 rows; 455 distinct non-blank SKU values.
+- 316 distinct title strings. 59 title groups repeat, covering 270 rows. The generic title "Unisex Handmade Tribal Jacket Collection Piece" appears 53 times.
+- MATERIALS is populated on 452 rows; TAGS is populated on all rows.
+- No explicit category/section column exists. All three Etsy variation groups are empty.
+- Numeric source price range is USD 119–3,780.
+
+These are source-export observations only. They do not mean the CSV was imported, that URLs were downloaded, or that any recovered photo has been matched to a product. Repeated titles prohibit general title-only joins; blank/duplicate SKUs require manual resolution. Keep products as drafts and photos private until identity, copy, pricing, rights and merchant policies are approved.
+
+### Change log addendum
+
+| Date | Update |
+|---|---|
+| 2026-11-04 | Owner adopted Japan-first ecommerce direction as SOT. Initial route map, shared Japanese shell, core shopping/customer journeys and documentation alignment recorded. Product source content, currency, taxonomy and image rights remain subject to owner/reviewer validation. |
