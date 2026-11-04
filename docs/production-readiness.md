@@ -6,11 +6,15 @@ This register separates code present in the repository from integrations that ha
 
 ## Current Japan-first redesign status — 2026-11-04
 
-The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). Branch `feat/japan-first-storefront-redesign` contains an initial replacement of the active public layout/theme, Japanese-first shared navigation, shopping templates and customer-facing UI labels. It is not yet merged or signed off.
+The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). The Japanese-first storefront implementation was merged to `main` in PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17) at merge commit `5758694f0f20a67546998d7bae6455c4e557e8ea` on 4 November 2026. Continue from `main`; do not resume development on the merged feature branch.
 
-The active public root layout no longer imports the superseded Desert Atelier/Desert Modern theme layers. `src/styles/japan-storefront.css` is the new presentation layer. The admin/owner workspace remains separate.
+The active public root layout no longer imports the superseded Desert Atelier/Desert Modern theme layers. `src/styles/japan-storefront.css` owns the customer storefront presentation; `src/styles/admin-theme.css` owns operations presentation. The commerce/backend safeguards remain unchanged by the theme merge.
 
-**Not verified:** exact-head CI, browser screenshots, all-route visual review, native-speaker Japanese copy review, font glyph coverage, accessibility/contrast, real Japan customer testing, JPY pricing/tax, merchant shipping/returns, legal seller information, payment provider or production deployment. The CSV has English product titles/descriptions and USD prices; UI localisation is not catalogue translation or currency conversion.
+**Automated validation verified:** PR final head `fd7acf6b04672923ad991e834c1b94d0e34a4c52`, GitHub Actions CI run [#348](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41869692118), completed successfully. MySQL setup/migrations, TypeScript typecheck, unit/integration tests, ESLint, production build, Lighthouse collection/assertions, Lighthouse artifact upload and staging archive packaging all passed.
+
+**Lighthouse lab snapshot (run #348, CI test database):** home Performance 0.93 / Accessibility 0.95 / Best Practices 0.96 / SEO 1.00, LCP 1.67 s, TBT 309 ms, CLS 0.000; shop Performance 0.97 / Accessibility 0.96 / Best Practices 0.96 / SEO 1.00, LCP 1.90 s, TBT 75 ms, CLS 0.099. These are two single-run lab reports, not field Core Web Vitals or route-wide acceptance. The staging archive was built as an artifact; it was not deployed to a hosting environment.
+
+**Still not verified or approved:** all-route visual acceptance, authenticated customer/owner journeys, native-speaker Japanese copy review, Japanese glyph/line-break coverage, full accessibility/contrast review, Japan-based customer testing, JPY pricing/tax, merchant shipping/returns, legal seller details, payment provider or production deployment. The CSV retains English source product text and USD prices; storefront UI localisation is not catalogue translation or currency conversion.
 
 ### Storefront routes and discovery foundations
 
@@ -53,7 +57,7 @@ The active public root layout no longer imports the superseded Desert Atelier/De
 
 - [ ] Connect the merchant-approved Supabase project and apply/verify both migrations in that project. No live database migration was run in this delivery.
 - [ ] Verify RLS, storage access, import/adjustment RPC permissions, transaction rollback and auth callbacks with real Supabase anon/authenticated/service-role sessions.
-- [ ] Complete and accept the Japan-first public theme replacement across every customer-facing route; the older responsive editorial foundation is superseded. Current PR branch implementation still requires exact-head CI, route screenshots, Japanese copy/font/accessibility review and owner acceptance.
+- [x] Merge the Japan-first public presentation layer into `main` (PR #17); this is code integration only, not visual, localisation, merchant or production acceptance.
 - [ ] Verify mobile overflow, keyboard navigation, focus, contrast, touch targets, reduced motion and assistive-technology behavior with browser-based QA.
 - [ ] Replace the local textile placeholder with merchant-authorized original photography in owned storage after rights review; confirm rights for every product, collection, editorial and artisan image.
 - [ ] Add customer registration/email verification and approved staff/owner provisioning.
@@ -275,3 +279,12 @@ Production activation requires merchant-authorized catalogue data and original p
 - The unit/integration suite reported 5 failures and 299 passes (304 tests total). These were stale tests rather than application type errors: the font test required removed layout font imports; the route-existence test did not recognise the statically enumerated `[slug]` information route; and three conversion-contract assertions still expected English copy from before Japanese localisation.
 - Updated the font contract to verify the Japanese system-font stack and absence of remote font dependencies, taught navigation tests to validate known static information slugs, and changed conversion-contract assertions to the Japanese status and accessible control labels.
 - A new exact-head CI run is required to verify the corrected test suite. Lint, production build, Lighthouse and staging artifact steps were skipped after the failing test step in run #343.
+
+
+## Dated handoff — 2026-11-04 — Japan-first storefront merge and CI validation
+
+- PR #17 merged to `main` at `5758694f0f20a67546998d7bae6455c4e557e8ea`; the final PR head was `fd7acf6b04672923ad991e834c1b94d0e34a4c52`.
+- Exact-head CI run #348 passed: MySQL migrations, TypeScript, all unit/integration tests, lint, production build, Lighthouse, Lighthouse artifact upload and self-hosted staging archive packaging.
+- Lighthouse collected only `/` and `/shop`; see the Japan-first master brief and visual-review report for scores and metric details. These results do not constitute all-route, field-performance or visual acceptance.
+- A staging archive was generated by CI. No remote staging deployment, production deployment, merchant data import or media upload was performed by the merge.
+- Phase 5 route/viewport QA automation is in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); exact-head CI and its screenshot/manifest artifact still require review. Native-speaker Japanese review, authenticated UAT, accessibility testing, image-rights approval and merchant/legal launch inputs remain open.

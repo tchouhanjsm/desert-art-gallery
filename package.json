@@ -26,7 +26,7 @@
     "media:audit-recovered": "node --env-file=.env --import=tsx scripts/audit-recovered-product-photos.ts",
     "db:catalogue-preflight": "node --env-file=.env --import=tsx scripts/catalogue-preflight.ts",
     "media:stage-recovered": "node --env-file=.env --import=tsx scripts/stage-recovered-product-photos.ts",
-    "visual:review": "bash scripts/capture-storefront-review.sh"
+    "visual:review": "node --import=tsx scripts/capture-storefront-review.ts"
   },
   "dependencies": {
     "next": "^15.1.6",
@@ -52,6 +52,7 @@
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8",
-    "tsx": "4.20.6"
+    "tsx": "4.20.6",
+    "playwright": "1.56.1"
   }
 }

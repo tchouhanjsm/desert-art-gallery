@@ -76,3 +76,15 @@ Pull-request CI runs against a GitHub-managed MySQL service and validates migrat
 
 
 The MySQL customer order lifecycle and merchant shipping/tax configuration are documented in docs/MYSQL-ORDER-CHECKOUT-PHASE-7.md. Keep payment processing disabled until the provider/webhook security phase is reviewed and enabled separately.
+
+
+## Japan-first storefront visual review
+
+Start the local app with its intended local MySQL and media configuration, then install the Playwright browser once and capture the full route/viewport matrix:
+
+```bash
+npx playwright install chromium
+npm run visual:review
+```
+
+The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIEW_BASE_URL` to review another local/staging URL and `STOREFRONT_REVIEW_OUTPUT_DIR` to choose a separate output folder. Screenshots and the JSON manifest are written under ignored `.local-data/visual-review/`; they are not committed. The capture is an unauthenticated smoke review and does not replace signed-in UAT, native-speaker Japanese review, or visual sign-off.

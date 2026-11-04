@@ -1076,3 +1076,19 @@ These are source-export observations only. They do not mean the CSV was imported
 - Run #343 at `73237825b157e9152960921178df79259541adc9` passed MySQL setup/migrations and TypeScript typecheck. Its test step reported 5 stale contract failures and 299 passes out of 304 tests.
 - Corrected the stale assumptions: Japanese storefront fonts use the local/system fallback stack (not layout imports of the retired Latin font packages); support pages are generated from the enumerated `[slug]` route registry; and accessibility, unpaid-order and product-information text is tested in Japanese.
 - Lint, production build, Lighthouse and staging artifact generation did not run in #343 because the test step failed. A new exact-head workflow run is required before these gates can be marked green.
+
+
+## Post-merge handoff — 2026-11-04 — PR #17 merged
+
+- PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17) merged into `main` at `5758694f0f20a67546998d7bae6455c4e557e8ea`; final PR head `fd7acf6b04672923ad991e834c1b94d0e34a4c52`.
+- Exact-head GitHub Actions run [#348](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41869692118) passed MySQL migrations, typecheck, all unit/integration tests, lint, production build, Lighthouse assertions and staging archive packaging.
+- CI Lighthouse was collected only on `/` and `/shop`. Home: Performance 0.93, Accessibility 0.95, Best Practices 0.96, SEO 1.00; LCP 1.67 s, TBT 309 ms, CLS 0.000. Shop: Performance 0.97, Accessibility 0.96, Best Practices 0.96, SEO 1.00; LCP 1.90 s, TBT 75 ms, CLS 0.099. These are single-run lab data, not field Core Web Vitals or all-route acceptance.
+- CI packaged a self-hosted staging archive but did not deploy it. No local/staging browser visual sign-off, Japanese native-speaker review, authenticated UAT, rights approval, product import, payment activation or production deployment is claimed.
+
+### Phase 5 — route and viewport QA automation
+
+- Add a Playwright-backed capture matrix for 24 customer/operations entry routes across 360, 414, 768, 1440 and 1600 px. Each capture records status, final URL, document language, horizontal overflow, heading/image/button checks, browser console errors and failed requests, alongside the screenshot.
+- Run the capture against a healthy local/CI application and publish the CI evidence as a short-lived workflow artifact. Local captures remain under ignored `.local-data/visual-review/`.
+- Empty CI databases may correctly return 404 for dynamic product and collection routes. The manifest must record those outcomes; it must not convert them into fake sample catalogue records or imply product visual acceptance.
+- Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, native-speaker Japanese copy, screen-reader/keyboard review, Japan-based performance testing and legal/merchant approvals remain separate acceptance gates.
+- The Phase 5 capture harness is being implemented in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); exact-head CI and generated route evidence are pending.
