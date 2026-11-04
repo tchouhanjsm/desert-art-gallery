@@ -108,11 +108,11 @@ function detectImageMimeType(header: Buffer): string | null {
     return "image/webp";
   }
   if (header.length >= 16 && header.toString("ascii", 4, 8) === "ftyp") {
-    const brands = header.toString("ascii", 8);
-    if (/(^|avif|avis)/.test(brands.slice(0, Math.min(brands.length, HEADER_BYTES)))) {
-      if (brands.startsWith("avif") || brands.startsWith("avis") || brands.includes("avif") || brands.includes("avis")) {
-        return "image/avif";
-      }
+    const declaredSize = header.readUInt32BE(0);
+    const boxEnd = declaredSize >= 16 ? Math.min(declaredSize, header.length) : header.length;
+    for (let offset = 8; offset + 4 <= boxEnd; offset += offset === 8 ? 8 : 4) {
+      const brand = header.toString("ascii", offset, offset + 4);
+      if (brand === "avif" || brand === "avis") return "image/avif";
     }
   }
   return null;

@@ -298,5 +298,5 @@ export function recoveredProductMappingCsv(report: RecoveredProductMappingReport
     row.manualReviewRequired,
     "NOT_REVIEWED",
   ]);
-  return [columns, ...rows].map((row) => row.map((value) => cell(value)).join(",")).join("\\n") + "\\n";
+  return [columns, ...rows].map((row) => row.map((value) => cell(value)).join(",")).join("\n") + "\n";
 }
