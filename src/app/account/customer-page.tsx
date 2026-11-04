@@ -22,64 +22,64 @@ export async function CustomerAccountPage() {
   return (
     <div className="page-shell account-shell">
       <div className="admin-page-heading">
-        <div><div className="section-kicker">YOUR DESERT ART GALLERY</div><h1>Welcome, {customer.displayName}</h1><p>Manage your profile and saved delivery addresses.</p></div>
-        <form action={signOutLocalCustomer}><button className="button-outline" type="submit">SIGN OUT</button></form>
+        <div><div className="section-kicker">マイアカウント</div><h1>ようこそ、{customer.displayName}さん</h1><p>プロフィールと配送先住所を管理できます。</p></div>
+        <form action={signOutLocalCustomer}><button className="button-outline" type="submit">ログアウト</button></form>
       </div>
       <section className="account-section">
-        <div className="section-kicker">PERSONAL DETAILS</div><h2>Your profile</h2>
+        <div className="section-kicker">お客様情報</div><h2>プロフィール</h2>
         <form action={updateLocalCustomerProfile} className="account-profile-form">
-          <label>Full name<input name="display_name" defaultValue={customer.displayName} minLength={2} maxLength={160} required /></label>
-          <label>Email address<input value={customer.email} readOnly aria-readonly="true" /></label>
-          <label>Phone number<input name="phone" defaultValue={customer.phone} maxLength={40} /></label>
-          <button className="button-primary dark-button" type="submit">SAVE DETAILS</button>
+          <label>お名前<input name="display_name" defaultValue={customer.displayName} minLength={2} maxLength={160} required /></label>
+          <label>メールアドレス<input value={customer.email} readOnly aria-readonly="true" /></label>
+          <label>電話番号<input name="phone" defaultValue={customer.phone} maxLength={40} /></label>
+          <button className="button-primary dark-button" type="submit">変更を保存</button>
         </form>
       </section>
       <section className="account-section">
-        <div className="section-kicker">DELIVERY DETAILS</div><h2>Saved addresses</h2>
+        <div className="section-kicker">配送先情報</div><h2>保存済みの住所</h2>
         {addresses.length ? <div className="account-address-grid">{addresses.map((address) => (
           <article className="account-address" key={address.id}>
-            {address.isDefaultShipping && <span className="admin-status status-active">DEFAULT SHIPPING</span>}
+            {address.isDefaultShipping && <span className="admin-status status-active">既定の配送先</span>}
             <strong>{address.recipientName}</strong>
             <p>{address.addressLine1}{address.addressLine2 ? ", " + address.addressLine2 : ""}<br />{address.city}{address.region ? ", " + address.region : ""} {address.postalCode}<br />{address.countryCode}</p>
-            <details className="address-edit"><summary>EDIT ADDRESS</summary><form action={saveLocalCustomerAddress} className="address-form">
+            <details className="address-edit"><summary>住所を編集</summary><form action={saveLocalCustomerAddress} className="address-form">
               <input type="hidden" name="id" value={address.id} />
-              <label>Recipient<input name="recipient_name" defaultValue={address.recipientName} required maxLength={160} /></label>
-              <label>Address line 1<input name="address_line_1" defaultValue={address.addressLine1} required maxLength={240} /></label>
-              <label>Address line 2<input name="address_line_2" defaultValue={address.addressLine2} maxLength={240} /></label>
-              <label>City<input name="city" defaultValue={address.city} required maxLength={120} /></label>
-              <label>State / region<input name="region" defaultValue={address.region} maxLength={120} /></label>
-              <label>Postal code<input name="postal_code" defaultValue={address.postalCode} required maxLength={24} /></label>
-              <label>Country code<input name="country_code" defaultValue={address.countryCode} required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
+              <label>宛名<input name="recipient_name" defaultValue={address.recipientName} required maxLength={160} /></label>
+              <label>住所（番地・通り名）<input name="address_line_1" defaultValue={address.addressLine1} required maxLength={240} /></label>
+              <label>建物名・部屋番号など<input name="address_line_2" defaultValue={address.addressLine2} maxLength={240} /></label>
+              <label>市区町村<input name="city" defaultValue={address.city} required maxLength={120} /></label>
+              <label>都道府県・州・地域<input name="region" defaultValue={address.region} maxLength={120} /></label>
+              <label>郵便番号<input name="postal_code" defaultValue={address.postalCode} required maxLength={24} /></label>
+              <label>国コード<input name="country_code" defaultValue={address.countryCode} required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
               <label>Phone<input name="phone" defaultValue={address.phone} maxLength={40} /></label>
-              <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" defaultChecked={address.isDefaultShipping} /> Default shipping address</label>
-              <button type="submit" className="button-outline">SAVE ADDRESS</button>
+              <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" defaultChecked={address.isDefaultShipping} /> 既定の配送先にする</label>
+              <button type="submit" className="button-outline">住所を保存</button>
             </form></details>
-            <form action={deleteLocalCustomerAddress}><input type="hidden" name="id" value={address.id} /><button type="submit" className="address-delete">DELETE ADDRESS</button></form>
+            <form action={deleteLocalCustomerAddress}><input type="hidden" name="id" value={address.id} /><button type="submit" className="address-delete">住所を削除</button></form>
           </article>
-        ))}</div> : <div className="empty-note">No delivery addresses have been saved yet. Add one below.</div>}
-        <details className="address-add"><summary>ADD A DELIVERY ADDRESS</summary><form action={saveLocalCustomerAddress} className="address-form">
-          <label>Recipient<input name="recipient_name" required maxLength={160} /></label>
-          <label>Address line 1<input name="address_line_1" required maxLength={240} /></label>
-          <label>Address line 2<input name="address_line_2" maxLength={240} /></label>
-          <label>City<input name="city" required maxLength={120} /></label>
-          <label>State / region<input name="region" maxLength={120} /></label>
-          <label>Postal code<input name="postal_code" required maxLength={24} /></label>
-          <label>Country code<input name="country_code" placeholder="IN, US, GB…" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
+        ))}</div> : <div className="empty-note">配送先住所はまだ登録されていません。下記から追加してください。</div>}
+        <details className="address-add"><summary>配送先住所を追加</summary><form action={saveLocalCustomerAddress} className="address-form">
+          <label>宛名<input name="recipient_name" required maxLength={160} /></label>
+          <label>住所（番地・通り名）<input name="address_line_1" required maxLength={240} /></label>
+          <label>建物名・部屋番号など<input name="address_line_2" maxLength={240} /></label>
+          <label>市区町村<input name="city" required maxLength={120} /></label>
+          <label>都道府県・州・地域<input name="region" maxLength={120} /></label>
+          <label>郵便番号<input name="postal_code" required maxLength={24} /></label>
+          <label>国コード<input name="country_code" placeholder="例：JP、IN、US" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
           <label>Phone<input name="phone" maxLength={40} /></label>
-          <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" /> Default shipping address</label>
-          <button type="submit" className="button-primary dark-button">SAVE ADDRESS</button>
+          <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" /> 既定の配送先にする</label>
+          <button type="submit" className="button-primary dark-button">住所を保存</button>
         </form></details>
       </section>
       <section className="account-section">
-        <div className="section-kicker">ORDER HISTORY</div><h2>Your orders</h2>
+        <div className="section-kicker">注文履歴</div><h2>ご注文</h2>
         {savedOrders.length ? <div className="account-order-list">{savedOrders.map((order) => (
           <article className="account-order-row" key={order.id}>
             <div><strong><Link href={"/account/orders/" + order.id}>{order.orderNumber}</Link></strong><p>{new Date(order.createdAt).toLocaleDateString("en-IN")} · {order.status.replaceAll("_", " ")}</p></div>
             <strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong>
           </article>
-        ))}</div> : <div className="empty-note">No orders have been prepared from this account yet.</div>}
-        <div className="checkout-notice">Only orders created in this MySQL account are displayed. Existing customer orders from the previous identity system have not been imported. Payment remains disabled.</div>
-        <Link className="text-link" href="/shop">CONTINUE DISCOVERING</Link>
+        ))}</div> : <div className="empty-note">このアカウントで作成された注文はありません。</div>}
+        <div className="checkout-notice">このMySQLアカウントで作成された注文のみ表示しています。以前のアカウントシステムの注文履歴は移行されていません。決済機能は無効です。</div>
+        <Link className="text-link" href="/shop">商品を探す</Link>
       </section>
     </div>
   );
