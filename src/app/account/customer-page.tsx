@@ -89,7 +89,7 @@ export async function CustomerAccountPage() {
         <div className="section-kicker">ORDER HISTORY</div><h2>Orders</h2>
         {savedOrders.length ? <div className="account-order-list">{savedOrders.map((order) => (
           <article className="account-order-row" key={order.id}>
-            <div><strong><Link href={"/account/orders/" + order.id}>{order.orderNumber}</Link></strong><p>{new Date(order.createdAt).toLocaleDateString("ja-JP")} · {formatOrderStatus(order.status)}</p></div>
+            <div><strong><Link href={"/account/orders/" + order.id}>{order.orderNumber}</Link></strong><p>{new Date(order.createdAt).toLocaleDateString("en-IN")} · {formatOrderStatus(order.status)}</p></div>
             <strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong>
           </article>
         ))}</div> : <div className="empty-note">There are no orders on this account yet.</div>}
