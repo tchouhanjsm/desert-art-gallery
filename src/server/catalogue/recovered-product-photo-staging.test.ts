@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -158,5 +158,45 @@ describe("recovered product photo approval and staging", () => {
     const plan = await previewRecoveredPhotoStaging(parsed, { workspaceRoot: workspace, ...roots });
     expect(plan.canStage).toBe(false);
     expect(plan.errors.join(" ")).toContain("nested folders");
+  });
+
+  it("blocks a symlinked product destination before creating anything outside the workspace", async () => {
+    const workspace = await createWorkspace();
+    const roots = await createSourceFiles(workspace);
+    const outside = await mkdtemp(path.join(tmpdir(), "dag-photo-outside-"));
+    temporaryRoots.push(outside);
+    await mkdir(roots.targetRoot, { recursive: true });
+    await symlink(outside, path.join(roots.targetRoot, "banjara-jacket-123"), "dir");
+    const parsed = parseRecoveredPhotoApprovalCsv(csvRow());
+    const plan = await previewRecoveredPhotoStaging(parsed, { workspaceRoot: workspace, ...roots });
+    expect(plan.canStage).toBe(false);
+    expect(plan.errors.join(" ")).toContain("symbolic link");
+    expect(await readdir(outside)).toEqual([]);
+  });
+
+  it("rolls back only files created by the current batch when a source changes mid-run", async () => {
+    const workspace = await createWorkspace();
+    const roots = await createSourceFiles(workspace);
+    const parsed = parseRecoveredPhotoApprovalCsv(csvRow());
+    const plan = await previewRecoveredPhotoStaging(parsed, { workspaceRoot: workspace, ...roots });
+    await writeFile(path.join(roots.sourceRoot, "Recovered Jacket", "detail.png"), Buffer.from("changed after preview"));
+    await expect(
+      commitRecoveredPhotoStaging(RECOVERED_PHOTO_STAGING_CONFIRMATION, plan, workspace),
+    ).rejects.toThrow(/changed after preview/i);
+    await expect(
+      readFile(path.join(roots.targetRoot, "banjara-jacket-123", "01-primary.jpg")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    expect(await readFile(path.join(roots.sourceRoot, "Recovered Jacket", "front.jpg"))).toEqual(
+      Buffer.from([0xff, 0xd8, 0xff, 0x01]),
+    );
+  });
+
+  it("blocks a primary filename that is absent from the selected recovered folder", async () => {
+    const workspace = await createWorkspace();
+    const roots = await createSourceFiles(workspace);
+    const parsed = parseRecoveredPhotoApprovalCsv(csvRow({ primary_image_filename: "missing.jpg" }));
+    const plan = await previewRecoveredPhotoStaging(parsed, { workspaceRoot: workspace, ...roots });
+    expect(plan.canStage).toBe(false);
+    expect(plan.errors.join(" ")).toContain("selected primary image does not exist");
   });
 });
