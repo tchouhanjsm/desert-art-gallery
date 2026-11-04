@@ -41,3 +41,11 @@ describe("Japanese storefront style isolation", () => {
     expect(japanStyles).not.toContain(".atelier-product-grid, .product-grid");
   });
 });
+
+
+describe("mobile customer account navigation", () => {
+  it("keeps account and wishlist controls available in the compact header", () => {
+    expect(japanStyles).not.toContain('.jp-utility-actions .icon-button[aria-label^="マイページ"]');
+    expect(japanStyles).not.toContain(".jp-utility-actions .wishlist-link{ display:none");
+  });
+});

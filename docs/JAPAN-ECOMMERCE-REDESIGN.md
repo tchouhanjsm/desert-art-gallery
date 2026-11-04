@@ -1028,3 +1028,12 @@ These are source-export observations only. They do not mean the CSV was imported
 - Browser visual QA across the required viewport matrix, Japanese native-speaker copy review, bundled Japanese glyph/line-break validation and accessibility review remain release gates. No catalogue import, photo matching, rights approval, payment activation or production deployment is part of this patch.
 
 - Follow-up interface hardening: the mobile search toggle now references the search form in `aria-controls`, and tablet responsive product-grid selectors are scoped beneath `.jp-storefront` so the customer theme cannot style matching owner-workspace selectors. A source-level regression test covers the scope; browser and screen-reader review remain open.
+
+
+## Implementation addendum — 2026-11-04 — Japanese support and policy route coverage
+
+- Localised all six dynamic customer-information routes (`/shipping`, `/returns`, `/faq`, `/tracking`, `/privacy`, `/terms`) into Japanese through a typed, testable content module.
+- Added Japanese route metadata and `noindex, follow` until customer-support and policy text has been reviewed. Added static params for the six intended routes so unknown slugs return not-found.
+- Legal and merchant policy content remains expressly provisional. Privacy and terms notices do not claim a final legal operator, processor list, governing law, shipping promise, fee or returns entitlement. The missing Japanese legal seller disclosure is not fabricated.
+- Added footer links for shopping guide and policy pages. Account and wishlist header controls remain visible at mobile widths rather than being hidden.
+- Native-speaker Japanese copy review, merchant/legal approval, visual QA and CI validation remain release gates.

@@ -248,3 +248,12 @@ Production activation requires merchant-authorized catalogue data and original p
 - The new exact-head workflow run is required to verify the patch. Visual screenshots, Japanese native-speaker review, accessibility and performance evidence remain outstanding. This update does not authorise product publication, photo rights approval, payment activation or production deployment.
 
 - Follow-up UI isolation review: the tablet breakpoint's legacy generic product-grid selector is now explicitly scoped to `.jp-storefront`; the Japanese search toggle's `aria-controls` now targets the actual search form rather than its input. A regression assertion covers the responsive CSS scope. This does not replace browser/assistive-technology testing.
+
+
+## Follow-up — 2026-11-04 — Japanese customer information and mobile navigation
+
+- Replaced the six English dynamic information pages (`/shipping`, `/returns`, `/faq`, `/tracking`, `/privacy`, `/terms`) with Japanese-first content in a typed information-page module.
+- Added Japanese page metadata and explicit `noindex, follow` metadata while the content remains provisional. Unknown slugs continue to return not-found; no legal-operator page or missing business facts have been invented.
+- Shipping, returns, privacy and terms carry visible draft notices. The privacy/terms pages explicitly state that they are not final legal notices; merchant identity, actual policies and jurisdictional review remain required.
+- Added guide and policy destinations to the Japanese footer. The mobile header no longer hides the account and wishlist links; source-level regression checks cover their availability.
+- Japanese copy is an initial translation for engineering review, not a native-speaker approval. Exact-head CI, browser visual QA, policy approval and accessibility testing remain outstanding.

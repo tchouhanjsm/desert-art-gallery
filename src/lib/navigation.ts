@@ -40,4 +40,20 @@ export const footerNavigation: NavigationSection[] = [
       { href: "/account", label: "マイページ" },
     ],
   },
+  {
+    title: "ご利用ガイド",
+    links: [
+      { href: "/shipping", label: "配送について" },
+      { href: "/returns", label: "返品・交換" },
+      { href: "/faq", label: "よくあるご質問" },
+      { href: "/tracking", label: "配送状況の確認" },
+    ],
+  },
+  {
+    title: "ポリシー",
+    links: [
+      { href: "/privacy", label: "プライバシーポリシー（草案）" },
+      { href: "/terms", label: "利用規約（草案）" },
+    ],
+  },
 ];
