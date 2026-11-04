@@ -52,7 +52,7 @@ export default async function AdminDashboardPage() {
     const workspaceLabel = process.env.APP_ENV?.trim().toLowerCase() === "staging"
       ? "STAGING WORKSPACE"
       : process.env.NODE_ENV === "production" ? "PRODUCTION WORKSPACE" : "LOCAL WORKSPACE";
-    const firstName = admin.displayName.trim().split(/\\s+/)[0] || "there";
+    const firstName = admin.displayName.trim().split(/\s+/)[0] || "there";
     const dateFormat = new Intl.DateTimeFormat("en-IN", {
       dateStyle: "medium",
       timeZone: "Asia/Kolkata",
@@ -79,7 +79,7 @@ export default async function AdminDashboardPage() {
           <MetricCard label="Published" value={dashboard.publishedProducts} detail="Visible in the shop" href="/admin/products" icon={ImageIcon} />
           <MetricCard label="Drafts" value={dashboard.draftProducts} detail="Waiting for review" href="/admin/products" icon={Clock3} />
           <MetricCard label="Orders to review" value={dashboard.ordersNeedingAttention} detail="Draft, payment or fulfilment attention" href="/admin/orders" icon={ShoppingBag} />
-          <MetricCard label="Images awaiting rights" value={dashboard.imagesAwaitingRights} detail={dashboard.totalProductImages + " product images recorded"} href="/admin/media" icon={AlertCircle} />
+          <MetricCard label="Images awaiting rights" value={dashboard.imagesAwaitingRights} detail={dashboard.totalProductImages + " product images recorded"} href="/admin/products" icon={AlertCircle} />
         </div>
 
         <div className="owner-dashboard-grid">
@@ -146,7 +146,6 @@ export default async function AdminDashboardPage() {
 
         <section className="owner-quick-actions">
           <Link href="/admin/products/new"><Package size={17} /> Create product <ArrowUpRight size={16} /></Link>
-          <Link href="/admin/media"><ImageIcon size={17} /> Review photographs <ArrowUpRight size={16} /></Link>
           <Link href="/admin/orders"><ShoppingBag size={17} /> Review orders <ArrowUpRight size={16} /></Link>
           <Link href="/admin/checkout"><Clock3 size={17} /> Shipping & tax settings <ArrowUpRight size={16} /></Link>
         </section>
