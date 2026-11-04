@@ -4,6 +4,10 @@ Last reviewed: 2026-11-04 (Asia/Kolkata)
 
 This register separates code present in the repository from integrations that have been connected and verified in a merchant environment. An implementation checkbox is not a claim that production credentials, customer data, catalogue rights or live payments have been configured.
 
+## Owner clarification — 2026-11-04 — English-language storefront
+
+Japanese describes the design and interaction inspiration only. The customer-facing site language is English (`lang="en"`), with local Inter and Playfair Display fonts. Japanese-language content, Japanese address conventions, furigana, Japan-market assumptions and JPY conversion are not requirements. The gallery remains based in Jaisalmer, Rajasthan, India. The English copy correction is a presentation-layer follow-up: it must not translate or rewrite merchant catalogue records, change currency values, or alter the database, customer identity, inventory, checkout or payment safeguards.
+
 ## Current Japanese-inspired English-language redesign status — 2026-11-04
 
 The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). The Japanese-inspired English-language storefront presentation was initially merged to `main` in PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17), followed by route/viewport QA in PR [#18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18). The owner clarified on 4 November 2026 that Japanese describes design conventions only; customer-facing content must remain English. The follow-up language correction is tracked separately. The active correction branch changes only presentation copy, language metadata, font-family selection, tests and documentation; it does not change catalogue records, currency values, database schemas, authentication, inventory, checkout or payment controls. Continue from `main`; do not resume development on the merged feature branch.
@@ -14,7 +18,7 @@ The active public root layout no longer imports the superseded Desert Atelier/De
 
 **Lighthouse lab snapshot (run #348, CI test database):** home Performance 0.93 / Accessibility 0.95 / Best Practices 0.96 / SEO 1.00, LCP 1.67 s, TBT 309 ms, CLS 0.000; shop Performance 0.97 / Accessibility 0.96 / Best Practices 0.96 / SEO 1.00, LCP 1.90 s, TBT 75 ms, CLS 0.099. These are two single-run lab reports, not field Core Web Vitals or route-wide acceptance. The staging archive was built as an artifact; it was not deployed to a hosting environment.
 
-**Still not verified or approved:** all-route visual acceptance, authenticated customer/owner journeys, native-speaker Japanese copy review, Japanese glyph/line-break coverage, full accessibility/contrast review, Japan-based customer testing, JPY pricing/tax, merchant shipping/returns, legal seller details, payment provider or production deployment. The CSV retains English source product text and USD prices; storefront UI localisation is not catalogue translation or currency conversion.
+**Still not verified or approved:** all-route visual acceptance of the English-language correction, authenticated customer/owner journeys, full accessibility/contrast review, merchant shipping/returns, legal seller details, payment provider or production deployment. Catalogue currency and source product text remain unchanged; storefront UI copy is not a catalogue translation or currency conversion.
 
 ### Storefront routes and discovery foundations
 
@@ -57,7 +61,7 @@ The active public root layout no longer imports the superseded Desert Atelier/De
 
 - [ ] Connect the merchant-approved Supabase project and apply/verify both migrations in that project. No live database migration was run in this delivery.
 - [ ] Verify RLS, storage access, import/adjustment RPC permissions, transaction rollback and auth callbacks with real Supabase anon/authenticated/service-role sessions.
-- [x] Merge the Japan-first public presentation layer into `main` (PR #17); this is code integration only, not visual, localisation, merchant or production acceptance.
+- [x] Merge the Japanese-inspired English-language public presentation layer into `main` (PR #17); this is code integration only, not visual, merchant or production acceptance.
 - [ ] Verify mobile overflow, keyboard navigation, focus, contrast, touch targets, reduced motion and assistive-technology behavior with browser-based QA.
 - [ ] Replace the local textile placeholder with merchant-authorized original photography in owned storage after rights review; confirm rights for every product, collection, editorial and artisan image.
 - [ ] Add customer registration/email verification and approved staff/owner provisioning.
