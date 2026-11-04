@@ -1,7 +1,7 @@
 # Japan-first storefront visual review
 
 **Source of truth:** [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md)  
-**Review state:** Pending. No new browser screenshots or route-by-route visual acceptance are attached to this PR branch yet.  
+**Review state:** Japan-first implementation merged via PR #17. Lighthouse lab reports exist for home and shop only; full route-by-route screenshot and human visual acceptance are still pending.  
 **Supersedes:** The November 2 Desert Atelier screenshot assessment as the active target. That report remains historical evidence only.
 
 ## Baseline and implementation reviewed
@@ -12,7 +12,7 @@ The new information architecture is shopping-first: compact multi-zone header, v
 
 ## Route map
 
-| Route | Template / primary components | Current PR branch state |
+| Route | Template / primary components | Main implementation state |
 |---|---|---|
 | `/` | `src/app/page.tsx` | Rebuilt Japanese shoppable homepage |
 | `/shop` | `src/app/shop/page.tsx`, `ShopBrowser` | Japanese search/filter/sort labels; functional logic retained |
@@ -32,7 +32,7 @@ The new information architecture is shopping-first: compact multi-zone header, v
 - The generic address schema has no furigana/name-reading field or Japanese postcode lookup integration. Those require a backwards-compatible data/API plan.
 - Merchant-approved Japanese shipping, duties, tax, seller/legal identity, returns, payment and customer-support content is not supplied in the CSV.
 - Japanese glyph coverage, system-font differences, contrast and text wrapping remain to be checked in real browsers.
-- No current route screenshots, E2E browser review or Lighthouse artifact is claimed in this document.
+- CI run #348 produced Lighthouse HTML/JSON reports for `/` and `/shop`; no all-route screenshots, authenticated E2E review, field Core Web Vitals or human visual sign-off is claimed.
 
 ## Review checklist
 
@@ -55,6 +55,21 @@ The new information architecture is shopping-first: compact multi-zone header, v
 Do not mark any checklist item complete until screenshot or test evidence is linked with the branch commit SHA.
 
 
-## Follow-up audit — 2026-11-04
+## CI Lighthouse evidence — PR #17, run #348
 
-The route capture script currently samples home, shop, one development preview product and cart at 390, 768 and 1440 px. This is a smoke-capture subset, not the full visual acceptance matrix. Expand it before release to cover every customer route, both account implementations, collection/story/artisans/journal/contact/wishlist/checkout, and admin/owner visual isolation. Use persisted, rights-approved product data only when evaluating real catalogue imagery; keep preview-artwork captures clearly labelled.
+The final PR head completed the CI validation job successfully, including Lighthouse. Single-run reports were collected only for the homepage and shop:
+
+| Route | Performance | Accessibility | Best Practices | SEO | LCP | TBT | CLS |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `/` | 0.93 | 0.95 | 0.96 | 1.00 | 1.67 s | 309 ms | 0.000 |
+| `/shop` | 0.97 | 0.96 | 0.96 | 1.00 | 1.90 s | 75 ms | 0.099 |
+
+These are CI lab measurements on the blank test database, not field Core Web Vitals. The home TBT and shop CLS are optimisation candidates. Two Lighthouse URLs do not cover the complete route matrix.
+
+## Phase 5 route and viewport evidence
+
+The Playwright capture matrix in `src/lib/storefront-review.ts` now defines 24 customer/operations routes across 360, 414, 768, 1440 and 1600 px. The runner writes full-page screenshots and a JSON manifest to ignored `.local-data/visual-review/`. CI uploads its result as a short-lived artifact.
+
+The CI test database contains no merchant catalogue. Dynamic product and collection routes may correctly resolve to not-found; screenshots of those empty states are not product-image or catalogue acceptance. `/admin` is unauthenticated and may redirect to `/owner/login`; signed-in owner/dashboard views still require staging UAT.
+
+Human visual inspection, authenticated customer journeys, keyboard/screen-reader testing, native-speaker Japanese copy, glyph coverage, real rights-approved images and Japan-based performance validation remain outstanding.
