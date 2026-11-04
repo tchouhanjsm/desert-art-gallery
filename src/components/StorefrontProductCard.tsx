@@ -18,7 +18,7 @@ export function StorefrontProductCard({ product }: { product: Product }) {
   const isPreview = !product.id;
   const price = product.priceMinor != null && product.currency
     ? formatMoneyFromMinor(product.priceMinor, product.currency)
-    : "価格はお問い合わせください";
+    : "Price on request";
 
   return (
     <article className="atelier-product-card">
@@ -41,7 +41,7 @@ export function StorefrontProductCard({ product }: { product: Product }) {
               sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 23vw"
             />
           )}
-          {isPreview && <span className="atelier-preview-label">商品写真を準備中</span>}
+          {isPreview && <span className="atelier-preview-label">PHOTOGRAPHY PENDING</span>}
           <span className="atelier-product-open" aria-hidden="true">↗</span>
         </div>
         <div className="atelier-product-meta">
@@ -50,7 +50,7 @@ export function StorefrontProductCard({ product }: { product: Product }) {
           {product.note && <p>{product.note}</p>}
           <div className="atelier-product-bottom">
             <span className="atelier-product-price">{price}</span>
-            <span className="atelier-product-action">商品を見る</span>
+            <span className="atelier-product-action">View piece</span>
           </div>
         </div>
       </Link>
