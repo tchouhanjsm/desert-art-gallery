@@ -124,11 +124,11 @@ function CartDrawer() {
     if (item.priceMinor !== null && item.currency) totals[item.currency] = (totals[item.currency] ?? 0) + item.priceMinor * item.quantityRequested;
   }
   return <div className="cart-overlay" role="presentation" onClick={closeDrawer}>
-    <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(event) => event.stopPropagation()}>
+    <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="カート" onClick={(event) => event.stopPropagation()}>
       <div className="cart-drawer-header"><div><div className="section-kicker">カート</div><h2>カート</h2></div><button className="icon-button" onClick={closeDrawer} aria-label="カートを閉じる">×</button></div>
       {isLoading && <p className="cart-state">商品情報と在庫を確認しています…</p>}
       {error && <p className="cart-error" role="status">{error}</p>}
-      {!lines.length ? <div className="empty-note">カート is waiting for its first piece.<br/><Link href="/shop" className="empty-link" onClick={closeDrawer}>商品を見る</Link></div> :
+      {!lines.length ? <div className="empty-note">カートは空です。<br/><Link href="/shop" className="empty-link" onClick={closeDrawer}>商品を見る</Link></div> :
         <div className="cart-drawer-lines">{preview.map((item) => <article className="cart-line" key={cartLineKey(item.slug, item.variantId ?? undefined)}>
           {item.image ? <Image src={item.image} alt={item.imageAlt} width={88} height={116} unoptimized /> : <div className="cart-line-placeholder" aria-hidden="true" />}
           <div className="cart-line-details"><h3>{item.name}</h3>
