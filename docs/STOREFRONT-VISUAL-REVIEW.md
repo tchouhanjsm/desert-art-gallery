@@ -29,7 +29,7 @@ The Phase 5 review script captures the public shopping and operations route matr
 ## Data and trust boundaries
 
 - Merchant-owned product titles, descriptions, materials, dimensions, variants, collection names, artisan names and editorial content are not machine-translated or silently rewritten.
-- Catalogue currency remains the currency recorded in the catalogue or order. No currency conversion or JPY assumption is made.
+- Catalogue currency remains the currency recorded in the catalogue or order. No currency conversion or currency substitution is made.
 - The generic delivery-address contract remains generic. No Japan-only address, furigana or postcode lookup feature is introduced.
 - Shipping, tax, returns, payment, seller identity and legal terms remain provisional until merchant-approved configuration and legal review are supplied.
 - Product images may be published only when the product is published and the relevant usage rights are confirmed.
