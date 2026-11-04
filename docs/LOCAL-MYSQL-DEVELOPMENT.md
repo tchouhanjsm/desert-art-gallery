@@ -111,9 +111,11 @@ npm run db:status
 - db:ping checks a local loopback connection with SELECT 1.
 - db:status reports the database name, server version and Drizzle migration journal state.
 - db:status exits with code 2 when the database is reachable but migrations are pending.
-- db:migrate applies the tracked Drizzle migrations.
+- db:migrate applies the tracked Drizzle migrations only after verifying the connected database identity, Oracle MySQL version and current schema. It refuses to initialize a database that already contains tables/views but has no Drizzle migration journal.
 
 The diagnostics reject remote database targets and never print usernames, passwords or the complete DATABASE_URL. Use a compatible Oracle MySQL 8.0.16+ server. GitHub CI uses its own hosted MySQL service and does not require Docker on the local device.
+
+If migration initialization is blocked, do not drop tables or retry with a different command. First inspect the table list from `npm run db:catalogue-preflight`, confirm the database is the intended local target, and back up/reconcile any legacy schema. A separate empty local database is the preferred path when the existing schema is not part of this application.
 
 After starting the application:
 
