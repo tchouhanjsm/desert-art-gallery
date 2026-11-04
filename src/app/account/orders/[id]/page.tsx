@@ -108,7 +108,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
   return <div className="page-shell">
     <div className="breadcrumb"><Link href="/account">マイページ</Link> / ORDER {row.order_number}</div>
     <div className="page-heading"><div className="section-kicker">注文詳細</div><h1>{row.order_number}</h1><p>注文日：{new Date(row.created_at).toLocaleDateString("ja-JP")}</p><span className={"admin-status status-" + row.status}>{formatOrderStatus(row.status)}</span></div>
-    {row.status === "draft" && <div className="checkout-notice" role="status">This is an unpaid order draft. No payment has been requested or taken. The draft and its inventory hold expire {row.expires_at ? new Date(row.expires_at).toLocaleString("ja-JP") : "when the reservation expires"}.</div>}
+    {row.status === "draft" && <div className="checkout-notice" role="status">こちらはお支払い前の注文案です。お支払いの請求・受領は行われていません。注文案と在庫の仮確保は、{row.expires_at ? new Date(row.expires_at).toLocaleString("ja-JP") : "在庫確保の有効期限"}に期限切れとなります。</div>}
     {row.status === "expired" && <div className="checkout-notice" role="status">この注文案は期限切れです。一時的な在庫確保は終了しています。商品が引き続き購入可能な場合は、カートから新しい注文手続きを行ってください。</div>}
     <div className="order-detail-layout">
       <section className="order-item-list"><h2>ご注文の商品</h2>
