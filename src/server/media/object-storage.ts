@@ -10,6 +10,7 @@ import {
 
 export type MediaStorageDriver = "local" | "s3";
 export type MediaContentType = "image/jpeg" | "image/png" | "image/webp" | "image/avif";
+export type MediaStorageEnvironment = Readonly<Record<string, string | undefined>>;
 
 export type MediaStorageConfig = {
   endpoint: string;
@@ -55,7 +56,7 @@ function requiredEnvironmentValue(value: string | undefined, label: string): str
 }
 
 export function getMediaStorageDriver(
-  environment: NodeJS.ProcessEnv = process.env,
+  environment: MediaStorageEnvironment = process.env,
 ): MediaStorageDriver {
   const value = (environment.MEDIA_STORAGE_DRIVER ?? "local").trim().toLowerCase();
   if (value !== "local" && value !== "s3") {
@@ -65,7 +66,7 @@ export function getMediaStorageDriver(
 }
 
 export function validateMediaStorageConfiguration(
-  environment: NodeJS.ProcessEnv = process.env,
+  environment: MediaStorageEnvironment = process.env,
 ): MediaStorageDriver {
   const driver = getMediaStorageDriver(environment);
   if (driver === "s3") {
@@ -83,7 +84,7 @@ export function validateMediaStorageConfiguration(
 }
 
 export function readMediaStorageConfig(
-  environment: NodeJS.ProcessEnv = process.env,
+  environment: MediaStorageEnvironment = process.env,
 ): MediaStorageConfig {
   const endpoint = requiredEnvironmentValue(environment.MEDIA_S3_ENDPOINT, "MEDIA_S3_ENDPOINT");
   let parsed: URL;
