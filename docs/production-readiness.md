@@ -267,3 +267,11 @@ Production activation requires merchant-authorized catalogue data and original p
 - Translated visual-design alt text, the short brand tagline and the footer location descriptor. Merchant-owned product titles, descriptions, category names, collection labels and artisan names/biographies remain source content until owner-approved Japanese copy is supplied.
 - Added `src/lib/japanese-copy-contract.test.ts` to guard key Japanese route headings and the no-payment draft notice against accidental English regressions.
 - The branch remains a draft PR. Native-speaker review, route-by-route visual QA and exact-head CI remain outstanding.
+
+
+## CI follow-up — run #343 — 2026-11-04
+
+- Exact-head workflow run #343 validated commit `73237825b157e9152960921178df79259541adc9`. MySQL startup/migrations and TypeScript typecheck passed.
+- The unit/integration suite reported 5 failures and 299 passes (304 tests total). These were stale tests rather than application type errors: the font test required removed layout font imports; the route-existence test did not recognise the statically enumerated `[slug]` information route; and three conversion-contract assertions still expected English copy from before Japanese localisation.
+- Updated the font contract to verify the Japanese system-font stack and absence of remote font dependencies, taught navigation tests to validate known static information slugs, and changed conversion-contract assertions to the Japanese status and accessible control labels.
+- A new exact-head CI run is required to verify the corrected test suite. Lint, production build, Lighthouse and staging artifact steps were skipped after the failing test step in run #343.
