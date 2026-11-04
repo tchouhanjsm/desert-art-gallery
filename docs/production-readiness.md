@@ -1,10 +1,18 @@
 # Production readiness register
 
-Last reviewed: 2026-11-02 (Asia/Kolkata)
+Last reviewed: 2026-11-04 (Asia/Kolkata)
 
 This register separates code present in the repository from integrations that have been connected and verified in a merchant environment. An implementation checkbox is not a claim that production credentials, customer data, catalogue rights or live payments have been configured.
 
-## Implemented in code
+## Current Japan-first redesign status — 2026-11-04
+
+The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). Branch `feat/japan-first-storefront-redesign` contains an initial replacement of the active public layout/theme, Japanese-first shared navigation, shopping templates and customer-facing UI labels. It is not yet merged or signed off.
+
+The active public root layout no longer imports the superseded Desert Atelier/Desert Modern theme layers. `src/styles/japan-storefront.css` is the new presentation layer. The admin/owner workspace remains separate.
+
+**Not verified:** exact-head CI, browser screenshots, all-route visual review, native-speaker Japanese copy review, font glyph coverage, accessibility/contrast, real Japan customer testing, JPY pricing/tax, merchant shipping/returns, legal seller information, payment provider or production deployment. The CSV has English product titles/descriptions and USD prices; UI localisation is not catalogue translation or currency conversion.
+
+### Storefront routes and discovery foundations
 
 ### Storefront routes and discovery foundations
 - Next.js App Router route scaffolding exists for home, shop, collection, product, story, artisans, journal, contact and client-care pages.
@@ -45,7 +53,7 @@ This register separates code present in the repository from integrations that ha
 
 - [ ] Connect the merchant-approved Supabase project and apply/verify both migrations in that project. No live database migration was run in this delivery.
 - [ ] Verify RLS, storage access, import/adjustment RPC permissions, transaction rollback and auth callbacks with real Supabase anon/authenticated/service-role sessions.
-- [x] Implement the responsive editorial design foundation and shared route layouts.
+- [ ] Complete and accept the Japan-first public theme replacement across every customer-facing route; the older responsive editorial foundation is superseded. Current PR branch implementation still requires exact-head CI, route screenshots, Japanese copy/font/accessibility review and owner acceptance.
 - [ ] Verify mobile overflow, keyboard navigation, focus, contrast, touch targets, reduced motion and assistive-technology behavior with browser-based QA.
 - [ ] Replace the local textile placeholder with merchant-authorized original photography in owned storage after rights review; confirm rights for every product, collection, editorial and artisan image.
 - [ ] Add customer registration/email verification and approved staff/owner provisioning.
@@ -218,3 +226,14 @@ Production activation requires merchant-authorized catalogue data and original p
 - **Owner inputs still required:** approved Supabase project and migration authorization; actual country coverage, shipping rates, delivery windows and duties wording; tax adviser-approved tax components/disclosures; canonical seller/legal policies; payment accounts and webhook secrets; transactional email and hosting/scheduler approval.
 - **Tax limitation:** the implemented quote uses additive basis-point components against item subtotal plus shipping where explicitly configured. It is not a jurisdiction-complete tax engine and does not calculate customs duties, import VAT, tax-on-tax or carrier brokerage. Do not activate a destination until the owner/accountant confirms the configured model is legally appropriate.
 - **Next engineering increment:** payment-session abstraction and signed webhook/reconciliation boundary in sandbox-only mode, after verifying order-draft and expiry behavior against an approved Supabase test project. Keep real payment capture disabled.
+
+
+## Dated handoff — 2026-11-04 — Japan-first ecommerce redesign
+
+- Adopted `docs/JAPAN-ECOMMERCE-REDESIGN.md` as the customer-facing source of truth. Former Desert Atelier and Desert Modern theme descriptions are historical only.
+- Replaced the active shared public header/footer, set document language to Japanese, and implemented a new public CSS layer with warm-ivory/ink/terracotta/sand tokens.
+- Reworked the home page as product-led Japanese commerce, localised shop discovery and product detail UI, collections, story/artisans/journal/contact, cart, checkout, account and auth labels. The owner/admin interface remains separate.
+- Preserved backend contracts: no schema/migration/auth/inventory/payment/media-rights change is intended in this presentation milestone.
+- Inspected the uploaded Etsy export: 527 rows; USD only; all source quantity values are 1; 5,216 source image URL references; 60 blank SKU rows; 13 duplicate SKU groups; repeated titles; no category/section or variation data. See `docs/ETSY-LISTINGS-IMPORT.md`.
+- Current blockers: owner-reviewed category taxonomy; SKU/title/photo reconciliation; Japanese product translations; JPY retail-price and tax policy; shipping/duties/returns and legal operator details; native-speaker copy review; JP font/glyph QA; route-by-route visual/accessibility/performance evidence.
+- No CSV import, photo upload, rights approval, product publication, payment activation or production deployment is claimed by this PR.
