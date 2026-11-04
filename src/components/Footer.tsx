@@ -14,7 +14,7 @@ export function Footer() {
         <div className="jp-footer-brand">
           <Link href="/" className="footer-mark">DESERT ART GALLERY</Link>
           <p>ラージャスターン州ジャイサルメールから、テキスタイルと手仕事の品をご紹介します。</p>
-          <span>JAISALMER · RAJASTHAN · INDIA</span>
+          <span>ジャイサルメール · ラージャスターン州 · インド</span>
         </div>
         {footerNavigation.map((section) => (
           <nav aria-label={section.title} key={section.title}>
