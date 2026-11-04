@@ -7,8 +7,8 @@ import { getPublishedArtisanProfiles, type ArtisanRecord } from "@/server/editor
 import { getEditorialMediaUrl } from "@/server/media/storage";
 
 export const metadata = {
-  title: "Our makers",
-  description: "Maker profiles shared by Desert Art Gallery only after the people featured have reviewed and approved their details.",
+  title: "つくり手について",
+  description: "掲載するご本人の確認と承諾を得たつくり手の情報をご紹介します。",
 };
 
 type ArtisanCard = ArtisanRecord & { portrait: string | null };
@@ -31,14 +31,14 @@ export default async function ArtisansPage() {
       return (
         <div className="page-shell">
           <div className="page-heading">
-            <div className="section-kicker">PEOPLE & PROCESS</div>
-            <h1>Maker stories</h1>
-            <p>Personal stories should be told by, or with the approval of, the people involved.</p>
+            <div className="section-kicker">つくり手とものづくり</div>
+            <h1>つくり手について</h1>
+            <p>ご本人の言葉、またはご本人の承諾を得た内容のみを掲載します。</p>
           </div>
           <div className="info-copy">
-            <p>This space is reserved for profiles that have been reviewed and approved by the people featured. No names, portraits, biographies or experience claims will be published here without their permission.</p>
-            <p>For questions about the making or details of a particular piece, contact the gallery.</p>
-            <Link className="contact-link" href="/contact">CONTACT THE GALLERY</Link>
+            <p>このページでは、掲載対象となるご本人が内容を確認し、承諾したプロフィールのみをご紹介します。お名前、写真、経歴、経験に関する情報は、許可なく掲載しません。</p>
+            <p>商品や制作背景についてのご質問は、ギャラリーまでお問い合わせください。</p>
+            <Link className="contact-link" href="/contact">お問い合わせ</Link>
           </div>
         </div>
       );
@@ -47,7 +47,7 @@ export default async function ArtisansPage() {
     const { data, error } = await supabase.from("artisan_profiles")
       .select("id,full_name,role_title,short_bio,biography,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed,portrait_rights_evidence,sort_order,is_published")
       .eq("is_published", true).order("sort_order", { ascending: true });
-    if (error) throw new Error("Unable to load maker profiles.");
+    if (error) throw new Error("つくり手の情報を読み込めませんでした。");
 
     const rows = (data ?? []) as unknown as ArtisanRecord[];
     cards = await Promise.all(rows.map(async (artisan) => {
@@ -65,7 +65,7 @@ export default async function ArtisansPage() {
       <div className="page-heading">
         <div className="section-kicker">PEOPLE & PROCESS</div>
         <h1>Maker stories</h1>
-        <p>Profiles are shared only when the people featured have approved the details and imagery.</p>
+        <p>掲載するご本人が内容と写真を確認し、承諾したプロフィールのみをご紹介します。</p>
       </div>
       {cards.length ? (
         <div className="artisan-grid">
@@ -76,13 +76,13 @@ export default async function ArtisansPage() {
                   <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || ("Portrait of " + artisan.full_name)} fill sizes="(max-width:700px) 88vw, 30vw" />
                 </div>
               ) : (
-                <div className="artisan-photo artisan-photo-empty" aria-hidden="true">PORTRAIT NOT PUBLISHED</div>
+                <div className="artisan-photo artisan-photo-empty" aria-hidden="true">写真は未掲載です</div>
               )}
               <div className="section-kicker">{artisan.role_title}</div>
               <h2>{artisan.full_name}</h2>
               {artisan.short_bio && <p>{artisan.short_bio}</p>}
               {artisan.biography && <p className="artisan-biography">{artisan.biography}</p>}
-              {artisan.years_experience !== null && <small>{artisan.years_experience} YEARS OF EXPERIENCE</small>}
+              {artisan.years_experience !== null && <small>{artisan.years_experience}年の経験</small>}
               {!!artisan.craft_specialties.length && (
                 <div className="artisan-specialties">
                   {artisan.craft_specialties.map((specialty) => <span key={specialty}>{specialty}</span>)}
@@ -92,7 +92,7 @@ export default async function ArtisansPage() {
           ))}
         </div>
       ) : (
-        <div className="empty-note">No maker profiles are currently approved for publication.</div>
+        <div className="empty-note">現在、掲載承諾済みのプロフィールはありません。</div>
       )}
     </div>
   );
