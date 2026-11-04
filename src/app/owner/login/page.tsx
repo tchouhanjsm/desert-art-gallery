@@ -8,8 +8,8 @@ const initialState: LocalOwnerLoginState = {};
 export default function LocalOwnerLoginPage() {
   const [state, action, pending] = useActionState(signInLocalOwner, initialState);
   return (
-    <main className="page-shell">
-      <section className="auth-panel">
+    <main className="owner-auth-page">
+      <section className="owner-auth-panel">
         <div className="section-kicker">DESERT ART GALLERY · OWNER ACCESS</div>
         <h1>Owner sign in</h1>
         <p>Sign in to manage the self-hosted catalogue and gallery operations.</p>
