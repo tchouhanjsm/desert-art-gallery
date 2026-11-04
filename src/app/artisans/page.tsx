@@ -63,8 +63,8 @@ export default async function ArtisansPage() {
   return (
     <div className="page-shell">
       <div className="page-heading">
-        <div className="section-kicker">PEOPLE & PROCESS</div>
-        <h1>Maker stories</h1>
+        <div className="section-kicker">つくり手とものづくり</div>
+        <h1>つくり手の物語</h1>
         <p>掲載するご本人が内容と写真を確認し、承諾したプロフィールのみをご紹介します。</p>
       </div>
       {cards.length ? (
@@ -73,7 +73,7 @@ export default async function ArtisansPage() {
             <article className="artisan-card" key={artisan.id}>
               {artisan.portrait ? (
                 <div className="artisan-photo">
-                  <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || ("Portrait of " + artisan.full_name)} fill sizes="(max-width:700px) 88vw, 30vw" />
+                  <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || ("つくり手「" + artisan.full_name + "」のポートレート")} fill sizes="(max-width:700px) 88vw, 30vw" />
                 </div>
               ) : (
                 <div className="artisan-photo artisan-photo-empty" aria-hidden="true">写真は未掲載です</div>
