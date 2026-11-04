@@ -3,7 +3,7 @@ import { LegacyLoginForm } from "./legacy-login-form";
 import { CustomerLoginForm } from "./customer-login-form";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "ログイン", description: "Desert Art Galleryのお客様ログイン。" };
+export const metadata = { title: "Sign in", description: "Sign in to your Desert Art Gallery account." };
 
 export default function LoginPage() {
   return isMySqlCustomerAuthEnabled() ? <CustomerLoginForm /> : <LegacyLoginForm />;
