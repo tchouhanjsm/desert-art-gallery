@@ -40,7 +40,7 @@ Use realistic English production-length strings, long merchant-supplied product 
 - [ ] Product/category discovery appears early; no tourism/hotel/destination-led hero or long introduction above shopping.
 - [ ] Search, navigation, category links, breadcrumbs, filters and sort are functional, discoverable and URL-stable.
 - [ ] Actual product names, prices, currencies, stock, options and images match their source records.
-- [ ] Price and tax labels use the actual currency and approved tax configuration from merchant records; never convert to JPY or imply tax inclusion without evidence.
+- [ ] Price and tax labels use the actual currency and approved tax configuration from merchant records; never convert or relabel a currency or imply tax inclusion without evidence.
 - [ ] Shipping/returns/payment/legal content appears only when approved and implemented.
 - [ ] No fake reviews, popularity, best-seller markers, maker biographies, urgency or free-shipping claims.
 - [ ] Mobile two-column product cards remain large enough to assess textile detail.
