@@ -97,11 +97,11 @@ npm run --silent media:map-recovered > .local-data/recovery/reports/recovered-pr
 
 The command scans each product folder's immediate files, reports supported image counts and byte sizes, identifies oversized images, unsupported files, nested directories and filesystem errors, then compares folder titles against the local MySQL catalogue.
 
-Title matching is deliberately conservative. It applies Unicode compatibility normalization, case folding, underscore-to-space conversion, dash normalization and whitespace collapsing. It does not remove punctuation, use fuzzy matching, infer a product from a partial title or generate a product slug from the folder name.
+Exact mapping classification is deliberately conservative. It applies Unicode compatibility normalization, case folding, underscore-to-space conversion, dash normalization and whitespace collapsing. It does not remove punctuation, use fuzzy matching to classify a folder, infer a product from a partial title or generate a product slug from the folder name. For folders with no exact title candidate, the report additionally ranks up to three title suggestions using weighted token overlap and character-bigram similarity. Suggestions appear in separate `suggested_product_*` CSV columns and do not change the `unmatched` status, populate exact candidate fields or approve a mapping. Treat the score as a sorting aid, not a probability or identity check; every suggestion must be independently inspected by the owner.
 
 This matters for Etsy imports: the catalogue import creates a slug with a stable hash derived from listing data, so a title-only slugification cannot reproduce the stored product slug. The mapping preview looks up the actual database product and only labels a row as a `unique_etsy_draft_candidate` when one normalized title candidate exists, its source provider is Etsy, and its status is still draft.
 
-Other outcomes remain explicit for owner review: unmatched titles, ambiguous MySQL title matches, duplicate recovered folder titles, non-Etsy title matches and non-draft Etsy products. Every row has `manualReviewRequired=true`; a candidate is not an approved mapping.
+Other outcomes remain explicit for owner review: unmatched titles, ambiguous MySQL title matches, duplicate recovered folder titles, non-Etsy title matches and non-draft Etsy products. Every row has `manualReviewRequired=true`; an exact candidate or ranked suggestion is not an approved mapping. The exact candidate columns are the only title-match pairs recognized by the later staging validator.
 
 The preview is read-only. It does not read image bytes, calculate content hashes, rename or copy files, write a mapping manifest, change MySQL or publish products. Hidden macOS metadata files such as `.DS_Store` and `._*` are ignored. Nested directories are reported rather than traversed. The later staging workflow must validate file signatures and exact product mappings before creating importer-compatible folders.
 
@@ -109,7 +109,7 @@ Keep the recovered originals untouched until the mapping report has been reviewe
 
 ## Owner-approved recovery staging
 
-The audit's mapping-review CSV includes four empty owner fields: `approved_product_id`, `approved_product_slug`, `primary_image_filename` and `owner_note`. Review the original folder visually, choose the actual draft product and select the correct primary image. Then set `owner_decision` to exactly `APPROVED`. Keep other rows as `NOT_REVIEWED`, `HOLD` or `REJECTED`. A manual override outside the exact-title candidate list needs a detailed owner note of at least 20 characters; the note should state how the owner independently verified the recovered folder against the selected catalogue record.
+The audit's mapping-review CSV includes four empty owner fields: `approved_product_id`, `approved_product_slug`, `primary_image_filename` and `owner_note`. Review the original folder visually, choose the actual draft product and select the correct primary image. Then set `owner_decision` to exactly `APPROVED`. Keep other rows as `NOT_REVIEWED`, `HOLD` or `REJECTED`. A manual override outside the exact-title candidate list—including a product selected from the ranked suggestions—needs a detailed owner note of at least 20 characters; the note should state how the owner independently verified the recovered folder against the selected catalogue record.
 
 Generate a read-only staging preview using the edited mapping CSV:
 
