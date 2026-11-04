@@ -91,3 +91,12 @@ Attach to the PR or release record:
 6. Open merchant/legal blockers.
 
 A redesign is not production-ready until owner inputs, image rights, Japanese content, tax/shipping/legal and route QA are verified.
+
+
+## 8. CSS, navigation and indexability safeguards
+
+- [ ] Global CSS contains only neutral reset/tokens; public-storefront presentation selectors are scoped under `.jp-storefront`.
+- [ ] Admin and owner workspaces render independently of the customer storefront CSS.
+- [ ] Mobile menu and category disclosures expose their expanded state and are keyboard-operable; Escape and focus return are verified in-browser.
+- [ ] Sitemap contains published catalogue products/collections only; development preview records must not be indexed.
+- [ ] Production robots excludes both `/admin/` and `/owner/`; staging excludes all routes.
