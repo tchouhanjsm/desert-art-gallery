@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMySqlPool, hasMySqlDatabase, pingMySql } from "../../../server/db";
+import { validateMediaStorageConfiguration } from "../../../server/media/object-storage";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -10,6 +11,7 @@ function healthResponse(
     application: "ok";
     database: "connected" | "not_configured" | "unavailable";
     migrations: "applied" | "pending" | "not_checked";
+    mediaStorage: "configured" | "misconfigured";
   },
   httpStatus: 200 | 503,
 ) {
@@ -23,11 +25,28 @@ function healthResponse(
 }
 
 export async function GET() {
+  let mediaStorage: "configured" | "misconfigured" = "configured";
+  try {
+    validateMediaStorageConfiguration();
+  } catch {
+    mediaStorage = "misconfigured";
+  }
+
+  if (mediaStorage === "misconfigured") {
+    return healthResponse("degraded", {
+      application: "ok",
+      database: hasMySqlDatabase() ? "unavailable" : "not_configured",
+      migrations: "not_checked",
+      mediaStorage,
+    }, 503);
+  }
+
   if (!hasMySqlDatabase()) {
     return healthResponse("degraded", {
       application: "ok",
       database: "not_configured",
       migrations: "not_checked",
+      mediaStorage,
     }, 503);
   }
 
@@ -36,6 +55,7 @@ export async function GET() {
       application: "ok",
       database: "unavailable",
       migrations: "not_checked",
+      mediaStorage,
     }, 503);
   }
 
@@ -54,6 +74,7 @@ export async function GET() {
         application: "ok",
         database: "connected",
         migrations: migrationsApplied ? "applied" : "pending",
+        mediaStorage,
       },
       migrationsApplied ? 200 : 503,
     );
@@ -63,6 +84,7 @@ export async function GET() {
       application: "ok",
       database: "connected",
       migrations: "pending",
+      mediaStorage,
     }, 503);
   }
 }
