@@ -64,7 +64,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
         <div className="utility-row jp-utility-row">
           <Link href="/" className="wordmark jp-wordmark" aria-label="Desert Art Gallery ホーム" onClick={closeMenus}>
             <span>DESERT ART GALLERY</span>
-            <small>TEXTILES · OBJECTS · STORIES</small>
+            <small>テキスタイル · オブジェ · 物語</small>
           </Link>
 
           <form id="site-search-form" className={searchOpen ? "header-search is-open" : "header-search"} action="/shop" role="search">
