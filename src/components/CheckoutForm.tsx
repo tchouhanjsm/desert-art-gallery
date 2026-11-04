@@ -155,7 +155,7 @@ export function CheckoutForm({
         {matchingZones.length > 1 && <p className="checkout-blocker">Multiple shipping zones are configured for this country. Checkout is unavailable until the configuration is resolved.</p>}
         {currency && matchingZones.length === 0 && <p className="checkout-blocker">No shipping zone is configured for destination {address.country_code || "not selected"}. Unverified shipping costs and delivery times will not be shown.</p>}
         {currency && matchingZones.length === 1 && matchingRates.length === 0 && <p className="checkout-blocker">No approved shipping rate is configured for destination {address.country_code || "not selected"} and currency {currency}. Unverified shipping costs and delivery times will not be shown.</p>}
-        {matchingRates.length > 0 && <label>配送方法
+        {matchingRates.length > 0 && <label>Shipping method
           <select value={effectiveRateId} onChange={(event) => setShippingRateId(event.target.value)} required>
             <option value="" disabled>Choose a shipping method</option>
             {matchingRates.map((rate) => <option key={rate.id} value={rate.id}>{rate.name} — {formatMoneyFromMinor(rate.amount_minor, rate.currency)}</option>)}
