@@ -64,7 +64,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
       <div className="shop-toolbar atelier-shop-toolbar">
         <span className="atelier-results-count" role="status" aria-live="polite">
           <strong>{visible.length.toLocaleString("en-IN")}</strong>
-          <span>{visible.length.toLocaleString("en-IN")} products</span>
+          <span>{visible.length === 1 ? "product" : "products"}</span>
         </span>
         <div className="shop-controls atelier-shop-controls">
           <label className="visually-hidden" htmlFor="shop-search">Search products</label>
