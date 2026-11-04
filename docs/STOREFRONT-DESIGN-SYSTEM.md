@@ -1,117 +1,83 @@
-# Desert Atelier — Storefront Design System
+# Japan-first storefront design system
 
-**Status:** Phase 0 foundation implemented; visual review required  
-**Theme:** Desert Atelier — Contemporary Heritage  
-**Applies to:** Public customer storefront  
-**Owner portal:** Separate operations-focused interface; Tailwind Admin remains its reference
+**Source of truth:** [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md)  
+**Status:** Initial replacement implementation is in PR branch `feat/japan-first-storefront-redesign`; visual, native-language and accessibility acceptance is pending.  
+**Applies to:** Public customer storefront only.  
+**Owner portal:** Separate operations-focused interface; do not apply consumer storefront styling to `/admin` or `/owner`.
 
-## Design idea
+## Creative direction
 
-The storefront should feel like entering a carefully edited gallery: warm, tactile and quietly confident. The design uses editorial typography, generous negative space, large image fields, calm navigation and concise commerce information. It should not resemble a generic marketplace or SaaS dashboard.
+**Japanese contemporary lifestyle retail × Rajasthan artisanal heritage.**
 
-The visual concept is deliberately restrained so that the gallery's real photography—not decorative UI—becomes the primary visual asset once approved media is supplied.
+Use POJ Studio for premium product-led editorial presentation and craft storytelling. Use Macaroni Shoten for approachable curation, category discovery and everyday-life framing. Apply Japanese ecommerce conventions—persistent search, clear category navigation, breadcrumbs, meaningful filters and counts, visible product specifications and purchase reassurance—where they reduce uncertainty.
 
-## Visual direction
+Do not clone either reference. Do not use the former hotel/tourism/destination theme or the superseded Desert Atelier / Desert Modern visual directions. The public site must read as a shoppable online store in its first viewport.
 
-- Warm gallery ivory and paper surfaces.
-- Deep ink for navigation, footer and strong actions.
-- Terracotta for selected emphasis and links.
-- Antique brass for fine details and separators.
-- Muted sage used sparingly.
-- Cormorant Garamond Variable for editorial headings.
-- DM Sans Variable for interface, navigation and metadata.
+## Design tokens
 
-## Initial design tokens
+The active public layer is `src/styles/japan-storefront.css`, imported by `src/app/layout.tsx` after base styles. Its initial tokens follow the master brief:
 
-| Token | Value | Role |
+| Token | Current value | Purpose |
 |---|---|---|
-| Gallery ivory | `#F7F4EE` | Main page surface |
-| Gallery paper | `#FBF9F5` | Content sections |
-| Warm stone | `#E8DFD2` | Collection surfaces |
-| Sand | `#D8C8B2` | Image fields and subtle accents |
-| Deep ink | `#28241F` | Text and dark panels |
-| Muted text | `#756B60` | Secondary content |
-| Terracotta | `#A65D45` | Primary accent |
-| Dark terracotta | `#814632` | Text links and hover |
-| Antique brass | `#A88D61` | Dividers and highlights |
-| Muted sage | `#737664` | Reserved secondary accent |
+| Warm ivory | `#F5F0E7` | Main page canvas |
+| Soft ivory | `#FBF9F5` | Cards and content surfaces |
+| Ink | `#25231F` | Text, header structure and dark surfaces |
+| Terracotta | `#A54E34` | Selected actions and restrained emphasis |
+| Muted sand | `#A79B7D` | Fine accent and secondary detail |
+| Warm grey | `#716A61` | Secondary information |
+| Border | `#DED7CC` | Dividers and control boundaries |
 
-Tokens are centrally defined in `src/styles/theme.css`. They are initial values, not a claim of completed contrast certification. Check text/background combinations in context before production.
+Secondary surface values in the stylesheet derive from these core tokens. Check every foreground/background pair in its actual state; this table is not a completed WCAG AA certification.
 
-## Homepage composition
+## Typography and language
 
-1. **Announcement strip:** location and gallery subject, short and quiet.
-2. **Utility header:** search, centred wordmark, account, wishlist and bag.
-3. **Primary navigation:** shop, collections, story and supporting routes.
-4. **Hero:** high-impact editorial statement over a full-bleed, approved gallery image or neutral art-direction placeholder.
-5. **Information strip:** location and direct contact path.
-6. **Gallery introduction:** split image/copy composition.
-7. **Collection discovery:** image-led category cards.
-8. **Featured catalogue:** reusable product cards with clear detail, price or enquiry state.
-9. **Story interlude:** darker editorial panel linking to the gallery story.
-10. **Gallery principles:** clear details, responsible representation and direct conversation.
-11. **Contact close:** one direct action.
+- The document root is `lang="ja"`.
+- The current CSS uses a Japanese-aware system-font stack: Noto Sans JP, Hiragino, Yu Gothic and Meiryo for UI; Noto Serif JP / Yu Mincho / Hiragino Mincho for display copy.
+- These are fallback names, not proof that every client has the same font installed. Japanese glyph, weight, punctuation and line-break review remains open.
+- Do not fetch Google Fonts at runtime. Any bundled font choice must include full Japanese glyph coverage, license review, subset/bundle-size review and lockfile updates.
+- UI labels are Japanese-first. Merchant-supplied product titles, descriptions, material strings, category labels and artisan/editorial text are preserved as supplied until Japanese content is entered and reviewed by a qualified Japanese-language reviewer. Do not machine-translate product claims or factual copy into production.
+- Maintain natural Japanese wrapping and kinsoku shori; avoid fixed-height text boxes that clip glyphs.
 
-## Product card behaviour
+## Storefront composition and behaviour
 
-- Photograph occupies the majority of card area.
-- Category is compact uppercase metadata.
-- Product title uses display typography.
-- Short note is optional and must not invent product attributes.
-- Price appears only when a real price and currency are available.
-- Otherwise show "Price on enquiry".
-- Development-only records show a visible "Preview artwork" label.
-- The card links to the existing product route.
+### Shared shell
+- Compact announcement row with only a verified message.
+- Brand row with wordmark, persistent desktop search, account, wishlist and cart controls.
+- Japanese primary shopping navigation; collection panel appears only when published collections exist.
+- Mobile header prioritises logo, search, cart and an accessible navigation drawer.
+- Footer links only to real, implemented destinations. Do not add placeholders for legal, shipping, returns or FAQ pages.
 
-## Product detail composition
+### Homepage
+- First viewport communicates the store, product category and a clear shop action.
+- Product-led hero: use a real published product image only when it is rights-approved and its product is published. Otherwise use an explicitly non-product design placeholder.
+- Show verified published collections and products early.
+- Editorial stories support product discovery; they must not push shopping below a long destination introduction.
 
-- Breadcrumb and category context.
-- Image gallery is the primary visual column.
-- Product title, note and price/enquiry panel are grouped in the detail column.
-- Stock status is explicit and does not imply availability when stock is missing.
-- Purchase controls remain subject to current server-side commerce eligibility.
-- Product attributes are rendered only when supplied.
-- Product photography in development fallback is visibly identified as a preview.
+### Shop and collection
+- Japanese page heading, item count, search, category selection and supported sorting.
+- Two-column mobile product grid and three/four-column desktop grid as tested.
+- Category names remain the values maintained by the owner until Japanese taxonomy translations are approved.
+- Search results, counts, sort options, active filters and empty states must remain URL-shareable and functional.
 
-## Shop composition
+### Product detail
+- Product gallery and purchase decision information are grouped together.
+- Show only real catalogue price, its actual currency, current stock and configured variants.
+- Tax, shipping, delivery and return information appear only when merchant-approved records exist.
+- Product detail sections expose supplied material, sizes, measurements, condition and provenance without inventing missing information.
+- Rights-confirmed image media is still required; visual redesign does not bypass image permissions.
 
-- Editorial title and short explanation.
-- Published item count.
-- Search, category filter and sort controls.
-- Responsive product grid.
-- Useful no-results and empty-catalogue states.
-- Query state remains in the URL for sharing and browser navigation.
+### Cart and checkout
+- Japanese labels for cart, item edits, delivery fields and order review.
+- Existing trusted server pricing, currency consistency, reservation, idempotency, shipping/tax and unpaid-draft requirements remain authoritative.
+- Japan-specific postal-first field ordering is a presentation aid only. The current address contract remains generic; furigana, Japanese address validation and postcode lookup require a separately designed, backwards-compatible data/service change.
+- Never present a payment method, tax-inclusive price or delivery commitment unless configured and verified.
 
-## Motion and accessibility
+## Owner workspace separation
 
-- Use motion to signal hover/focus, not to decorate every element.
-- Respect `prefers-reduced-motion`.
-- Maintain visible keyboard focus.
-- Keep semantic headings and landmarks.
-- Use descriptive alt text for meaningful gallery imagery.
-- Decorative image fields use empty alt text.
-- Ensure mobile controls remain large enough to operate comfortably.
-- Complete a contrast and keyboard audit before launch.
+The root `SiteChrome` hides public header/footer on admin/owner routes. Keep owner forms, tables, inventory, image-rights evidence and operational messages in the separate owner design system. A Japanese storefront does not authorise database, identity, checkout, storage or permission redesign.
 
-## Media integrity
+## Implementation status
 
-The current repository contains a textile-themed placeholder SVG and development-only product records. These are suitable only for design previews. They are not actual product photographs and must not be represented as real inventory imagery.
-
-Production product photography must be supplied or approved by the gallery with usage rights and accurate alt text. Do not invent provenance, maker details, dimensions, reviews or stock claims to fill visual space.
-
-## Template decisions
-
-- Storefront: bespoke implementation in the existing Next.js application. Epic Design Labs' Next.js Ecommerce Starter is a reference for accessible interaction patterns only; its current Next.js 16 package is not a direct drop-in for this Next.js 15 application.
-- Owner portal: Tailwind Admin's MIT-licensed Next.js version is the selected component reference for the later owner-portal phase. It must be selectively adapted and must not replace the storefront.
-- Preserve upstream licence and copyright notices for any code copied or adapted.
-
-## Review checklist
-
-- [ ] Review homepage at desktop, tablet and mobile widths.
-- [ ] Review shop controls and product grid at desktop and mobile widths.
-- [ ] Review product gallery, sticky details and purchase controls.
-- [ ] Review keyboard focus and reduced-motion behaviour.
-- [ ] Check colour contrast of all text/action states.
-- [ ] Replace placeholders with approved gallery imagery before production.
-- [ ] Confirm all existing route and commerce behaviours remain intact.
-- [ ] Run typecheck, unit tests, lint and production build locally.
+- Implemented in this PR branch: Japanese document language and metadata, shared header/footer, home/shop/product/collection/story/artisan/journal/contact/cart/checkout/account/auth UI labels, and Japanese CSS layer.
+- Not signed off: Japanese native-speaker copy review, font/glyph QA, full route screenshot review, browser keyboard/screen-reader audit, contrast certification, JPY price configuration and merchant-approved trust/legal content.
+- The master brief is authoritative for future decisions and acceptance gates.
