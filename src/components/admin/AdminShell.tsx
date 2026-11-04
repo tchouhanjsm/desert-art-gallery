@@ -33,7 +33,7 @@ const navigation = [
 export function AdminShell({ children, mysqlMode = false }: { children: React.ReactNode; mysqlMode?: boolean }) {
   const pathname = usePathname();
   const visibleNavigation = mysqlMode
-    ? navigation.filter((item) => item.href === "/admin/products")
+    ? navigation.filter((item) => ["/admin", "/admin/products", "/admin/orders", "/admin/checkout"].includes(item.href))
     : navigation;
   const [mobileOpen, setMobileOpen] = useState(false);
   const active = visibleNavigation.find((item) =>
@@ -54,7 +54,7 @@ export function AdminShell({ children, mysqlMode = false }: { children: React.Re
         />
       )}
       <aside className={mobileOpen ? "owner-sidebar is-open" : "owner-sidebar"}>
-        <Link className="owner-brand" href={mysqlMode ? "/admin/products" : "/admin"} onClick={() => setMobileOpen(false)}>
+        <Link className="owner-brand" href="/admin" onClick={() => setMobileOpen(false)}>
           <span className="owner-brand-monogram">D</span>
           <span><strong>DESERT ART GALLERY</strong><small>OWNER WORKSPACE</small></span>
         </Link>
@@ -62,11 +62,11 @@ export function AdminShell({ children, mysqlMode = false }: { children: React.Re
         <div className="owner-workspace-card">
           <span>BUSINESS WORKSPACE</span>
           <strong>Desert Art Gallery</strong>
-          <small>{mysqlMode ? "Local MySQL catalogue" : "Jaisalmer · Rajasthan"}</small>
+          <small>{mysqlMode ? "Self-hosted MySQL catalogue" : "Jaisalmer · Rajasthan"}</small>
         </div>
 
         <nav className="owner-navigation" aria-label="Owner workspace">
-          {(mysqlMode ? ["WORKSPACE"] as const : ["WORKSPACE", "OPERATIONS", "SETTINGS"] as const).map((section) => (
+          {(["WORKSPACE", "OPERATIONS", "SETTINGS"] as const).map((section) => (
             <div className="owner-navigation-section" key={section}>
               <span className="owner-navigation-label">{section}</span>
               {visibleNavigation.filter((item) => item.section === section).map((item) => {

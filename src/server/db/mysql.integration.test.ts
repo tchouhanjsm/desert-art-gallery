@@ -1,14 +1,29 @@
 import { randomUUID } from "node:crypto";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { afterAll, describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
-import { eq, inArray, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { closeMySqlPool, getMySqlDb } from "./index";
 import {
   expireVariantStockReservations, reserveVariantStock,
   releaseVariantStockReservation, consumeVariantStockReservation, adjustVariantInventory,
 } from "../catalogue/inventory";
 import { commitLocalCatalogueCsv, previewLocalCatalogueCsv } from "../catalogue/import-csv";
+import { getMySqlAdminDashboard } from "../admin/mysql-dashboard";
+import {
+  commitLocalProductImages,
+  previewLocalProductImageImport,
+  PRODUCT_IMAGE_IMPORT_CONFIRMATION,
+} from "../catalogue/import-product-images";
+import {
+  downloadEtsyProductImages,
+  ETSY_DOWNLOAD_CONFIRMATION,
+  previewEtsyImageDownloads,
+} from "../catalogue/etsy-image-downloader";
+import { readProductMedia, removeProductMedia } from "../media/product-storage";
 import {
   getAvailableVariantQuantity, getPublishedProductBySlug, isPublicProductMedia, listPublishedProducts,
 } from "../catalogue/repository";
@@ -107,6 +122,75 @@ suite("real MySQL migration and catalogue integration", () => {
     const rows = await db.select().from(siteContent).where(eq(siteContent.id, id));
     expect(rows).toHaveLength(0);
   }, 30_000);
+
+  it("builds the MySQL admin dashboard from catalogue, media and variant inventory records", async () => {
+    const db = getMySqlDb();
+    const publishedId = randomUUID();
+    const draftId = randomUUID();
+    const variantId = randomUUID();
+    const mediaId = randomUUID();
+    const storageKey = "products/" + publishedId + "/" + randomUUID() + ".jpg";
+
+    try {
+      await db.insert(products).values([
+        {
+          id: publishedId,
+          title: "Dashboard low stock integration",
+          slug: "dashboard-low-stock-" + publishedId,
+          currency: "USD",
+          priceMinor: 1500,
+          status: "published",
+        },
+        {
+          id: draftId,
+          title: "Dashboard draft integration",
+          slug: "dashboard-draft-" + draftId,
+          currency: "USD",
+          priceMinor: 2500,
+          status: "draft",
+        },
+      ]);
+      await db.insert(productVariants).values({
+        id: variantId,
+        productId: publishedId,
+        sku: "DASH-" + variantId.slice(0, 8),
+        label: "One size",
+        attributes: {},
+        currency: "USD",
+        stockQuantity: 2,
+        isActive: true,
+      });
+      await db.insert(productMedia).values({
+        id: mediaId,
+        productId: publishedId,
+        storageKey,
+        altText: "Dashboard integration photograph",
+        rightsConfirmed: false,
+        rightsEvidence: "",
+        mimeType: "image/jpeg",
+        byteSize: 128,
+        position: 0,
+        isPrimary: true,
+      });
+
+      const dashboard = await getMySqlAdminDashboard();
+      expect(dashboard.totalProducts).toBeGreaterThanOrEqual(2);
+      expect(dashboard.publishedProducts).toBeGreaterThanOrEqual(1);
+      expect(dashboard.draftProducts).toBeGreaterThanOrEqual(1);
+      expect(dashboard.totalProductImages).toBeGreaterThanOrEqual(1);
+      expect(dashboard.imagesAwaitingRights).toBeGreaterThanOrEqual(1);
+      expect(dashboard.recentProducts.some((product) => product.id === publishedId)).toBe(true);
+      expect(dashboard.lowStockProducts.some((product) => product.id === publishedId && product.stockQuantity === 2)).toBe(true);
+      expect(dashboard.recentProducts.length).toBeLessThanOrEqual(5);
+      expect(dashboard.lowStockProducts.length).toBeLessThanOrEqual(5);
+      expect(dashboard.recentProducts.every((product) => Number.isFinite(product.stockQuantity))).toBe(true);
+      expect(dashboard.lowStockProducts.every((product) => product.stockQuantity <= 3)).toBe(true);
+    } finally {
+      await db.delete(productMedia).where(eq(productMedia.id, mediaId));
+      await db.delete(productVariants).where(eq(productVariants.id, variantId));
+      await db.delete(products).where(inArray(products.id, [publishedId, draftId]));
+    }
+  }, 45_000);
 
   it("enforces real media rights, MIME type and size constraints", async () => {
     const db = getMySqlDb();
@@ -564,6 +648,179 @@ suite("real MySQL migration and catalogue integration", () => {
       await db.delete(catalogueImportBatches).where(eq(catalogueImportBatches.sourceSha256, sha));
     }
   }, 60_000);
+
+  it("matches exact draft slugs, imports private product photos and is idempotent", async () => {
+    const db = getMySqlDb();
+    const productId = randomUUID();
+    const slug = "image-intake-" + productId;
+    const intakeRoot = await mkdtemp(join(tmpdir(), "dag-image-intake-"));
+    const mediaRoot = await mkdtemp(join(tmpdir(), "dag-private-media-"));
+    const folder = join(intakeRoot, slug);
+    const previousMediaRoot = process.env.MEDIA_STORAGE_ROOT;
+    await mkdir(folder, { recursive: true });
+    process.env.MEDIA_STORAGE_ROOT = mediaRoot;
+
+    const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0x00, 0x01]);
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
+    await writeFile(join(folder, "01-primary.jpg"), jpeg);
+    await writeFile(join(folder, "02-detail.png"), png);
+
+    try {
+      await db.insert(products).values({
+        id: productId,
+        title: "Image intake integration product",
+        slug,
+        currency: "USD",
+        priceMinor: 12500,
+        status: "draft",
+      });
+
+      const preview = await previewLocalProductImageImport(intakeRoot);
+      expect(preview.canCommit).toBe(true);
+      expect(preview.matchedProducts).toBe(1);
+      expect(preview.validImages).toBe(2);
+      expect(preview.newImages).toBe(2);
+      await expect(commitLocalProductImages("wrong-confirmation", intakeRoot)).rejects.toThrow("explicit");
+
+      const imported = await commitLocalProductImages(PRODUCT_IMAGE_IMPORT_CONFIRMATION, intakeRoot);
+      expect(imported.imagesCreated).toBe(2);
+      expect(imported.imageRightsApproved).toBe(0);
+
+      const rows = await db.select().from(productMedia)
+        .where(eq(productMedia.productId, productId))
+        .orderBy(asc(productMedia.position));
+      expect(rows).toHaveLength(2);
+      expect(rows[0].isPrimary).toBe(true);
+      expect(rows[1].isPrimary).toBe(false);
+      expect(rows.every((row) => row.rightsConfirmed === false && row.rightsEvidence === "")).toBe(true);
+      expect(rows.map((row) => row.position)).toEqual([0, 1]);
+      expect(rows[0].altText).toContain("primary product view");
+
+      const storedJpeg = await readProductMedia(rows[0].storageKey);
+      expect(storedJpeg?.mimeType).toBe("image/jpeg");
+      expect(storedJpeg?.bytes).toEqual(jpeg);
+      const storedPng = await readProductMedia(rows[1].storageKey);
+      expect(storedPng?.mimeType).toBe("image/png");
+      expect(storedPng?.bytes).toEqual(png);
+
+      const replayPreview = await previewLocalProductImageImport(intakeRoot);
+      expect(replayPreview.canCommit).toBe(true);
+      expect(replayPreview.newImages).toBe(0);
+      expect(replayPreview.duplicateImages).toBe(2);
+      const replay = await commitLocalProductImages(PRODUCT_IMAGE_IMPORT_CONFIRMATION, intakeRoot);
+      expect(replay.imagesCreated).toBe(0);
+      expect(replay.existingImagesSkipped).toBe(2);
+
+      const finalRows = await db.select().from(productMedia).where(eq(productMedia.productId, productId));
+      expect(finalRows).toHaveLength(2);
+    } finally {
+      const rows = await db.select().from(productMedia).where(eq(productMedia.productId, productId));
+      for (const row of rows) await removeProductMedia(row.storageKey).catch(() => undefined);
+      await db.delete(products).where(eq(products.id, productId));
+      if (previousMediaRoot === undefined) delete process.env.MEDIA_STORAGE_ROOT;
+      else process.env.MEDIA_STORAGE_ROOT = previousMediaRoot;
+      await rm(intakeRoot, { recursive: true, force: true });
+      await rm(mediaRoot, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it("downloads Etsy source photographs into private staging and attaches them to the exact draft product", async () => {
+    const db = getMySqlDb();
+    const productId = randomUUID();
+    const slug = "etsy-image-download-" + productId;
+    const intakeRoot = await mkdtemp(join(tmpdir(), "dag-etsy-source-download-"));
+    const mediaRoot = await mkdtemp(join(tmpdir(), "dag-etsy-source-media-"));
+    const previousMediaRoot = process.env.MEDIA_STORAGE_ROOT;
+    process.env.MEDIA_STORAGE_ROOT = mediaRoot;
+    const imageUrls = [
+      "https://i.etsystatic.com/22307146/source-primary.jpg",
+      "https://i.etsystatic.com/22307146/source-detail.jpg",
+    ];
+    const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0x00, 0x01]);
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
+    const requestedUrls: string[] = [];
+    const fetcher: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      requestedUrls.push(url);
+      const bytes = requestedUrls.length === 1 ? jpeg : png;
+      const mimeType = requestedUrls.length === 1 ? "image/jpeg" : "image/png";
+      return new Response(bytes, {
+        status: 200,
+        headers: { "content-type": mimeType, "content-length": String(bytes.byteLength) },
+      });
+    };
+
+    try {
+      await db.insert(products).values({
+        id: productId,
+        title: "Etsy download integration product",
+        slug,
+        currency: "USD",
+        priceMinor: 12500,
+        status: "draft",
+        sourceMetadata: { provider: "etsy", imageUrls, sourceName: "EtsyListingsDownload.csv" },
+      });
+
+      const preview = await previewEtsyImageDownloads(intakeRoot);
+      expect(preview.canDownload).toBe(true);
+      expect(preview.productsFound).toBe(1);
+      expect(preview.imagesFound).toBe(2);
+      expect(preview.imagesAlreadyDownloaded).toBe(0);
+      expect(requestedUrls).toHaveLength(0);
+
+      const download = await downloadEtsyProductImages(ETSY_DOWNLOAD_CONFIRMATION, intakeRoot, fetcher);
+      expect(download.productsProcessed).toBe(1);
+      expect(download.imagesDownloaded).toBe(2);
+      expect(download.imagesSkipped).toBe(0);
+      expect(download.bytesDownloaded).toBe(jpeg.byteLength + png.byteLength);
+      expect(requestedUrls).toEqual(imageUrls);
+
+      const folder = join(intakeRoot, slug);
+      expect(await readFile(join(folder, "01-primary.jpg"))).toEqual(jpeg);
+      expect(await readFile(join(folder, "02-detail.png"))).toEqual(png);
+
+      const replay = await downloadEtsyProductImages(ETSY_DOWNLOAD_CONFIRMATION, intakeRoot, fetcher);
+      expect(replay.imagesDownloaded).toBe(0);
+      expect(replay.imagesSkipped).toBe(2);
+      expect(requestedUrls).toHaveLength(2);
+
+      const importPreview = await previewLocalProductImageImport(intakeRoot);
+      expect(importPreview.canCommit).toBe(true);
+      expect(importPreview.validImages).toBe(2);
+      expect(importPreview.newImages).toBe(2);
+
+      const imported = await commitLocalProductImages(PRODUCT_IMAGE_IMPORT_CONFIRMATION, intakeRoot);
+      expect(imported.imagesCreated).toBe(2);
+      expect(imported.imageRightsApproved).toBe(0);
+      const mediaRows = await db.select().from(productMedia)
+        .where(eq(productMedia.productId, productId))
+        .orderBy(asc(productMedia.position));
+      expect(mediaRows).toHaveLength(2);
+      expect(mediaRows[0].isPrimary).toBe(true);
+      expect(mediaRows[1].isPrimary).toBe(false);
+      expect(mediaRows.every((row) => row.rightsConfirmed === false && row.rightsEvidence === "")).toBe(true);
+    } finally {
+      await db.delete(products).where(eq(products.id, productId));
+      if (previousMediaRoot === undefined) delete process.env.MEDIA_STORAGE_ROOT;
+      else process.env.MEDIA_STORAGE_ROOT = previousMediaRoot;
+      await rm(intakeRoot, { recursive: true, force: true });
+      await rm(mediaRoot, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it("blocks product image folders without an exact MySQL slug match", async () => {
+    const intakeRoot = await mkdtemp(join(tmpdir(), "dag-unmatched-intake-"));
+    const folder = join(intakeRoot, "there-is-no-exact-match");
+    await mkdir(folder, { recursive: true });
+    await writeFile(join(folder, "01-primary.jpg"), Buffer.from([0xff, 0xd8, 0xff, 0x00]));
+    try {
+      const preview = await previewLocalProductImageImport(intakeRoot);
+      expect(preview.canCommit).toBe(false);
+      expect(preview.errors.join(" ")).toContain("No MySQL product matches this exact slug");
+    } finally {
+      await rm(intakeRoot, { recursive: true, force: true });
+    }
+  });
 
   it("reopens the pool and reads previously committed content", async () => {
     const db = getMySqlDb();

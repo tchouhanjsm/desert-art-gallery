@@ -6,7 +6,7 @@ import { isAllowedEtsyImageUrl } from "@/lib/etsy-listings-import";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import { getMySqlDb, isMySqlCatalogueEnabled } from "@/server/db";
 import { inventoryMovements, productCategories, productCategoryLinks, productMedia, products, productVariants } from "@/server/db/schema";
-import { getProductMediaUrl } from "@/server/media/product-storage";
+import { getAdminProductMediaUrl } from "@/server/media/product-storage";
 import { MySqlProductForm } from "../mysql-product-form";
 import { MySqlProductManagement } from "../mysql-product-management";
 import { updateProduct, archiveProduct, publishProduct, uploadProductImage, confirmProductImageRights, adjustProductInventory, updateProductImageOrder, setProductImagePrimary, createProductVariant, updateProductVariant, adjustProductVariantInventory } from "../actions";
@@ -68,7 +68,7 @@ export default async function EditAdminProductPage({ params }: { params: Promise
     }));
     const media = mediaRows.map((item) => ({
       id: item.id,
-      url: getProductMediaUrl(item.storageKey),
+      url: getAdminProductMediaUrl(item.storageKey),
       altText: item.altText,
       rightsConfirmed: item.rightsConfirmed,
       rightsEvidence: item.rightsEvidence,

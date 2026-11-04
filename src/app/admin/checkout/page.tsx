@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { isMySqlCatalogueEnabled } from "@/server/db";
 import { getCurrentLocalAdmin } from "@/server/auth/local-admin";
 import { listMySqlCheckoutConfiguration } from "@/server/checkout/mysql-orders";

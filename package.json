@@ -17,8 +17,12 @@
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
     "db:import-editorial": "node --env-file=.env --import=tsx scripts/import-editorial-to-mysql.ts",
     "db:bootstrap-admin": "node --env-file=.env --import=tsx scripts/bootstrap-local-admin.ts",
+    "db:bootstrap-staging-admin": "node --env-file=.env --import=tsx scripts/bootstrap-staging-admin.ts",
     "db:import-products": "node --env-file=.env --import=tsx scripts/import-products-to-mysql.ts",
-    "media:preview": "node --import=tsx scripts/preview-product-images.ts"
+    "media:preview": "node --import=tsx scripts/preview-product-images.ts",
+    "media:import": "node --env-file=.env --import=tsx scripts/import-product-images-to-mysql.ts",
+    "media:download-etsy": "node --env-file=.env --import=tsx scripts/download-etsy-images.ts",
+    "media:map-recovered": "node --env-file=.env --import=tsx scripts/preview-recovered-product-mapping.ts"
   },
   "dependencies": {
     "next": "^15.1.6",
