@@ -64,6 +64,14 @@ export type RecoveredProductMappingRow = {
     status: string;
     sourceProvider: string | null;
   }>;
+  suggestedProducts: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    status: string;
+    sourceProvider: string | null;
+    similarityScore: number;
+  }>;
 };
 
 export type RecoveredProductMappingReport = {
@@ -77,6 +85,8 @@ export type RecoveredProductMappingReport = {
     ambiguousProductTitles: number;
     duplicateRecoveredTitles: number;
     unmatchedFolders: number;
+    unmatchedFoldersWithSuggestions: number;
+    suggestedProductCandidates: number;
   };
   inventory: RecoveredProductFolderInventory;
   mappings: RecoveredProductMappingRow[];
@@ -90,6 +100,125 @@ export function normalizeRecoveredProductTitle(value: string): string {
     .replace(/[\s\u00A0]+/g, " ")
     .trim()
     .toLocaleLowerCase("en-US");
+}
+
+
+const MAX_TITLE_SUGGESTIONS = 3;
+const MIN_TITLE_SUGGESTION_SCORE = 0.32;
+
+type IndexedTitleProduct = {
+  product: RecoveredProductRecord;
+  tokens: Set<string>;
+  bigrams: Set<string>;
+};
+
+type RecoveredTitleSuggestionIndex = {
+  products: IndexedTitleProduct[];
+  inverseDocumentFrequency: Map<string, number>;
+};
+
+function titleTokens(value: string): Set<string> {
+  return new Set(normalizeRecoveredProductTitle(value).match(/[\p{L}\p{N}]+/gu) ?? []);
+}
+
+function titleBigrams(value: string): Set<string> {
+  const compact = normalizeRecoveredProductTitle(value).replace(/[^\p{L}\p{N}]/gu, "");
+  const bigrams = new Set<string>();
+  for (let index = 0; index < compact.length - 1; index += 1) {
+    bigrams.add(compact.slice(index, index + 2));
+  }
+  return bigrams;
+}
+
+function buildRecoveredTitleSuggestionIndex(
+  products: RecoveredProductRecord[],
+): RecoveredTitleSuggestionIndex {
+  const indexedProducts = products.map((product) => ({
+    product,
+    tokens: titleTokens(product.title),
+    bigrams: titleBigrams(product.title),
+  })).filter((entry) => entry.tokens.size > 0);
+  const documentFrequency = new Map<string, number>();
+
+  for (const entry of indexedProducts) {
+    for (const token of entry.tokens) {
+      documentFrequency.set(token, (documentFrequency.get(token) ?? 0) + 1);
+    }
+  }
+
+  const inverseDocumentFrequency = new Map(
+    [...documentFrequency].map(([token, frequency]) => [
+      token,
+      Math.log(1 + indexedProducts.length / (1 + frequency)) + 1,
+    ]),
+  );
+
+  return { products: indexedProducts, inverseDocumentFrequency };
+}
+
+function rankRecoveredTitleSuggestions(
+  folderTitle: string,
+  exactCandidates: RecoveredProductRecord[],
+  index: RecoveredTitleSuggestionIndex,
+): RecoveredProductMappingRow["suggestedProducts"] {
+  if (exactCandidates.length > 0) return [];
+
+  const folderTokens = titleTokens(folderTitle);
+  if (folderTokens.size < 2) return [];
+  const folderBigrams = titleBigrams(folderTitle);
+  const scored: Array<{ entry: IndexedTitleProduct; score: number }> = [];
+
+  for (const entry of index.products) {
+    let sharedTokenCount = 0;
+    let sharedWeight = 0;
+    let unionWeight = 0;
+
+    for (const token of folderTokens) {
+      const weight = index.inverseDocumentFrequency.get(token) ?? 1;
+      unionWeight += weight;
+      if (entry.tokens.has(token)) {
+        sharedTokenCount += 1;
+        sharedWeight += weight;
+      }
+    }
+    for (const token of entry.tokens) {
+      if (!folderTokens.has(token)) {
+        unionWeight += index.inverseDocumentFrequency.get(token) ?? 1;
+      }
+    }
+    if (sharedTokenCount < 2 || unionWeight === 0) continue;
+
+    let sharedBigramCount = 0;
+    for (const bigram of folderBigrams) {
+      if (entry.bigrams.has(bigram)) sharedBigramCount += 1;
+    }
+    const bigramDenominator = folderBigrams.size + entry.bigrams.size;
+    const bigramScore = bigramDenominator > 0
+      ? (2 * sharedBigramCount) / bigramDenominator
+      : 0;
+    const weightedTokenScore = sharedWeight / unionWeight;
+    const score = (weightedTokenScore * 0.85) + (bigramScore * 0.15);
+
+    if (score >= MIN_TITLE_SUGGESTION_SCORE) scored.push({ entry, score });
+  }
+
+  return scored
+    .sort((left, right) => (
+      right.score - left.score
+      || left.entry.product.title.localeCompare(right.entry.product.title, "en-US")
+      || left.entry.product.slug.localeCompare(right.entry.product.slug, "en-US")
+    ))
+    .slice(0, MAX_TITLE_SUGGESTIONS)
+    .map(({ entry, score }) => ({
+      id: entry.product.id,
+      title: entry.product.title,
+      slug: entry.product.slug,
+      status: entry.product.status,
+      sourceProvider: typeof entry.product.sourceMetadata?.provider === "string"
+        ? entry.product.sourceMetadata.provider
+        : null,
+      similarityScore: Math.round(score * 1000) / 1000,
+    }));
 }
 
 export async function scanRecoveredProductFolders(
@@ -210,9 +339,11 @@ export function buildRecoveredProductMapping(
     folderTitleCounts.set(key, (folderTitleCounts.get(key) ?? 0) + 1);
   }
 
+  const titleSuggestionIndex = buildRecoveredTitleSuggestionIndex(products);
   const mappings: RecoveredProductMappingRow[] = inventory.productFolders.map((folder) => {
     const normalizedTitle = normalizeRecoveredProductTitle(folder.folderName);
     const candidates = productsByTitle.get(normalizedTitle) ?? [];
+    const suggestedProducts = rankRecoveredTitleSuggestions(folder.folderName, candidates, titleSuggestionIndex);
     const duplicateFolderTitle = (folderTitleCounts.get(normalizedTitle) ?? 0) > 1;
     let status: RecoveredProductMappingStatus = "unmatched";
 
@@ -247,6 +378,7 @@ export function buildRecoveredProductMapping(
           ? candidate.sourceMetadata.provider
           : null,
       })),
+      suggestedProducts,
     };
   });
 
@@ -262,6 +394,8 @@ export function buildRecoveredProductMapping(
       ambiguousProductTitles: count("ambiguous_product_title"),
       duplicateRecoveredTitles: count("duplicate_recovered_title"),
       unmatchedFolders: count("unmatched"),
+      unmatchedFoldersWithSuggestions: mappings.filter((row) => row.status === "unmatched" && row.suggestedProducts.length > 0).length,
+      suggestedProductCandidates: mappings.reduce((total, row) => total + row.suggestedProducts.length, 0),
     },
     inventory,
     mappings,
@@ -278,6 +412,10 @@ export function recoveredProductMappingCsv(report: RecoveredProductMappingReport
     "candidate_product_ids",
     "candidate_product_slugs",
     "candidate_product_titles",
+    "suggested_product_ids",
+    "suggested_product_slugs",
+    "suggested_product_titles",
+    "suggested_product_scores",
     "manual_review_required",
     "owner_decision",
     "approved_product_id",
@@ -299,6 +437,10 @@ export function recoveredProductMappingCsv(report: RecoveredProductMappingReport
     row.candidateProducts.map((product) => product.id).join(";"),
     row.candidateProducts.map((product) => product.slug).join(";"),
     row.candidateProducts.map((product) => product.title).join(";"),
+    row.suggestedProducts.map((product) => product.id).join(";"),
+    row.suggestedProducts.map((product) => product.slug).join(";"),
+    row.suggestedProducts.map((product) => product.title).join(";"),
+    row.suggestedProducts.map((product) => product.similarityScore.toFixed(3)).join(";"),
     row.manualReviewRequired,
     "NOT_REVIEWED",
     "",
