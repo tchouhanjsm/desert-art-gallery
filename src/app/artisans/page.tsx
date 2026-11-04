@@ -73,7 +73,7 @@ export default async function ArtisansPage() {
             <article className="artisan-card" key={artisan.id}>
               {artisan.portrait ? (
                 <div className="artisan-photo">
-                  <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || ("Portrait of maker "" + artisan.full_name + """)} fill sizes="(max-width:700px) 88vw, 30vw" />
+                  <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || `Portrait of ${artisan.full_name}`} fill sizes="(max-width:700px) 88vw, 30vw" />
                 </div>
               ) : (
                 <div className="artisan-photo artisan-photo-empty" aria-hidden="true">Portrait not yet published</div>
