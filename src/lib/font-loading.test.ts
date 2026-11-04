@@ -18,11 +18,13 @@ const packageJson = JSON.parse(readFileSync(
   "utf8",
 )) as { dependencies?: Record<string, string> };
 
-describe("self-hosted typography", () => {
-  it("does not require a remote Google Fonts fetch during the production build", () => {
+describe("Japanese-first typography", () => {
+  it("does not require remote font requests during the production build", () => {
     expect(layout).not.toContain("next/font/google");
-    expect(layout).toContain("@fontsource-variable/playfair-display");
-    expect(layout).toContain("@fontsource-variable/inter");
+    expect(styles).not.toContain("fonts.googleapis.com");
+    expect(japanStyles).toContain('"Noto Sans JP"');
+    expect(japanStyles).toContain('"Yu Gothic"');
+    expect(japanStyles).toContain('"Noto Serif JP"');
   });
 
   it("declares pinned font packages and the CSS family tokens used by the design system", () => {
