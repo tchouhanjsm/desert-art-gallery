@@ -13,6 +13,7 @@ type ServerRow = RowDataPacket & {
 type CountRow = RowDataPacket & { total: number | string };
 type StatusRow = RowDataPacket & { status: string; total: number | string };
 type ProviderRow = RowDataPacket & { provider: string; total: number | string };
+type MediaCountRow = RowDataPacket & { total: number | string; awaiting_rights: number | string | null };
 type ImportRow = RowDataPacket & {
   source_name: string;
   row_count: number | string;
@@ -87,7 +88,7 @@ async function main() {
     result.productVariants = Number(rows[0]?.total ?? 0);
   }
   if (has("product_media")) {
-    const [rows] = await pool.query<CountRow[]>(
+    const [rows] = await pool.query<MediaCountRow[]>(
       "SELECT COUNT(*) AS total, SUM(CASE WHEN rights_confirmed = 0 THEN 1 ELSE 0 END) AS awaiting_rights FROM product_media",
     );
     result.productMedia = {
