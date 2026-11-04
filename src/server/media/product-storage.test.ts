@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   createDeterministicProductStorageKey,
+  getAdminProductMediaUrl,
+  getProductMediaUrl,
   safeProductStorageKey,
 } from "./product-storage";
 
@@ -21,6 +23,13 @@ describe("deterministic product media storage keys", () => {
     expect(uuidSegments[2][0]).toBe("5");
     expect("89ab").toContain(uuidSegments[3][0]);
     expect(safeProductStorageKey(first)).toBe(first);
+  });
+
+  it("keeps public and admin product image URLs in separate access paths", () => {
+    const key = createDeterministicProductStorageKey(productId, digest, "image/jpeg");
+    expect(getProductMediaUrl(key)).toBe("/product-media/" + key);
+    expect(getAdminProductMediaUrl(key)).toBe("/api/admin/product-media/" + key);
+    expect(() => getAdminProductMediaUrl("../private.jpg")).toThrow();
   });
 
   it("separates products and rejects malformed digests", () => {
