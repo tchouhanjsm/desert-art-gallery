@@ -10,50 +10,50 @@ type NavigationSection = {
 
 /** Customer-facing Japanese-first navigation. Keep destinations real and implemented. */
 export const primaryNavigation: NavigationItem[] = [
-  { href: "/shop", label: "すべての商品" },
-  { href: "/artisans", label: "つくり手" },
-  { href: "/story", label: "ブランドについて" },
-  { href: "/journal", label: "読みもの" },
-  { href: "/contact", label: "お問い合わせ" },
+  { href: "/shop", label: "All products" },
+  { href: "/artisans", label: "Makers" },
+  { href: "/story", label: "Our story" },
+  { href: "/journal", label: "Journal" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export const footerNavigation: NavigationSection[] = [
   {
-    title: "お買いもの",
+    title: "SHOP",
     links: [
-      { href: "/shop", label: "すべての商品" },
-      { href: "/cart", label: "カートを見る" },
+      { href: "/shop", label: "All products" },
+      { href: "/cart", label: "View cart" },
     ],
   },
   {
     title: "Desert Art Gallery",
     links: [
-      { href: "/story", label: "私たちについて" },
-      { href: "/artisans", label: "つくり手" },
-      { href: "/journal", label: "読みもの" },
+      { href: "/story", label: "About the gallery" },
+      { href: "/artisans", label: "Makers" },
+      { href: "/journal", label: "Journal" },
     ],
   },
   {
-    title: "サポート",
+    title: "SUPPORT",
     links: [
-      { href: "/contact", label: "お問い合わせ" },
-      { href: "/account", label: "マイページ" },
+      { href: "/contact", label: "Contact" },
+      { href: "/account", label: "My account" },
     ],
   },
   {
-    title: "ご利用ガイド",
+    title: "CUSTOMER GUIDE",
     links: [
-      { href: "/shipping", label: "配送について" },
-      { href: "/returns", label: "返品・交換" },
-      { href: "/faq", label: "よくあるご質問" },
-      { href: "/tracking", label: "配送状況の確認" },
+      { href: "/shipping", label: "Shipping information" },
+      { href: "/returns", label: "Returns & exchanges" },
+      { href: "/faq", label: "FAQs" },
+      { href: "/tracking", label: "Track an order" },
     ],
   },
   {
-    title: "ポリシー",
+    title: "POLICIES",
     links: [
-      { href: "/privacy", label: "プライバシーポリシー（草案）" },
-      { href: "/terms", label: "利用規約（草案）" },
+      { href: "/privacy", label: "Privacy notice (draft)" },
+      { href: "/terms", label: "Terms of use (draft)" },
     ],
   },
 ];
