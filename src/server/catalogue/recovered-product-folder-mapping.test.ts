@@ -169,6 +169,10 @@ describe("recovered product folder mapping", () => {
     );
     const csv = recoveredProductMappingCsv(report);
     expect(csv).toContain("\"NOT_REVIEWED\"");
+    expect(csv).toContain("\"approved_product_id\"");
+    expect(csv).toContain("\"approved_product_slug\"");
+    expect(csv).toContain("\"primary_image_filename\"");
+    expect(csv).toContain("\"owner_note\"");
     expect(csv).toContain("\"'=HYPERLINK");
     expect(report.mappings[0].manualReviewRequired).toBe(true);
     expect(report.mappings[0].status).toBe("unmatched");
