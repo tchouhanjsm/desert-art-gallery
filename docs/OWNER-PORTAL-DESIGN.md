@@ -79,3 +79,8 @@ The media library does not claim to be provider-independent storage. The current
 - [ ] Verify images remain private until approval.
 - [ ] Validate media URL expiry and refresh behaviour.
 - [ ] Test all product/order/customer links.
+
+
+## Public storefront boundary — Japan-first redesign (2026-11-04)
+
+The public customer storefront now follows [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md). This does not change the owner portal's role, permissions or operational workflow. Keep `/admin` and `/owner` on their separate operations-focused UI; do not force Japanese consumer storefront navigation, category merchandising or customer-facing typography onto owner forms/tables. The owner workspace remains responsible for catalogue verification, Japanese product-copy entry/review, category mapping, photo-to-product approval, image-rights evidence, merchant policy configuration and controlled publication.

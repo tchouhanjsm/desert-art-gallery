@@ -1,10 +1,18 @@
 # Production readiness register
 
-Last reviewed: 2026-11-02 (Asia/Kolkata)
+Last reviewed: 2026-11-04 (Asia/Kolkata)
 
 This register separates code present in the repository from integrations that have been connected and verified in a merchant environment. An implementation checkbox is not a claim that production credentials, customer data, catalogue rights or live payments have been configured.
 
-## Implemented in code
+## Current Japan-first redesign status — 2026-11-04
+
+The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). Branch `feat/japan-first-storefront-redesign` contains an initial replacement of the active public layout/theme, Japanese-first shared navigation, shopping templates and customer-facing UI labels. It is not yet merged or signed off.
+
+The active public root layout no longer imports the superseded Desert Atelier/Desert Modern theme layers. `src/styles/japan-storefront.css` is the new presentation layer. The admin/owner workspace remains separate.
+
+**Not verified:** exact-head CI, browser screenshots, all-route visual review, native-speaker Japanese copy review, font glyph coverage, accessibility/contrast, real Japan customer testing, JPY pricing/tax, merchant shipping/returns, legal seller information, payment provider or production deployment. The CSV has English product titles/descriptions and USD prices; UI localisation is not catalogue translation or currency conversion.
+
+### Storefront routes and discovery foundations
 
 ### Storefront routes and discovery foundations
 - Next.js App Router route scaffolding exists for home, shop, collection, product, story, artisans, journal, contact and client-care pages.
@@ -45,7 +53,7 @@ This register separates code present in the repository from integrations that ha
 
 - [ ] Connect the merchant-approved Supabase project and apply/verify both migrations in that project. No live database migration was run in this delivery.
 - [ ] Verify RLS, storage access, import/adjustment RPC permissions, transaction rollback and auth callbacks with real Supabase anon/authenticated/service-role sessions.
-- [x] Implement the responsive editorial design foundation and shared route layouts.
+- [ ] Complete and accept the Japan-first public theme replacement across every customer-facing route; the older responsive editorial foundation is superseded. Current PR branch implementation still requires exact-head CI, route screenshots, Japanese copy/font/accessibility review and owner acceptance.
 - [ ] Verify mobile overflow, keyboard navigation, focus, contrast, touch targets, reduced motion and assistive-technology behavior with browser-based QA.
 - [ ] Replace the local textile placeholder with merchant-authorized original photography in owned storage after rights review; confirm rights for every product, collection, editorial and artisan image.
 - [ ] Add customer registration/email verification and approved staff/owner provisioning.
@@ -218,3 +226,52 @@ Production activation requires merchant-authorized catalogue data and original p
 - **Owner inputs still required:** approved Supabase project and migration authorization; actual country coverage, shipping rates, delivery windows and duties wording; tax adviser-approved tax components/disclosures; canonical seller/legal policies; payment accounts and webhook secrets; transactional email and hosting/scheduler approval.
 - **Tax limitation:** the implemented quote uses additive basis-point components against item subtotal plus shipping where explicitly configured. It is not a jurisdiction-complete tax engine and does not calculate customs duties, import VAT, tax-on-tax or carrier brokerage. Do not activate a destination until the owner/accountant confirms the configured model is legally appropriate.
 - **Next engineering increment:** payment-session abstraction and signed webhook/reconciliation boundary in sandbox-only mode, after verifying order-draft and expiry behavior against an approved Supabase test project. Keep real payment capture disabled.
+
+
+## Dated handoff — 2026-11-04 — Japan-first ecommerce redesign
+
+- Adopted `docs/JAPAN-ECOMMERCE-REDESIGN.md` as the customer-facing source of truth. Former Desert Atelier and Desert Modern theme descriptions are historical only.
+- Replaced the active shared public header/footer, set document language to Japanese, and implemented a new public CSS layer with warm-ivory/ink/terracotta/sand tokens.
+- Reworked the home page as product-led Japanese commerce, localised shop discovery and product detail UI, collections, story/artisans/journal/contact, cart, checkout, account and auth labels. The owner/admin interface remains separate.
+- Preserved backend contracts: no schema/migration/auth/inventory/payment/media-rights change is intended in this presentation milestone.
+- Inspected the uploaded Etsy export: 527 rows; USD only; all source quantity values are 1; 5,216 source image URL references; 60 blank SKU rows; 13 duplicate SKU groups; repeated titles; no category/section or variation data. See `docs/ETSY-LISTINGS-IMPORT.md`.
+- Current blockers: owner-reviewed category taxonomy; SKU/title/photo reconciliation; Japanese product translations; JPY retail-price and tax policy; shipping/duties/returns and legal operator details; native-speaker copy review; JP font/glyph QA; route-by-route visual/accessibility/performance evidence.
+- No CSV import, photo upload, rights approval, product publication, payment activation or production deployment is claimed by this PR.
+
+
+## Follow-up — 2026-11-04 — Japan-first storefront regression hardening
+
+- The exact-head CI run #317 on commit `2e61b635b31e67728251366dab401d45589e461c` stopped at TypeScript checking. It identified two incorrectly localised Supabase SDK calls in `src/app/login/legacy-login-form.tsx`: `resetPasswordForEmail` and `signInWithPassword`. These API identifiers (and the local password setter) are restored to standard TypeScript names in the follow-up patch.
+- The homepage now selects its hero from persisted catalogue products with a non-empty image URL. Development-only preview records have no database ID and cannot be rendered as published hero photography. The existing catalogue service continues to control published status and media rights.
+- Added unit coverage for preview-only catalogues, selecting a persisted product after preview records, and rejecting empty image URLs.
+- The Lighthouse report upload now runs only when its manifest exists. This avoids a secondary missing-artifact failure when an earlier validation step stops the job; it does not suppress the underlying typecheck/test/lint/build failure.
+- The new exact-head workflow run is required to verify the patch. Visual screenshots, Japanese native-speaker review, accessibility and performance evidence remain outstanding. This update does not authorise product publication, photo rights approval, payment activation or production deployment.
+
+- Follow-up UI isolation review: the tablet breakpoint's legacy generic product-grid selector is now explicitly scoped to `.jp-storefront`; the Japanese search toggle's `aria-controls` now targets the actual search form rather than its input. A regression assertion covers the responsive CSS scope. This does not replace browser/assistive-technology testing.
+
+
+## Follow-up — 2026-11-04 — Japanese customer information and mobile navigation
+
+- Replaced the six English dynamic information pages (`/shipping`, `/returns`, `/faq`, `/tracking`, `/privacy`, `/terms`) with Japanese-first content in a typed information-page module.
+- Added Japanese page metadata and explicit `noindex, follow` metadata while the content remains provisional. Unknown slugs continue to return not-found; no legal-operator page or missing business facts have been invented.
+- Shipping, returns, privacy and terms carry visible draft notices. The privacy/terms pages explicitly state that they are not final legal notices; merchant identity, actual policies and jurisdictional review remain required.
+- Added guide and policy destinations to the Japanese footer. The mobile header no longer hides the account and wishlist links; source-level regression checks cover their availability.
+- Japanese copy is an initial translation for engineering review, not a native-speaker approval. Exact-head CI, browser visual QA, policy approval and accessibility testing remain outstanding.
+- Added a tablet footer breakpoint: the new five-column desktop information architecture collapses to a two-column grid below 1000px, with the brand block spanning the row. The existing narrower mobile breakpoint remains intact.
+
+
+## Follow-up — 2026-11-04 — Japanese customer-facing copy completion
+
+- Translated remaining static interface headings and microcopy on homepage, shop, collection, story, artisans, journal and contact routes.
+- Localised the legacy Supabase customer order-detail draft notice, including its reservation-expiry fallback. It states in Japanese that no payment was requested or received.
+- Translated visual-design alt text, the short brand tagline and the footer location descriptor. Merchant-owned product titles, descriptions, category names, collection labels and artisan names/biographies remain source content until owner-approved Japanese copy is supplied.
+- Added `src/lib/japanese-copy-contract.test.ts` to guard key Japanese route headings and the no-payment draft notice against accidental English regressions.
+- The branch remains a draft PR. Native-speaker review, route-by-route visual QA and exact-head CI remain outstanding.
+
+
+## CI follow-up — run #343 — 2026-11-04
+
+- Exact-head workflow run #343 validated commit `73237825b157e9152960921178df79259541adc9`. MySQL startup/migrations and TypeScript typecheck passed.
+- The unit/integration suite reported 5 failures and 299 passes (304 tests total). These were stale tests rather than application type errors: the font test required removed layout font imports; the route-existence test did not recognise the statically enumerated `[slug]` information route; and three conversion-contract assertions still expected English copy from before Japanese localisation.
+- Updated the font contract to verify the Japanese system-font stack and absence of remote font dependencies, taught navigation tests to validate known static information slugs, and changed conversion-contract assertions to the Japanese status and accessible control labels.
+- A new exact-head CI run is required to verify the corrected test suite. Lint, production build, Lighthouse and staging artifact steps were skipped after the failing test step in run #343.

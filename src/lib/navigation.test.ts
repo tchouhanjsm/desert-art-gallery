@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { footerNavigation, primaryNavigation } from "./navigation";
+import { getStorefrontInformationPage } from "./storefront-information";
 
 describe("storefront navigation", () => {
   it("uses unique primary navigation destinations", () => {
@@ -19,7 +20,13 @@ describe("storefront navigation", () => {
       const route = item.href.split(/[?#]/, 1)[0];
       const segments = route.split("/").filter(Boolean);
       const pagePath = join(process.cwd(), "src", "app", ...segments, "page.tsx");
-      expect(existsSync(pagePath), item.href + " should resolve to an implemented route").toBe(true);
+      const hasStaticInformationPage = segments.length === 1
+        && existsSync(join(process.cwd(), "src", "app", "[slug]", "page.tsx"))
+        && getStorefrontInformationPage(segments[0]) !== null;
+      expect(
+        existsSync(pagePath) || hasStaticInformationPage,
+        item.href + " should resolve to an implemented App Router page",
+      ).toBe(true);
     }
   });
 });

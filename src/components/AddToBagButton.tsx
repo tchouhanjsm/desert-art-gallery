@@ -36,7 +36,7 @@ export function AddToBagButton({
     <div className="add-to-bag-control">
       {hasVariants && (
         <label className="variant-select-label">
-          Choose an option
+          オプションを選択
           <select
             value={selectedVariantId}
             onChange={(event) => {
@@ -45,10 +45,10 @@ export function AddToBagButton({
             }}
             required
           >
-            <option value="">Select an option</option>
+            <option value="">オプションを選択してください</option>
             {variants.map((variant) => (
               <option key={variant.id} value={variant.id} disabled={variant.quantityOnHand < 1}>
-                {variant.label}{variant.quantityOnHand < 1 ? " — unavailable" : ""}
+                {variant.label}{variant.quantityOnHand < 1 ? " — 在庫切れ" : ""}
               </option>
             ))}
           </select>
@@ -56,7 +56,7 @@ export function AddToBagButton({
       )}
       {hasVariants && selectedVariant && selectedPrice !== null && (
         <p className="variant-selected-price">
-          Selected option · {formatMoneyFromMinor(selectedPrice, currency)}
+          選択中のオプション · {formatMoneyFromMinor(selectedPrice, currency)}
         </p>
       )}
       <button
@@ -70,8 +70,8 @@ export function AddToBagButton({
         }}
       >
         {!canAdd
-          ? hasVariants && !selectedVariant ? "CHOOSE AN OPTION" : "CURRENTLY UNAVAILABLE"
-          : added ? "ADDED TO YOUR BAG ✓" : "ADD TO BAG"}
+          ? hasVariants && !selectedVariant ? "オプションを選択してください" : "現在ご利用いただけません"
+          : added ? "カートに追加しました ✓" : "カートに追加"}
       </button>
     </div>
   );

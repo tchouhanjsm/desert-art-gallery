@@ -313,3 +313,74 @@
 .etsy-source-image-card strong { color: var(--owner-ink); font-size: 10px; }
 .etsy-source-image-card a { color: var(--owner-ink); font-size: 9px; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
 @media(max-width:520px){.etsy-source-image-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+
+
+/* Standalone owner sign-in page (outside the authenticated workspace shell). */
+.owner-auth-page {
+  min-height: 100vh;
+  padding: clamp(28px, 7vw, 88px) 20px;
+  display: grid;
+  place-items: center;
+  background: var(--owner-paper, #f7f5f0);
+  color: var(--owner-ink, #29251f);
+  font-family: "DM Sans", Arial, sans-serif;
+}
+.owner-auth-panel {
+  width: min(520px, 100%);
+  padding: clamp(22px, 5vw, 36px);
+  border: 1px solid var(--owner-line, #e4ded4);
+  background: var(--owner-surface, #fffdfa);
+  box-shadow: 0 18px 55px rgba(42, 32, 23, .08);
+}
+.owner-auth-panel h1 {
+  margin: 10px 0 12px;
+  color: var(--owner-ink, #29251f);
+  font-family: Georgia, serif;
+  font-size: clamp(34px, 6vw, 48px);
+  font-weight: 500;
+  line-height: 1.08;
+}
+.owner-auth-panel > p {
+  color: var(--owner-muted, #786f64);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.owner-auth-panel .auth-form {
+  margin: 24px 0 18px;
+  display: grid;
+  gap: 15px;
+}
+.owner-auth-panel .auth-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--owner-muted, #786f64);
+  font-size: 12px;
+  font-weight: 600;
+}
+.owner-auth-panel .auth-form input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--owner-line, #e4ded4);
+  border-radius: 0;
+  background: #fff;
+  color: var(--owner-ink, #29251f);
+  font: inherit;
+}
+.owner-auth-panel .auth-form input:focus-visible {
+  outline: 2px solid var(--owner-accent, #9a5a43);
+  outline-offset: 2px;
+}
+.owner-auth-panel .auth-form button {
+  width: 100%;
+  min-height: 47px;
+}
+.owner-auth-panel .form-message {
+  margin: 12px 0 0;
+  color: var(--owner-muted, #786f64);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.owner-auth-panel .form-message[role="alert"] {
+  color: #9b392c;
+}

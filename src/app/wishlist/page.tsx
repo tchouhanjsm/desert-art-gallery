@@ -1,5 +1,5 @@
 import { WishlistPageClient } from "@/components/WishlistPageClient";
-export const metadata = { title: "Wishlist", description: "Keep your favourite Desert Art Gallery pieces together." };
+export const metadata = { title: "お気に入り", description: "気になる商品をお気に入りに保存できます。" };
 export default function WishlistPage() {
-  return <div className="page-shell"><div className="page-heading"><div className="section-kicker">SAVED PIECES</div><h1>Your wishlist</h1><p>Keep the pieces that have caught your eye close by.</p></div><WishlistPageClient /></div>;
+  return <div className="page-shell"><div className="page-heading"><div className="section-kicker">お気に入り</div><h1>お気に入りの商品</h1><p>気になる商品をまとめて確認できます。</p></div><WishlistPageClient /></div>;
 }

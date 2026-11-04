@@ -1,57 +1,57 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Our approach",
-  description: "The approach of Desert Art Gallery, a textile and object gallery based in Jaisalmer, Rajasthan.",
+  title: "私たちについて",
+  description: "ラージャスターン州ジャイサルメールを拠点とするDesert Art Galleryについてご紹介します。",
 };
 
 export default function StoryPage() {
   return (
     <div className="atelier-story-page">
       <header className="atelier-story-masthead">
-        <div className="section-kicker">DESERT ART GALLERY · JAISALMER</div>
-        <h1>Textiles, objects<br />and their <em>context.</em></h1>
-        <p>A gallery perspective from Jaisalmer, Rajasthan.</p>
+        <div className="section-kicker">ジャイサルメール · ラージャスターン州</div>
+        <h1>テキスタイルと品物、<br /><em>その背景。</em></h1>
+        <p>ラージャスターン州ジャイサルメールから。</p>
       </header>
 
       <figure className="atelier-story-visual">
-        <div className="atelier-story-visual-art" role="img" aria-label="Textile-inspired geometric design study, not a product photograph">
+        <div className="atelier-story-visual-art" role="img" aria-label="テキスタイルをイメージした幾何学模様のデザインです。商品写真ではありません。">
           <span className="atelier-story-visual-monogram">DAG</span>
-          <span className="atelier-story-visual-caption">MATERIAL · MEMORY · MAKING</span>
+          <span className="atelier-story-visual-caption">素材 · 記憶 · 手仕事</span>
         </div>
-        <figcaption><span>VISUAL STUDY · TEXTILE PATTERN</span><span>ORIGINAL GALLERY PHOTOGRAPHY TO BE ADDED</span></figcaption>
+        <figcaption><span>デザインスタディ · テキスタイルパターン</span><span>ギャラリーのオリジナル写真は準備中</span></figcaption>
       </figure>
 
       <div className="atelier-story-content">
         <article className="atelier-story-article">
-          <span className="section-kicker">THE GALLERY&apos;S APPROACH</span>
-          <h2>Look closely.<br /><em>Understand the piece.</em></h2>
-          <p>Desert Art Gallery is based in Jaisalmer, Rajasthan. Our focus is the visual language of textiles and objects, and the context that helps people understand what they are considering.</p>
-          <p>Every published product should be accompanied by the information the gallery can verify. Materials, measurements, condition, provenance and availability are not assumed; they are confirmed piece by piece.</p>
+          <span className="section-kicker">ギャラリーの考え方</span>
+          <h2>品物をよく見て、<br /><em>その魅力を知る。</em></h2>
+          <p>Desert Art Galleryは、ラージャスターン州ジャイサルメールを拠点としています。テキスタイルや品物そのものの表情と、その品物を理解するための情報を大切にしています。</p>
+          <p>公開する商品には、ギャラリーが確認できる情報を掲載します。素材、寸法、状態、来歴、在庫状況を推測で補うことはせず、一点ずつ確認します。</p>
 
-          <h3>Respect for the people behind the work</h3>
-          <p>Craft is knowledge, time and work carried by people and communities. Maker names, biographies, portraits and production details should appear only after the people involved have reviewed and approved their use.</p>
+          <h3>つくり手への敬意</h3>
+          <p>手仕事には、人や地域が受け継いできた知識と時間、仕事が込められています。つくり手のお名前、プロフィール、写真、制作工程は、ご本人が内容と使用方法を確認し、承諾した場合にのみ掲載します。</p>
 
-          <h3>A considered conversation</h3>
-          <p>If you are interested in a piece, contact the gallery with its name or link and your destination country. Please wait for written confirmation of the item details, final price and delivery charges before sending payment.</p>
+          <h3>商品についてのご相談</h3>
+          <p>気になる商品がございましたら、商品名または商品ページのリンクと、お届け先の国を添えてお問い合わせください。お支払いの前に、商品内容、最終価格、配送費用について書面での確認をお願いいたします。</p>
         </article>
 
         <aside className="atelier-story-aside">
           <div className="atelier-story-aside-mark">DAG</div>
-          <span>BASED IN</span>
-          <strong>Jaisalmer</strong>
-          <span>RAJASTHAN · INDIA</span>
+          <span>拠点</span>
+          <strong>ジャイサルメール</strong>
+          <span>ラージャスターン州 · インド</span>
           <div className="atelier-story-aside-rule" />
-          <p>Textiles. Objects. Stories.</p>
-          <Link className="text-link" href="/shop">Explore the gallery</Link>
+          <p>テキスタイル。品物。ストーリー。</p>
+          <Link className="text-link" href="/shop">商品を見る</Link>
         </aside>
       </div>
 
       <section className="atelier-story-close">
-        <span className="section-kicker">A DIRECT CONVERSATION</span>
-        <h2>Have a piece in mind?</h2>
-        <p>Send the gallery the name or link and your question. We will help confirm the details available.</p>
-        <Link className="button-primary" href="/contact">Contact the gallery</Link>
+        <span className="section-kicker">お問い合わせ</span>
+        <h2>気になる商品はありますか？</h2>
+        <p>商品名またはリンクとご質問をお送りください。確認できる情報をご案内します。</p>
+        <Link className="button-primary" href="/contact">お問い合わせ</Link>
       </section>
     </div>
   );

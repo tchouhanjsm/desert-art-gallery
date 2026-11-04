@@ -3,31 +3,29 @@ import { ShopBrowser } from "@/components/ShopBrowser";
 import { getStorefrontProducts } from "@/lib/catalogue";
 
 export const metadata = {
-  title: "Shop the collection",
-  description:
-    "Explore published textiles and objects from Desert Art Gallery in Jaisalmer, Rajasthan.",
+  title: "商品一覧",
+  description: "Desert Art Galleryのオンラインストアに掲載中の商品をご覧いただけます。",
 };
 
 function ShopBrowserFallback() {
   return (
     <div className="atelier-empty-catalogue" role="status" aria-live="polite">
-      Preparing the gallery catalogue…
+      商品情報を読み込んでいます…
     </div>
   );
 }
 
 export default async function ShopPage() {
   const products = await getStorefrontProducts();
-
   return (
     <div className="page-shell atelier-page-shell">
       <header className="atelier-page-heading">
-        <div className="section-kicker">THE ONLINE GALLERY · JAISALMER</div>
-        <h1>Objects to <em>live with.</em></h1>
-        <p>Explore the pieces currently published by the gallery. Each listing shows the details available for that piece; contact us where you need further information.</p>
+        <div className="section-kicker">Desert Art Gallery · オンラインストア</div>
+        <h1>商品一覧</h1>
+        <p>現在オンラインストアでご覧いただける商品です。掲載情報や仕様について確認したい点がございましたら、商品ごとにお問い合わせください。</p>
         <div className="atelier-heading-meta">
-          <span>TEXTILES & OBJECTS</span>
-          <span>{products.length} {products.length === 1 ? "PUBLISHED PIECE" : "PUBLISHED PIECES"}</span>
+          <span>商品一覧</span>
+          <span>{products.length.toLocaleString("ja-JP")}件掲載中</span>
         </div>
       </header>
       <Suspense fallback={<ShopBrowserFallback />}>

@@ -11,14 +11,14 @@ export function WishlistToggle({ slug, compact = false }: { slug: string; compac
       className={compact ? "wishlist-toggle wishlist-toggle--compact" : "wishlist-toggle"}
       type="button"
       aria-pressed={saved}
-      aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
-      title={saved ? "Remove from wishlist" : "Add to wishlist"}
+      aria-label={saved ? "お気に入りから削除" : "お気に入りに追加"}
+      title={saved ? "お気に入りから削除" : "お気に入りに追加"}
       onClick={() => toggle(slug)}
     >
       <Heart size={compact ? 17 : 18} fill={saved ? "currentColor" : "none"} />
       {compact
-        ? <span className="visually-hidden">{saved ? "Saved to wishlist" : "Add to wishlist"}</span>
-        : <span>{saved ? "SAVED TO WISHLIST" : "ADD TO WISHLIST"}</span>}
+        ? <span className="visually-hidden">{saved ? "お気に入りに保存済み" : "お気に入りに追加"}</span>
+        : <span>{saved ? "お気に入りに保存済み" : "お気に入りに追加"}</span>}
     </button>
   );
 }
