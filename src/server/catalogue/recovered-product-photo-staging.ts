@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { constants, createReadStream } from "node:fs";
+import { constants, createReadStream, type Dirent } from "node:fs";
 import { copyFile, lstat, mkdir, readFile, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -360,7 +360,7 @@ export async function previewRecoveredPhotoStaging(
 
   for (const approval of parsed.approvals) {
     const sourceFolder = path.join(sourceRoot, approval.folderName);
-    let entries;
+    let entries: Dirent[];
     try {
       const folderStats = await lstat(sourceFolder);
       if (!folderStats.isDirectory() || folderStats.isSymbolicLink()) {
@@ -406,6 +406,7 @@ export async function previewRecoveredPhotoStaging(
     ];
     let folderFailed = false;
     const folderFiles: RecoveredPhotoStagingFile[] = [];
+    const targetNames = new Set<string>();
     for (let index = 0; index < ordered.length; index += 1) {
       const entry = ordered[index];
       const sourcePath = path.join(sourceFolder, entry.name);
@@ -415,6 +416,11 @@ export async function previewRecoveredPhotoStaging(
         const targetFilename = String(index + 1).padStart(2, "0") +
           (index === 0 ? "-primary" : "-detail") + extension;
         const targetPath = path.join(targetRoot, approval.approvedProductSlug, targetFilename);
+        if (targetNames.has(targetFilename)) {
+          throw new Error("Multiple source images resolve to the same importer filename.");
+        }
+        targetNames.add(targetFilename);
+        await assertDirectoryPath(workspaceRoot, path.dirname(targetPath), true);
         let alreadyPresent = false;
         try {
           const existingStats = await lstat(targetPath);
@@ -497,6 +503,7 @@ export async function commitRecoveredPhotoStaging(
       }
       const sourcePath = path.join(plan.sourceRoot, file.sourceRelativePath);
       const targetPath = path.join(plan.targetRoot, file.productSlug, file.targetFilename);
+      await assertDirectoryPath(workspaceRoot, path.dirname(targetPath), true);
       const current = await inspectImageFile(sourcePath, file.sourceRelativePath);
       if (current.sha256 !== file.sha256 || current.sizeBytes !== file.sizeBytes) {
         throw new Error(file.sourceRelativePath + " changed after preview. Rebuild the staging preview.");
