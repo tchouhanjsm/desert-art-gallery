@@ -39,7 +39,7 @@
   border:1px solid var(--atelier-ink); border-radius:2px; font-size:12px; font-weight:700; letter-spacing:.04em;
   line-height:1.5; text-align:center; transition:background .18s ease,color .18s ease,border-color .18s ease;
 }.jp-storefront .button-primary{ background:var(--atelier-ink); color:#fff; }.jp-storefront .button-primary:hover{ background:var(--atelier-clay-dark); border-color:var(--atelier-clay-dark); }.jp-storefront .button-outline{ background:transparent; color:var(--atelier-ink); }.jp-storefront .button-outline:hover{ background:var(--atelier-ink); color:#fff; }.jp-storefront .dark-button{ background:var(--atelier-ink); color:#fff; }.jp-storefront /* Header: a compact Japanese ecommerce utility zone, .jp-storefront visible search and category row. */
-.announcement{
+.jp-storefront .announcement{
   min-height:30px; padding:5px 15px; display:flex; align-items:center; justify-content:center;
   background:var(--atelier-ink); color:#f7f3ec; font-size:10px; font-weight:600; letter-spacing:.12em; text-align:center;
 }.jp-storefront .site-header{
@@ -96,4 +96,24 @@
 @media (max-width: 1000px) {
   .jp-storefront .jp-footer-main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .jp-storefront .jp-footer-brand { grid-column: 1 / -1; }
+}
+
+
+/* Accessible disclosures for category navigation. */
+.jp-storefront .jp-nav-disclosure {
+  width: 30px;
+  min-width: 30px;
+  min-height: 35px;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--atelier-ink);
+}
+.jp-storefront .jp-nav-disclosure:focus-visible {
+  outline: 2px solid var(--atelier-clay);
+  outline-offset: 2px;
+}
+@media (max-width: 760px) {
+  .jp-storefront .jp-nav-disclosure { min-height: 44px; }
 }
