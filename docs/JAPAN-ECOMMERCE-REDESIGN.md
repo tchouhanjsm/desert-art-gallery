@@ -1091,3 +1091,4 @@ These are source-export observations only. They do not mean the CSV was imported
 - Run the capture against a healthy local/CI application and publish the CI evidence as a short-lived workflow artifact. Local captures remain under ignored `.local-data/visual-review/`.
 - Empty CI databases may correctly return 404 for dynamic product and collection routes. The manifest must record those outcomes; it must not convert them into fake sample catalogue records or imply product visual acceptance.
 - Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, native-speaker Japanese copy, screen-reader/keyboard review, Japan-based performance testing and legal/merchant approvals remain separate acceptance gates.
+- The Phase 5 capture harness is being implemented in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); exact-head CI and generated route evidence are pending.
