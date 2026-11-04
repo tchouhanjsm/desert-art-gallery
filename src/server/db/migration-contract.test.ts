@@ -14,6 +14,7 @@ const customerMigration = readFileSync(
   "utf8",
 );
 const orderMigration = readFileSync(new URL("../../../drizzle/0004_mysql_order_checkout.sql", import.meta.url), "utf8");
+const mysqlSchema = readFileSync(new URL("./schema.ts", import.meta.url), "utf8");
 const journal = readFileSync(
   new URL("../../../drizzle/meta/_journal.json", import.meta.url),
   "utf8",
@@ -79,5 +80,12 @@ describe("MySQL editorial CMS migration contract", () => {
     expect(etsyMigration).toContain("ADD COLUMN source_metadata JSON");
     expect(etsyMigration).toContain("row_count BETWEEN 1 AND 1000");
     expect(etsyMigration).toContain("products_created BETWEEN 1 AND 1000");
+  });
+
+  it("keeps the Drizzle catalogue import batch checks aligned with the applied 1,000-row Etsy migration", () => {
+    expect(mysqlSchema).toContain("${table.rowCount} BETWEEN 1 AND 1000");
+    expect(mysqlSchema).toContain("${table.productsCreated} BETWEEN 1 AND 1000");
+    expect(mysqlSchema).not.toContain("${table.rowCount} BETWEEN 1 AND 500");
+    expect(mysqlSchema).not.toContain("${table.productsCreated} BETWEEN 1 AND 500");
   });
 });
