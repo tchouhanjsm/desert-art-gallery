@@ -598,6 +598,33 @@ suite("real MySQL migration and catalogue integration", () => {
     }
   }, 60_000);
 
+  it("accepts a 527-row Etsy import batch under the migrated 1,000-row MySQL constraint", async () => {
+    const db = getMySqlDb();
+    const batchId = randomUUID();
+    const sourceSha256 = createHash("sha256").update(batchId).digest("hex");
+    try {
+      await db.insert(catalogueImportBatches).values({
+        id: batchId,
+        sourceSha256,
+        sourceName: "EtsyListingsDownload.csv",
+        rowCount: 527,
+        productsCreated: 527,
+        stockUnitsAdded: 527,
+        report: {
+          source_type: "etsy",
+          products_created: 527,
+          stock_units_added: 527,
+        },
+      });
+      const [batch] = await db.select().from(catalogueImportBatches)
+        .where(eq(catalogueImportBatches.id, batchId));
+      expect(batch.rowCount).toBe(527);
+      expect(batch.productsCreated).toBe(527);
+    } finally {
+      await db.delete(catalogueImportBatches).where(eq(catalogueImportBatches.id, batchId));
+    }
+  }, 15_000);
+
   it("imports native Etsy listings as distinct drafts with tags, source images and safe SKU handling", async () => {
     const db = getMySqlDb();
     const headers = ["TITLE", "DESCRIPTION", "PRICE", "CURRENCY_CODE", "QUANTITY", "TAGS", "MATERIALS", "IMAGE1", "SKU"];
