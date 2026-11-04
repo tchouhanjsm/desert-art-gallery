@@ -1,5 +1,7 @@
 # MySQL Order and Checkout Lifecycle — Phase 7
 
+> **Customer UX reference:** public Japanese checkout presentation follows [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md). This is a presentation-layer localisation only; the address, order, shipping, tax, reservation, idempotency and payment-state contracts below remain authoritative.
+
 **Branch:** feat/mysql-order-checkout-phase7, based on merged Phase 6.
 **Scope:** reservation price snapshots, merchant shipping/tax configuration, unpaid order drafts, customer order history, owner order inspection and trusted reservation expiry.
 **Activation:** requires MYSQL_CATALOGUE_ENABLED=true and MYSQL_CUSTOMER_AUTH_ENABLED=true. Keep customer mode disabled until local Phase 6 acceptance is complete.
@@ -51,3 +53,10 @@ The configured rates are independent additive components calculated on the item 
 
 - Phase 8 — payment security: sandbox-only provider sessions, signed webhook verification, webhook idempotency, payment reconciliation, refunds and a verified paid-state transition.
 - Phase 9 — launch operations: customer migration/re-enrolment, transactional email and verification, backup/restore, durable hosted media, security/accessibility/browser E2E, performance and production runbooks.
+
+
+## Japanese checkout presentation boundary (2026-11-04)
+
+The storefront branch translates customer-facing checkout labels and places postal code near the start of the address form. It does not add furigana fields, Japanese postcode lookup, prefecture-specific validation or address-model columns. The current backend contract remains generic (`recipient_name`, `address_line_1/2`, `city`, `region`, `postal_code`, `country_code`, `phone`). Any Japan-specific fields require a separately reviewed backwards-compatible persistence/API plan and tests.
+
+The UI must continue to fail closed when no merchant-approved shipping zone/rate or country/currency tax disclosure exists. No JPY conversion, tax-inclusion label, shipping price/timeline or payment method is inferred by localisation.
