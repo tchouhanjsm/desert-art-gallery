@@ -22,7 +22,10 @@
     "media:preview": "node --import=tsx scripts/preview-product-images.ts",
     "media:import": "node --env-file=.env --import=tsx scripts/import-product-images-to-mysql.ts",
     "media:download-etsy": "node --env-file=.env --import=tsx scripts/download-etsy-images.ts",
-    "media:map-recovered": "node --env-file=.env --import=tsx scripts/preview-recovered-product-mapping.ts"
+    "media:map-recovered": "node --env-file=.env --import=tsx scripts/preview-recovered-product-mapping.ts",
+    "media:audit-recovered": "node --env-file=.env --import=tsx scripts/audit-recovered-product-photos.ts",
+    "db:catalogue-preflight": "node --env-file=.env --import=tsx scripts/catalogue-preflight.ts",
+    "media:stage-recovered": "node --env-file=.env --import=tsx scripts/stage-recovered-product-photos.ts"
   },
   "dependencies": {
     "next": "^15.1.6",
@@ -34,7 +37,8 @@
     "drizzle-orm": "0.45.4",
     "mysql2": "3.24.6",
     "@fontsource-variable/cormorant-garamond": "5.3.0",
-    "@fontsource-variable/dm-sans": "5.3.0"
+    "@fontsource-variable/dm-sans": "5.3.0",
+    "@aws-sdk/client-s3": "3.1161.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",

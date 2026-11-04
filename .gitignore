@@ -11,3 +11,6 @@ coverage/
 .DS_Store
 *.log
 .local-data/
+
+# Recovered original product photography stays local and must never enter Git history.
+/public/images/products/

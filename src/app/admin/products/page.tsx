@@ -43,6 +43,7 @@ async function MySqlProductsPage() {
       <div className="owner-page-heading">
         <div><span className="owner-eyebrow">MERCHANDISING · MYSQL LOCAL MODE</span><h1>Products</h1><p>Manage catalogue drafts, product options, rights-approved photography and inventory using the self-hosted MySQL backend.</p></div>
         <div className="owner-page-actions">
+          <Link className="owner-secondary-action" href="/admin/products/import"><Upload size={16} /> Import CSV</Link>
           <Link className="owner-primary-action" href="/admin/products/new"><Plus size={17} /> Create product</Link>
         </div>
       </div>

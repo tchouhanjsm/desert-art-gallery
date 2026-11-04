@@ -26,7 +26,7 @@ async function main() {
     "READ-ONLY MAPPING PREVIEW — no photographs were moved, copied, renamed, uploaded or deleted; no MySQL rows were written.\n",
   );
   process.stderr.write(
-    "Every candidate requires owner review. Only unique Etsy draft title candidates are eligible for a later reviewed mapping manifest.\n",
+    "Every exact candidate requires owner review. Ranked fuzzy title suggestions are diagnostic only and are never accepted as exact candidates or staging approvals.\n",
   );
 }
 

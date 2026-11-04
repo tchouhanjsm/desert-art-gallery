@@ -1,9 +1,15 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import {
+  getMediaStorageDriver,
+  readPrivateMediaObject,
+  removePrivateMediaObject,
+  storePrivateMediaObject,
+} from "./object-storage";
+import type { MediaContentType } from "./object-storage";
 
 export type EditorialTarget = "homepage" | "collection" | "artisan" | "journal";
-export type EditorialImageMime = "image/jpeg" | "image/png" | "image/webp" | "image/avif";
+export type EditorialImageMime = MediaContentType;
 
 const extensions: Record<EditorialImageMime, string> = {
   "image/jpeg": "jpg",
@@ -20,13 +26,16 @@ const mimeTypes: Record<string, EditorialImageMime> = {
 };
 
 export function getMediaStorageRoot(): string {
+  if (getMediaStorageDriver() === "s3") {
+    throw new Error("MEDIA_STORAGE_ROOT is not used by the S3-compatible media driver.");
+  }
   const configured = process.env.MEDIA_STORAGE_ROOT?.trim();
   if (configured) {
     if (!path.isAbsolute(configured)) throw new Error("MEDIA_STORAGE_ROOT must be an absolute filesystem path.");
     return path.resolve(configured);
   }
   if (process.env.NODE_ENV === "production") {
-    throw new Error("MEDIA_STORAGE_ROOT must point to persistent storage in production.");
+    throw new Error("MEDIA_STORAGE_ROOT must point to persistent storage when using filesystem media storage in production.");
   }
   return path.resolve(process.cwd(), ".local-data", "media");
 }
@@ -67,18 +76,21 @@ function absoluteMediaPath(key: string): string {
   return fullPath;
 }
 
+function localPathForKey(key: string): string | undefined {
+  return getMediaStorageDriver() === "local" ? absoluteMediaPath(key) : undefined;
+}
+
 export async function storeEditorialMedia(key: string, bytes: Uint8Array): Promise<void> {
-  const destination = absoluteMediaPath(key);
-  const directory = path.dirname(destination);
-  await mkdir(directory, { recursive: true, mode: 0o700 });
-  const temporary = destination + "." + randomUUID() + ".tmp";
-  try {
-    await writeFile(temporary, bytes, { flag: "wx", mode: 0o600 });
-    await rename(temporary, destination);
-  } catch (error) {
-    await rm(temporary, { force: true }).catch(() => undefined);
-    throw error;
-  }
+  const safeKey = safeStorageKey(key);
+  const extension = safeKey.split(".").pop()?.toLowerCase() ?? "";
+  const mimeType = mimeTypes[extension];
+  if (!mimeType) throw new Error("Editorial media file extension is unsupported.");
+  await storePrivateMediaObject({
+    key: safeKey,
+    bytes,
+    contentType: mimeType,
+    localPath: localPathForKey(safeKey),
+  });
 }
 
 export async function readEditorialMedia(key: string): Promise<{ bytes: Buffer; mimeType: EditorialImageMime } | null> {
@@ -86,15 +98,17 @@ export async function readEditorialMedia(key: string): Promise<{ bytes: Buffer; 
   const extension = safeKey.split(".").pop()?.toLowerCase() ?? "";
   const mimeType = mimeTypes[extension];
   if (!mimeType) return null;
-  try {
-    const bytes = await readFile(absoluteMediaPath(safeKey));
-    return { bytes, mimeType };
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw error;
-  }
+  return readPrivateMediaObject({
+    key: safeKey,
+    contentType: mimeType,
+    localPath: localPathForKey(safeKey),
+  });
 }
 
 export async function removeEditorialMedia(key: string): Promise<void> {
-  await rm(absoluteMediaPath(key), { force: true });
+  const safeKey = safeStorageKey(key);
+  await removePrivateMediaObject({
+    key: safeKey,
+    localPath: localPathForKey(safeKey),
+  });
 }

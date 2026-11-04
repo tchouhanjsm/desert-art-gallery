@@ -19,3 +19,13 @@ export function assertLocalMySqlTarget(databaseUrl = process.env.DATABASE_URL): 
   }
   return database;
 }
+
+export function assertCatalogueImportEnvironmentAllowed(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): void {
+  if (environment.NODE_ENV !== "production") return;
+  if (environment.APP_ENV === "staging" && environment.STAGING_CATALOGUE_IMPORT_ENABLED === "true") return;
+  throw new Error(
+    "Catalogue writes are disabled in production. Enable the explicit staging-only import gate on a verified staging host.",
+  );
+}

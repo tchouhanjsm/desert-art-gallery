@@ -24,6 +24,8 @@ The private workspace reserves .local-data/mysql for a dedicated local MySQL dat
 
 ## Product photography intake
 
+Recovered originals are kept out of Git and staged only after explicit owner approval. The read-only mapping review can be turned into private importer-compatible copies with `npm run media:stage-recovered`; it never modifies the recovered originals or writes product-media rows. See docs/PRODUCT-IMAGE-INTAKE.md.
+
 Place authorized original photographs under .local-data/imports/product-images/<verified-product-slug>/ and run npm run media:preview. The read-only preview checks filenames, supported image signatures, size and sequence rules. It does not upload or publish photos. See docs/PRODUCT-IMAGE-INTAKE.md.
 
 ## Site URL and contact identity
@@ -53,13 +55,18 @@ Owner passwords are stored as salted scrypt hashes; sessions use random httpOnly
 
 The MySQL catalogue and owner product management are opt-in. Existing customer-account, customer-order and some fulfilment routes are not fully migrated in this phase. Optional Supabase credentials are retained only for reading old source data during the one-time editorial import. No target MySQL owner session depends on Supabase Auth.
 
-The CSV importer accepts the standard product-template CSV and Etsy's native Listings Download export. Preview with npm run db:import-products -- ./.local-data/imports/EtsyListingsDownload.csv; the command is read-only unless both --commit --confirm-local-import are supplied. Writes are blocked for production/live database names, non-empty product catalogues and previously imported source hashes. Etsy rows remain separate drafts with tags, source metadata and opening stock preserved. Etsy source photo URLs are references only: images are not downloaded and image rights are not assumed. See docs/ETSY-LISTINGS-IMPORT.md.
+The CSV importer accepts the standard product-template CSV and Etsy's native Listings Download export. Preview with npm run db:import-products -- ./.local-data/imports/EtsyListingsDownload.csv; the command is read-only unless both --commit --confirm-local-import are supplied. The MySQL owner workspace also provides the same preview-and-confirm workflow at /admin/products/import, linked from the Products page. Writes are blocked for production/live database names, non-empty product catalogues and previously imported source hashes. Etsy rows remain separate drafts with tags, source metadata and opening stock preserved. Etsy source photo URLs are references only: images are not downloaded and image rights are not assumed. See docs/ETSY-LISTINGS-IMPORT.md.
 
 No live data is imported automatically, and no production deployment or payment provider is enabled by these scripts.
 
 ## CI
 
-Pull-request CI runs against a GitHub-managed MySQL service and validates migrations, typecheck, tests, lint and production build. This hosted service does not require a local database container runtime on the developer device.
+The Next.js build uses standalone output. CI packages the traced Node.js runtime, static assets and tracked public assets into `desert-art-gallery-staging.tar.gz` for seven days. The artifact excludes local databases, credentials, recovered product photographs and application-managed media. See docs/CI-RELEASE-ARTIFACT.md for runtime and staging requirements.
+
+Media storage uses local `.local-data/media` by default. The same storage interfaces can use a private S3-compatible bucket for managed staging/production by setting `MEDIA_STORAGE_DRIVER=s3`; product and editorial objects continue through the app's protected media routes. The `/api/health` response validates media configuration but does not claim to have tested the remote bucket. See docs/CI-RELEASE-ARTIFACT.md before configuring a live bucket.
+Do not switch an existing deployment from filesystem media to S3 until every stored object has been copied, hash-verified and reconciled against its MySQL media key; changing the driver alone does not migrate files.
+
+Pull-request CI runs against a GitHub-managed MySQL service and validates migrations, typecheck, tests, lint and production build. This hosted service does not require a local database container runtime on the developer device. A successful build also publishes a short-lived self-hosted Node.js staging artifact.
 
 
 The MySQL customer order lifecycle and merchant shipping/tax configuration are documented in docs/MYSQL-ORDER-CHECKOUT-PHASE-7.md. Keep payment processing disabled until the provider/webhook security phase is reviewed and enabled separately.

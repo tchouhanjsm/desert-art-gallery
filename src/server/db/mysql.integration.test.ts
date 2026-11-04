@@ -4,9 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { afterAll, describe, expect, it } from "vitest";
+import type { RowDataPacket } from "mysql2";
 import { createHash } from "node:crypto";
 import { asc, eq, inArray, sql } from "drizzle-orm";
-import { closeMySqlPool, getMySqlDb } from "./index";
+import { closeMySqlPool, getMySqlDb, getMySqlPool } from "./index";
 import {
   expireVariantStockReservations, reserveVariantStock,
   releaseVariantStockReservation, consumeVariantStockReservation, adjustVariantInventory,
@@ -38,6 +39,16 @@ const suite = enabled ? describe : describe.skip;
 
 suite("real MySQL migration and catalogue integration", () => {
   afterAll(async () => { await closeMySqlPool(); });
+
+  it("reads information_schema table names through stable aliases", async () => {
+    const [rows] = await getMySqlPool().query<(RowDataPacket & { name: string; type: string })[]>(
+      "SELECT TABLE_NAME AS name, TABLE_TYPE AS type FROM information_schema.tables WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME",
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => typeof row.name === "string" && row.name.length > 0)).toBe(true);
+    expect(rows.every((row) => typeof row.type === "string" && row.type.length > 0)).toBe(true);
+    expect(rows.some((row) => row.name === "__drizzle_migrations")).toBe(true);
+  }, 15_000);
 
   it("keeps the applied Drizzle migration set safe to rerun", () => {
     const repeat = spawnSync("npm", ["run", "db:migrate"], { encoding: "utf8", env: process.env });
@@ -533,6 +544,7 @@ suite("real MySQL migration and catalogue integration", () => {
     const slug = "csv-import-" + id;
     const categorySlug = "csv-category-" + id;
     const sku = "CSV-" + id.slice(0, 8);
+    const importingAdminId = randomUUID();
     const csv = [
       "slug,title,short_description,description,category_slug,price,currency,compare_at_price,sku,quantity_on_hand,materials,sizes,measurements,condition_notes,provenance,craft_story",
       [slug, "Imported test textile", "Verified short detail", "Merchant supplied description", categorySlug, "12.50", "USD", "", sku, "3", "Cotton|Silk", "M|L", '"{""chest"":""40 cm""}"', "Good condition", "Owner supplied provenance", "Merchant supplied story"].join(","),
@@ -552,7 +564,7 @@ suite("real MySQL migration and catalogue integration", () => {
       expect(before).toHaveLength(0);
 
       await expect(commitLocalCatalogueCsv("import.csv", bytes, "incorrect-confirmation")).rejects.toThrow("explicit");
-      const result = await commitLocalCatalogueCsv("import.csv", bytes, "IMPORT_TO_LOCAL_MYSQL");
+      const result = await commitLocalCatalogueCsv("import.csv", bytes, "IMPORT_TO_LOCAL_MYSQL", importingAdminId);
       expect(result.productsCreated).toBe(1);
       expect(result.stockUnitsAdded).toBe(3);
       const [product] = await db.select().from(products).where(eq(products.slug, slug));
@@ -569,6 +581,7 @@ suite("real MySQL migration and catalogue integration", () => {
       const [batch] = await db.select().from(catalogueImportBatches)
         .where(eq(catalogueImportBatches.sourceSha256, sha));
       expect(batch.productsCreated).toBe(1);
+      expect(batch.createdBy).toBe(importingAdminId);
       await expect(commitLocalCatalogueCsv("import.csv", bytes, "IMPORT_TO_LOCAL_MYSQL")).rejects.toThrow("not ready to commit");
     } finally {
       const [product] = await db.select().from(products).where(eq(products.slug, slug));
@@ -586,6 +599,33 @@ suite("real MySQL migration and catalogue integration", () => {
       await db.delete(productCategories).where(eq(productCategories.id, categoryId));
     }
   }, 60_000);
+
+  it("accepts a 527-row Etsy import batch under the migrated 1,000-row MySQL constraint", async () => {
+    const db = getMySqlDb();
+    const batchId = randomUUID();
+    const sourceSha256 = createHash("sha256").update(batchId).digest("hex");
+    try {
+      await db.insert(catalogueImportBatches).values({
+        id: batchId,
+        sourceSha256,
+        sourceName: "EtsyListingsDownload.csv",
+        rowCount: 527,
+        productsCreated: 527,
+        stockUnitsAdded: 527,
+        report: {
+          source_type: "etsy",
+          products_created: 527,
+          stock_units_added: 527,
+        },
+      });
+      const [batch] = await db.select().from(catalogueImportBatches)
+        .where(eq(catalogueImportBatches.id, batchId));
+      expect(batch.rowCount).toBe(527);
+      expect(batch.productsCreated).toBe(527);
+    } finally {
+      await db.delete(catalogueImportBatches).where(eq(catalogueImportBatches.id, batchId));
+    }
+  }, 15_000);
 
   it("imports native Etsy listings as distinct drafts with tags, source images and safe SKU handling", async () => {
     const db = getMySqlDb();

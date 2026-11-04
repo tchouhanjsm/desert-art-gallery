@@ -97,15 +97,72 @@ npm run --silent media:map-recovered > .local-data/recovery/reports/recovered-pr
 
 The command scans each product folder's immediate files, reports supported image counts and byte sizes, identifies oversized images, unsupported files, nested directories and filesystem errors, then compares folder titles against the local MySQL catalogue.
 
-Title matching is deliberately conservative. It applies Unicode compatibility normalization, case folding, underscore-to-space conversion, dash normalization and whitespace collapsing. It does not remove punctuation, use fuzzy matching, infer a product from a partial title or generate a product slug from the folder name.
+Exact mapping classification is deliberately conservative. It applies Unicode compatibility normalization, case folding, underscore-to-space conversion, dash normalization and whitespace collapsing. It does not remove punctuation, use fuzzy matching to classify a folder, infer a product from a partial title or generate a product slug from the folder name. For folders with no exact title candidate, the report additionally ranks up to three title suggestions using weighted token overlap and character-bigram similarity. Suggestions appear in separate `suggested_product_*` CSV columns and do not change the `unmatched` status, populate exact candidate fields or approve a mapping. Treat the score as a sorting aid, not a probability or identity check; every suggestion must be independently inspected by the owner.
 
 This matters for Etsy imports: the catalogue import creates a slug with a stable hash derived from listing data, so a title-only slugification cannot reproduce the stored product slug. The mapping preview looks up the actual database product and only labels a row as a `unique_etsy_draft_candidate` when one normalized title candidate exists, its source provider is Etsy, and its status is still draft.
 
-Other outcomes remain explicit for owner review: unmatched titles, ambiguous MySQL title matches, duplicate recovered folder titles, non-Etsy title matches and non-draft Etsy products. Every row has `manualReviewRequired=true`; a candidate is not an approved mapping.
+Other outcomes remain explicit for owner review: unmatched titles, ambiguous MySQL title matches, duplicate recovered folder titles, non-Etsy title matches and non-draft Etsy products. Every row has `manualReviewRequired=true`; an exact candidate or ranked suggestion is not an approved mapping. The exact candidate columns are the only title-match pairs recognized by the later staging validator.
 
 The preview is read-only. It does not read image bytes, calculate content hashes, rename or copy files, write a mapping manifest, change MySQL or publish products. Hidden macOS metadata files such as `.DS_Store` and `._*` are ignored. Nested directories are reported rather than traversed. The later staging workflow must validate file signatures and exact product mappings before creating importer-compatible folders.
 
 Keep the recovered originals untouched until the mapping report has been reviewed and a separate staging preview is clean. Never run the existing exact-slug media importer directly against the Etsy title-named recovery folders.
+
+## Owner-approved recovery staging
+
+The audit's mapping-review CSV includes four empty owner fields: `approved_product_id`, `approved_product_slug`, `primary_image_filename` and `owner_note`. Review the original folder visually, choose the actual draft product and select the correct primary image. Then set `owner_decision` to exactly `APPROVED`. Keep other rows as `NOT_REVIEWED`, `HOLD` or `REJECTED`. A manual override outside the exact-title candidate list—including a product selected from the ranked suggestions—needs a detailed owner note of at least 20 characters; the note should state how the owner independently verified the recovered folder against the selected catalogue record.
+
+Generate a read-only staging preview using the edited mapping CSV:
+
+~~~bash
+npm run media:stage-recovered -- ./.local-data/recovery/reports/recovered-photo-mapping-review-YYYY-MM-DD.csv
+~~~
+
+The preview validates that every approved product ID and slug identify the same existing Etsy draft in the configured local MySQL catalogue. It validates the selected primary image, every file signature and extension, the 12 MB limit, source image count, path safety and destination conflicts. Secondary images are assigned deterministic detail filenames in lexical filename order. Nothing is written during preview.
+
+After reviewing the complete preview, copy the approved originals into private importer-compatible folders with the explicit confirmation:
+
+~~~bash
+npm run media:stage-recovered -- ./.local-data/recovery/reports/recovered-photo-mapping-review-YYYY-MM-DD.csv --commit --confirm-recovered-photo-staging
+~~~
+
+This operation **copies** files; it never renames, moves, deletes or edits the originals under `public/images/products/`. It writes only under `.local-data/imports/product-images/<verified-product-slug>/`, refuses to overwrite different existing files, verifies copied SHA-256 hashes, and rolls back files created in the current batch if a later copy fails. Re-running identical staging is idempotent.
+
+Staging does not write MySQL, attach media records, approve image rights, update product data or publish products. Once copies have been staged, run `npm run media:import` to inspect the existing exact-slug private-media import preview. Keep the separate explicit media-import confirmation for the later database/media operation.
+
+## Diagnose the MySQL catalogue before photo mapping
+
+The recovered-photo audit requires a non-empty local MySQL product catalogue. Before trying to resolve unmatched folders, run:
+
+~~~bash
+npm run db:catalogue-preflight
+~~~
+
+This read-only command validates that the configured target is loopback-only, then reports the connected database name, server identity, migration/table presence, product counts by lifecycle status and source provider, variant/media counts, rights-pending media totals and the latest catalogue import batches. It never prints the database URL, username or password and never modifies MySQL.
+
+Interpret `photoMappingGate=blocked_empty_catalogue` as a hard stop: do not create mappings, stage images or invoke the media importer. Check that `.env` points to the intended local database and locate the authoritative Etsy Listings Download CSV. Preview that CSV with `npm run db:import-products -- <path-to-csv>`; preview does not write products. Only after reviewing the preview and confirming the exact intended local database should the explicit owner-authorized commit process be considered.
+
+If prior import batches are present but the products table is empty, stop and investigate the target database, migration history and backup/restore state instead of re-importing blindly.
+
+## Deep audit and owner-review reports
+
+Run the full read-only audit before staging any recovered original photographs:
+
+~~~bash
+npm run media:audit-recovered
+~~~
+
+This command scans only the immediate files in each recovered product folder. It calculates SHA-256 checksums using streaming reads, detects JPEG/PNG/WebP/AVIF signatures, checks extension/MIME agreement, reports image dimensions when the format header exposes them, enforces the existing 12 MB intake limit, and detects byte-identical duplicates across products. It also reports unsupported files, empty folders, folders without supported photos, macOS metadata sidecars, nested directories, symbolic links and filesystem errors.
+
+It reads the local MySQL catalogue to produce a conservative folder-title mapping report. Matching remains normalized exact-title matching; no fuzzy matching, punctuation stripping or automatic product association is introduced. The report separately summarizes product statuses and source providers so a missing title match can be diagnosed without changing catalogue data.
+
+Three timestamped reports are written under `.local-data/recovery/reports/`:
+- `recovered-photo-audit-*.json`: complete audit, catalogue diagnostics, duplicate groups and mapping candidates.
+- `recovered-photo-inventory-*.csv`: per-file size, detected MIME, SHA-256, dimensions and validation issues.
+- `recovered-photo-mapping-review-*.csv`: candidate product IDs/slugs/titles and an explicit `NOT_REVIEWED` owner-decision column.
+
+The output directory is private and ignored by Git. Reports are created with exclusive file creation; a repeated run creates new timestamped reports rather than overwriting earlier evidence. The scan does not modify, rename, move or delete originals, write MySQL, create media rows, approve rights or publish products. Duplicate detection is diagnostic only: no duplicate is deleted or automatically excluded from a later owner-approved import.
+
+The recovered originals under `public/images/products/` are explicitly ignored by the repository-level `.gitignore`. Do not remove this rule or force-add the collection. Normalized importer-ready copies belong under `.local-data/imports/product-images/<verified-product-slug>/`, not in the public directory.
 
 ## Match and import into local MySQL
 
