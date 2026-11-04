@@ -4,7 +4,15 @@ Last reviewed: 2026-11-04 (Asia/Kolkata)
 
 This register separates code present in the repository from integrations that have been connected and verified in a merchant environment. An implementation checkbox is not a claim that production credentials, customer data, catalogue rights or live payments have been configured.
 
-## Current Japan-first redesign status — 2026-11-04
+## Current Japan-informed redesign status — 2026-11-04
+
+## Language-direction correction — 2026-11-04
+
+The first Japan-informed storefront implementation used Japanese-language UI copy. That was not the intended requirement: **the customer-facing store must remain in English**. Japanese ecommerce conventions are the design reference for information hierarchy, search, category discovery, product detail, purchase reassurance and checkout flow—not a request to translate the site into Japanese.
+
+A corrective branch, `fix/english-copy-japan-first-storefront`, is being prepared from the merged Phase 5 baseline. It changes source-authored UI copy, accessibility labels, metadata, date formatting, the document language and typography fallbacks while preserving the Japan-informed visual system and existing commerce safeguards. This work is not yet merged or validated on this register's baseline. Merchant-managed catalogue/editorial records are not silently rewritten; owner-reviewed English content is required before publication.
+
+
 
 The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). The Japanese-first storefront implementation was merged to `main` in PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17) at merge commit `5758694f0f20a67546998d7bae6455c4e557e8ea` on 4 November 2026. Continue from `main`; do not resume development on the merged feature branch.
 

@@ -7,17 +7,17 @@ import { getMySqlCustomerOrder } from "@/server/checkout/mysql-orders";
 
 function formatOrderStatus(status: string) {
   const labels: Record<string, string> = {
-    draft: "注文案",
-    pending_payment: "お支払い待ち",
-    paid: "お支払い済み",
-    processing: "準備中",
-    shipped: "発送済み",
-    delivered: "お届け済み",
-    cancelled: "キャンセル",
-    refunded: "返金済み",
-    expired: "期限切れ",
+    draft: "Order draft",
+    pending_payment: "Awaiting payment",
+    paid: "Paid",
+    processing: "Processing",
+    shipped: "Shipped",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+    refunded: "Refunded",
+    expired: "Expired",
   };
-  return labels[status] ?? "注文状況を確認中";
+  return labels[status] ?? "Status pending";
 }
 
 
@@ -54,33 +54,33 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
     } catch { trackingUrl = null; }
 
     return <div className="page-shell">
-      <div className="breadcrumb"><Link href="/account">マイページ</Link> / ORDER {order.orderNumber}</div>
-      <div className="page-heading"><div className="section-kicker">注文詳細</div><h1>{order.orderNumber}</h1><p>注文日：{new Date(order.createdAt).toLocaleDateString("ja-JP")}</p><span className={"admin-status status-" + order.status}>{formatOrderStatus(order.status)}</span></div>
-      {order.status === "draft" && <div className="checkout-notice" role="status">こちらはお支払い前の注文案です。決済は行われていません。注文案と一時的な在庫確保の期限：{new Date(order.expiresAt).toLocaleString("ja-JP")}.</div>}
-      {order.status === "expired" && <div className="checkout-notice" role="status">この注文案は期限切れです。一時的な在庫確保は終了しています。商品が引き続き購入可能な場合は、新しい注文手続きを行ってください。</div>}
+      <div className="breadcrumb"><Link href="/account">My account</Link> / ORDER {order.orderNumber}</div>
+      <div className="page-heading"><div className="section-kicker">ORDER DETAILS</div><h1>{order.orderNumber}</h1><p>Order date: {new Date(order.createdAt).toLocaleDateString("en-IN")}</p><span className={"admin-status status-" + order.status}>{formatOrderStatus(order.status)}</span></div>
+      {order.status === "draft" && <div className="checkout-notice" role="status">This is an unpaid order draft. No payment has been collected. The draft and temporary stock reservation expire at {new Date(order.expiresAt).toLocaleString("en-IN")}..</div>}
+      {order.status === "expired" && <div className="checkout-notice" role="status">This order draft has expired and its temporary stock reservation has ended. If the item is still available, start a new order.</div>}
       <div className="order-detail-layout">
         <section className="order-item-list">
-          <h2>ご注文の商品</h2>
-          {items.map((item) => <article className="order-item" key={item.id}><div><strong>{item.productTitle}</strong><small>{item.variantLabel}</small>{item.productSku && <small>SKU {item.productSku}</small>}<p>数量：{item.quantity}</p></div><strong>{formatMoneyFromMinor(item.lineTotalMinor, order.currency)}</strong></article>)}
-          <section className="account-section"><div className="section-kicker">お届け先</div><h2>配送先住所</h2><p>{typeof address.recipient_name === "string" ? address.recipient_name : order.email}<br/>{addressLine}</p></section>
-          <section className="account-section"><div className="section-kicker">配送・税金の内容</div><h2>{order.shippingRateName}</h2><p>配送地域：{order.shippingZoneName}</p>
+          <h2>ORDER ITEMS</h2>
+          {items.map((item) => <article className="order-item" key={item.id}><div><strong>{item.productTitle}</strong><small>{item.variantLabel}</small>{item.productSku && <small>SKU {item.productSku}</small>}<p>Quantity: {item.quantity}</p></div><strong>{formatMoneyFromMinor(item.lineTotalMinor, order.currency)}</strong></article>)}
+          <section className="account-section"><div className="section-kicker">DELIVERY TO</div><h2>Delivery address</h2><p>{typeof address.recipient_name === "string" ? address.recipient_name : order.email}<br/>{addressLine}</p></section>
+          <section className="account-section"><div className="section-kicker">SHIPPING & TAX DETAILS</div><h2>{order.shippingRateName}</h2><p>Shipping zone: {order.shippingZoneName}</p>
             {order.shippingDeliveryMinDays !== null && order.shippingDeliveryMaxDays !== null
-              ? <p>設定済みのお届け目安：{order.shippingDeliveryMinDays}–{order.shippingDeliveryMaxDays}日</p>
-              : <p>この配送方法のお届け目安は設定されていません。</p>}
+              ? <p>Configured delivery estimate: {order.shippingDeliveryMinDays}–{order.shippingDeliveryMaxDays} days</p>
+              : <p>No delivery estimate is configured for this shipping method.</p>}
             <p>{order.dutiesDisclosure}</p>
             {taxes.map((tax, index) => <p key={tax.name + index}>{tax.name}: {formatMoneyFromMinor(tax.amount_minor, order.currency)} ({tax.rate_basis_points} bps)</p>)}
             <p>{order.taxDisclosure}</p>
           </section>
         </section>
-        <aside className="cart-summary"><div className="section-kicker">ご注文内容</div>
-          <div className="cart-summary-row"><span>商品小計</span><strong>{formatMoneyFromMinor(order.subtotalMinor, order.currency)}</strong></div>
-          <div className="cart-summary-row"><span>送料</span><strong>{formatMoneyFromMinor(order.shippingMinor, order.currency)}</strong></div>
-          <div className="cart-summary-row"><span>税金</span><strong>{formatMoneyFromMinor(order.taxMinor, order.currency)}</strong></div>
-          <div className="cart-summary-row"><span>割引</span><strong>−{formatMoneyFromMinor(order.discountMinor, order.currency)}</strong></div>
-          <div className="cart-summary-row"><span>合計</span><strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong></div>
-          {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">配送状況を確認</a></p>}
-          {order.trackingNumber && <p>追跡番号：{order.trackingNumber}</p>}
-          {order.status === "draft" && <p>この注文案には決済方法が接続されていません。ギャラリーが承認した決済手続き以外でのお支払いはお控えください。</p>}
+        <aside className="cart-summary"><div className="section-kicker">ORDER SUMMARY</div>
+          <div className="cart-summary-row"><span>Subtotal</span><strong>{formatMoneyFromMinor(order.subtotalMinor, order.currency)}</strong></div>
+          <div className="cart-summary-row"><span>Shipping</span><strong>{formatMoneyFromMinor(order.shippingMinor, order.currency)}</strong></div>
+          <div className="cart-summary-row"><span>Tax</span><strong>{formatMoneyFromMinor(order.taxMinor, order.currency)}</strong></div>
+          <div className="cart-summary-row"><span>Discount</span><strong>−{formatMoneyFromMinor(order.discountMinor, order.currency)}</strong></div>
+          <div className="cart-summary-row"><span>Total</span><strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong></div>
+          {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">Track shipment</a></p>}
+          {order.trackingNumber && <p>Tracking number: {order.trackingNumber}</p>}
+          {order.status === "draft" && <p>No payment method is connected to this order draft. Do not pay through a method that has not been approved by the gallery.</p>}
         </aside>
       </div>
     </div>;
@@ -96,7 +96,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
   if (error || !order) notFound();
   const { data: itemData, error: itemError } = await supabase.from("order_items")
     .select("id,product_title,product_sku,variant_label,quantity,unit_price_minor,line_total_minor").eq("order_id", id);
-  if (itemError) throw new Error("注文商品を読み込めませんでした。");
+  if (itemError) throw new Error("Unable to load order items.");
   const items = (itemData ?? []) as LegacyItem[];
   const row = order as unknown as LegacyOrder;
   const taxComponents = Array.isArray(row.tax_breakdown) ? row.tax_breakdown : [];
@@ -106,27 +106,27 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
   })();
 
   return <div className="page-shell">
-    <div className="breadcrumb"><Link href="/account">マイページ</Link> / ORDER {row.order_number}</div>
-    <div className="page-heading"><div className="section-kicker">注文詳細</div><h1>{row.order_number}</h1><p>注文日：{new Date(row.created_at).toLocaleDateString("ja-JP")}</p><span className={"admin-status status-" + row.status}>{formatOrderStatus(row.status)}</span></div>
-    {row.status === "draft" && <div className="checkout-notice" role="status">こちらはお支払い前の注文案です。お支払いの請求・受領は行われていません。注文案と在庫の仮確保は、{row.expires_at ? new Date(row.expires_at).toLocaleString("ja-JP") : "在庫確保の有効期限"}に期限切れとなります。</div>}
-    {row.status === "expired" && <div className="checkout-notice" role="status">この注文案は期限切れです。一時的な在庫確保は終了しています。商品が引き続き購入可能な場合は、カートから新しい注文手続きを行ってください。</div>}
+    <div className="breadcrumb"><Link href="/account">My account</Link> / ORDER {row.order_number}</div>
+    <div className="page-heading"><div className="section-kicker">ORDER DETAILS</div><h1>{row.order_number}</h1><p>Order date: {new Date(row.created_at).toLocaleDateString("en-IN")}</p><span className={"admin-status status-" + row.status}>{formatOrderStatus(row.status)}</span></div>
+    {row.status === "draft" && <div className="checkout-notice" role="status">This is an unpaid order draft. No payment has been requested or received. The order draft and temporary stock reservation expire at {row.expires_at ? new Date(row.expires_at).toLocaleString("en-IN") : "the stock reservation expiry time"}.</div>}
+    {row.status === "expired" && <div className="checkout-notice" role="status">This order draft has expired and its temporary stock reservation has ended. If the item is still available, start a new order from your cart.</div>}
     <div className="order-detail-layout">
-      <section className="order-item-list"><h2>ご注文の商品</h2>
-        {items.map((item) => <article className="order-item" key={item.id}><div><strong>{item.product_title}</strong>{item.variant_label && <small>{item.variant_label}</small>}{item.product_sku && <small>SKU {item.product_sku}</small>}<p>数量：{item.quantity}</p></div><strong>{formatMoneyFromMinor(item.line_total_minor, row.currency)}</strong></article>)}
-        <section className="account-section"><div className="section-kicker">配送・税金に関するご案内</div><h2>{row.shipping_rate_name ?? "配送情報"}</h2>
-          {row.shipping_zone_name && <p>配送地域：{row.shipping_zone_name}</p>}
-          {row.shipping_delivery_min_days !== null && row.shipping_delivery_max_days !== null ? <p>設定済みのお届け目安：{row.shipping_delivery_min_days}–{row.shipping_delivery_max_days}日</p> : <p>この配送方法のお届け目安は設定されていません。</p>}
+      <section className="order-item-list"><h2>ORDER ITEMS</h2>
+        {items.map((item) => <article className="order-item" key={item.id}><div><strong>{item.product_title}</strong>{item.variant_label && <small>{item.variant_label}</small>}{item.product_sku && <small>SKU {item.product_sku}</small>}<p>Quantity: {item.quantity}</p></div><strong>{formatMoneyFromMinor(item.line_total_minor, row.currency)}</strong></article>)}
+        <section className="account-section"><div className="section-kicker">SHIPPING & TAX INFORMATION</div><h2>{row.shipping_rate_name ?? "Shipping information"}</h2>
+          {row.shipping_zone_name && <p>Shipping zone: {row.shipping_zone_name}</p>}
+          {row.shipping_delivery_min_days !== null && row.shipping_delivery_max_days !== null ? <p>Configured delivery estimate: {row.shipping_delivery_min_days}–{row.shipping_delivery_max_days} days</p> : <p>No delivery estimate is configured for this shipping method.</p>}
           {row.duties_disclosure && <p>{row.duties_disclosure}</p>}{taxComponents.map((tax,index)=><p key={tax.name+index}>{tax.name}: {formatMoneyFromMinor(tax.amount_minor,row.currency)}</p>)}{row.tax_disclosure && <p>{row.tax_disclosure}</p>}
         </section>
       </section>
-      <aside className="cart-summary"><div className="section-kicker">ご注文内容</div>
-        <div className="cart-summary-row"><span>商品小計</span><strong>{formatMoneyFromMinor(row.subtotal_minor,row.currency)}</strong></div>
-        <div className="cart-summary-row"><span>送料</span><strong>{formatMoneyFromMinor(row.shipping_minor,row.currency)}</strong></div>
-        <div className="cart-summary-row"><span>税金</span><strong>{formatMoneyFromMinor(row.tax_minor,row.currency)}</strong></div>
-        <div className="cart-summary-row"><span>割引</span><strong>−{formatMoneyFromMinor(row.discount_minor,row.currency)}</strong></div>
-        <div className="cart-summary-row"><span>合計</span><strong>{formatMoneyFromMinor(row.total_minor,row.currency)}</strong></div>
-        {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">配送状況を確認</a></p>}{row.tracking_number && <p>追跡番号：{row.tracking_number}</p>}
-        {row.status === "draft" && <p>この注文案には決済方法が接続されていません。ギャラリーが承認した決済手続き以外でのお支払いはお控えください。</p>}
+      <aside className="cart-summary"><div className="section-kicker">ORDER SUMMARY</div>
+        <div className="cart-summary-row"><span>Subtotal</span><strong>{formatMoneyFromMinor(row.subtotal_minor,row.currency)}</strong></div>
+        <div className="cart-summary-row"><span>Shipping</span><strong>{formatMoneyFromMinor(row.shipping_minor,row.currency)}</strong></div>
+        <div className="cart-summary-row"><span>Tax</span><strong>{formatMoneyFromMinor(row.tax_minor,row.currency)}</strong></div>
+        <div className="cart-summary-row"><span>Discount</span><strong>−{formatMoneyFromMinor(row.discount_minor,row.currency)}</strong></div>
+        <div className="cart-summary-row"><span>Total</span><strong>{formatMoneyFromMinor(row.total_minor,row.currency)}</strong></div>
+        {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">Track shipment</a></p>}{row.tracking_number && <p>Tracking number: {row.tracking_number}</p>}
+        {row.status === "draft" && <p>No payment method is connected to this order draft. Do not pay through a method that has not been approved by the gallery.</p>}
       </aside>
     </div>
   </div>;

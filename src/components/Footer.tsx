@@ -13,8 +13,8 @@ export function Footer() {
       <div className="jp-footer-main">
         <div className="jp-footer-brand">
           <Link href="/" className="footer-mark">DESERT ART GALLERY</Link>
-          <p>ラージャスターン州ジャイサルメールから、テキスタイルと手仕事の品をご紹介します。</p>
-          <span>ジャイサルメール · ラージャスターン州 · インド</span>
+          <p>Textiles and handcrafted objects, selected in Jaisalmer, Rajasthan, India.</p>
+          <span>Jaisalmer · Rajasthan · India</span>
         </div>
         {footerNavigation.map((section) => (
           <nav aria-label={section.title} key={section.title}>
@@ -25,7 +25,7 @@ export function Footer() {
       </div>
       <div className="jp-footer-bottom">
         <span>© {new Date().getFullYear()} DESERT ART GALLERY</span>
-        <span>商品・配送・ご注文に関するお問い合わせはお問い合わせページよりご連絡ください。</span>
+        <span>For questions about products, shipping or orders, please visit our contact page.</span>
         <Link href="/contact">お問い合わせ</Link>
       </div>
     </footer>

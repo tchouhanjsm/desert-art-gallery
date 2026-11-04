@@ -1,4 +1,4 @@
-# Japan-first storefront design system
+# Japan-inspired, English-language storefront design system
 
 **Source of truth:** [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md)  
 **Status:** Initial replacement implementation is in PR branch `feat/japan-first-storefront-redesign`; visual, native-language and accessibility acceptance is pending.  
@@ -7,7 +7,7 @@
 
 ## Creative direction
 
-**Japanese contemporary lifestyle retail × Rajasthan artisanal heritage.**
+**Japanese contemporary retail UX × Rajasthan artisanal heritage, presented in English.**
 
 Use POJ Studio for premium product-led editorial presentation and craft storytelling. Use Macaroni Shoten for approachable curation, category discovery and everyday-life framing. Apply Japanese ecommerce conventions—persistent search, clear category navigation, breadcrumbs, meaningful filters and counts, visible product specifications and purchase reassurance—where they reduce uncertainty.
 
@@ -31,19 +31,18 @@ Secondary surface values in the stylesheet derive from these core tokens. Check 
 
 ## Typography and language
 
-- The document root is `lang="ja"`.
-- The current CSS uses a Japanese-aware system-font stack: Noto Sans JP, Hiragino, Yu Gothic and Meiryo for UI; Noto Serif JP / Yu Mincho / Hiragino Mincho for display copy.
-- These are fallback names, not proof that every client has the same font installed. Japanese glyph, weight, punctuation and line-break review remains open.
-- Do not fetch Google Fonts at runtime. Any bundled font choice must include full Japanese glyph coverage, license review, subset/bundle-size review and lockfile updates.
-- UI labels are Japanese-first. Merchant-supplied product titles, descriptions, material strings, category labels and artisan/editorial text are preserved as supplied until Japanese content is entered and reviewed by a qualified Japanese-language reviewer. Do not machine-translate product claims or factual copy into production.
-- Maintain natural Japanese wrapping and kinsoku shori; avoid fixed-height text boxes that clip glyphs.
+- The document root is `lang="en"`. The customer-facing storefront is English-language; do not translate UI copy into Japanese.
+- The visual and interaction model is informed by Japanese ecommerce: persistent search, clear category discovery, detailed product information, visible reassurance and a deliberate checkout sequence. These are design conventions, not a language requirement.
+- Customer-facing editorial, navigation, accessibility labels, metadata, cart and checkout copy must be natural, plain English. Product and maker facts must remain evidence-led; do not invent or machine-translate claims.
+- Merchant-managed product, maker and journal content is displayed as entered. The owner must supply and review it in English for this release; do not silently rewrite live records or alter imported source data.
+- Use the existing Inter/Playfair Display font system with resilient system fallbacks. Do not fetch Google Fonts at runtime. Review English typography, line length, line wrapping and contrast at all breakpoints.
 
 ## Storefront composition and behaviour
 
 ### Shared shell
 - Compact announcement row with only a verified message.
 - Brand row with wordmark, persistent desktop search, account, wishlist and cart controls.
-- Japanese primary shopping navigation; collection panel appears only when published collections exist.
+- English primary shopping navigation; collection panel appears only when published collections exist.
 - Mobile header prioritises logo, search, cart and an accessible navigation drawer.
 - Footer links only to real, implemented destinations. Do not add placeholders for legal, shipping, returns or FAQ pages.
 
@@ -54,7 +53,7 @@ Secondary surface values in the stylesheet derive from these core tokens. Check 
 - Editorial stories support product discovery; they must not push shopping below a long destination introduction.
 
 ### Shop and collection
-- Japanese page heading, item count, search, category selection and supported sorting.
+- English page headings, item counts, search, category selection and supported sorting.
 - Two-column mobile product grid and three/four-column desktop grid as tested.
 - Category names remain the values maintained by the owner until Japanese taxonomy translations are approved.
 - Search results, counts, sort options, active filters and empty states must remain URL-shareable and functional.
@@ -67,17 +66,17 @@ Secondary surface values in the stylesheet derive from these core tokens. Check 
 - Rights-confirmed image media is still required; visual redesign does not bypass image permissions.
 
 ### Cart and checkout
-- Japanese labels for cart, item edits, delivery fields and order review.
+- English labels for the cart, item edits, delivery fields and order review.
 - Existing trusted server pricing, currency consistency, reservation, idempotency, shipping/tax and unpaid-draft requirements remain authoritative.
-- Japan-specific postal-first field ordering is a presentation aid only. The current address contract remains generic; furigana, Japanese address validation and postcode lookup require a separately designed, backwards-compatible data/service change.
+- Japan-informed checkout sequencing is a presentation aid only. Keep the existing generic address contract; do not introduce Japan-specific address validation, furigana or postcode lookup without a separately reviewed, backwards-compatible service change.
 - Never present a payment method, tax-inclusive price or delivery commitment unless configured and verified.
 
 ## Owner workspace separation
 
-The root `SiteChrome` hides public header/footer on admin/owner routes. Keep owner forms, tables, inventory, image-rights evidence and operational messages in the separate owner design system. A Japanese storefront does not authorise database, identity, checkout, storage or permission redesign.
+The root `SiteChrome` hides public header/footer on admin/owner routes. Keep owner forms, tables, inventory, image-rights evidence and operational messages in the separate owner design system. A Japan-informed visual direction does not authorise database, identity, checkout, storage or permission redesign.
 
 ## Implementation status
 
-- Implemented in this PR branch: Japanese document language and metadata, shared header/footer, home/shop/product/collection/story/artisan/journal/contact/cart/checkout/account/auth UI labels, and Japanese CSS layer.
-- Not signed off: Japanese native-speaker copy review, font/glyph QA, full route screenshot review, browser keyboard/screen-reader audit, contrast certification, JPY price configuration and merchant-approved trust/legal content.
+- Implemented: Japan-informed shared header/footer, homepage, shop, product, collection, story, artisan, journal, contact, cart, checkout, account and authentication layouts. English customer copy is the required language.
+- Not signed off: full-route visual review, browser keyboard/screen-reader audit, contrast certification, market-specific tax/shipping configuration, and merchant-approved trust/legal content.
 - The master brief is authoritative for future decisions and acceptance gates.

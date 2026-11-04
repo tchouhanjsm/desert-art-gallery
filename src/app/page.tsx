@@ -5,8 +5,8 @@ import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue
 import { selectStorefrontHeroProduct } from "@/lib/storefront-presentation";
 
 export const metadata = {
-  title: "ラージャスターンのテキスタイルと手仕事",
-  description: "Desert Art Galleryのオンラインストア。インド・ラージャスターン州ジャイサルメールから、テキスタイルと手仕事の品をご紹介します。",
+  title: "Textiles and Handcrafted Objects from Rajasthan",
+  description: "Explore distinctive textiles and handcrafted objects from Jaisalmer, Rajasthan, India, with clear product details and stories rooted in their place of origin.",
 };
 
 export default async function HomePage() {
@@ -20,21 +20,21 @@ export default async function HomePage() {
     <div className="jp-home">
       <section className="jp-home-hero" aria-labelledby="home-heading">
         <div className="jp-home-hero-copy">
-          <div className="jp-home-hero-kicker">ジャイサルメール · ラージャスターン州 · インド</div>
-          <h1 id="home-heading">テキスタイルと手仕事を、<em>日々の暮らしへ。</em></h1>
+          <div className="jp-home-hero-kicker">JAISALMER · RAJASTHAN · INDIA</div>
+          <h1 id="home-heading">Textiles and handcrafted objects, <em>chosen for everyday living.</em></h1>
           <p>
-            インド・ラージャスターン州ジャイサルメールを拠点に、
-            一点ずつの表情や素材感を大切にしながら、暮らしの中で楽しめる品をご紹介します。
+            Based in Jaisalmer, Rajasthan, India, we bring together textiles and handcrafted pieces
+            chosen for their individual character, materiality and place in everyday life.
           </p>
           <div className="jp-home-hero-actions">
-            <Link className="button-primary" href="/shop">商品を見る</Link>
-            <Link className="text-link" href="/story">ブランドについて</Link>
+            <Link className="button-primary" href="/shop" >Shop the collection</Link>
+            <Link className="text-link" href="/story" >Our story</Link>
           </div>
-          <p className="jp-home-hero-note">掲載内容・写真・在庫情報を確認できた商品から順次ご案内しています。</p>
+          <p className="jp-home-hero-note">We publish each piece only after its product details, imagery and availability have been checked.</p>
         </div>
         <div className="jp-home-hero-media">
           {heroProduct ? (
-            <Link href={"/products/" + heroProduct.slug} aria-label={heroProduct.name + " の商品ページを見る"}>
+            <Link href={"/products/" + heroProduct.slug} aria-label={heroProduct.name + " — View product"}>
               <Image
                 src={heroProduct.image}
                 alt={heroProduct.imageAlt || heroProduct.name}
@@ -43,24 +43,24 @@ export default async function HomePage() {
                 sizes="(max-width: 760px) 100vw, 46vw"
               />
               <span className="jp-home-hero-product">
-                <small>オンラインストア掲載商品</small>
+                <small>FEATURED IN THE SHOP</small>
                 <strong>{heroProduct.name}</strong>
               </span>
             </Link>
           ) : (
             <div className="jp-home-hero-empty">
-              <span>オンラインストア · 商品情報を準備中</span>
-              <strong>商品写真と情報を確認しながら、オンラインストアを準備しています。</strong>
-              <small>確認済みの商品から順次公開します。</small>
+              <span>CATALOGUE PREVIEW · DETAILS IN PROGRESS</span>
+              <strong>We are preparing the shop with verified product information and photography.</strong>
+              <small>Products will appear as their details are confirmed.</small>
             </div>
           )}
         </div>
       </section>
 
-      <section className="jp-home-utility-strip" aria-label="ご案内">
-        <div><span aria-hidden="true">01</span><div><b>商品情報を確認して掲載</b><small>確認できた情報をもとにご案内します。</small></div></div>
-        <div><span aria-hidden="true">02</span><div><b>写真と掲載許可を確認</b><small>確認が済んだ写真のみ公開します。</small></div></div>
-        <div><span aria-hidden="true">03</span><div><b>商品についてのお問い合わせ</b><small>気になる点は商品ごとにご相談ください。</small></div></div>
+      <section className="jp-home-utility-strip" aria-label="Shopping information">
+        <div><span aria-hidden="true">01</span><div><b>Product details checked</b><small>We share the information available for each individual piece.</small></div></div>
+        <div><span aria-hidden="true">02</span><div><b>Photography and usage checked</b><small>Only approved images are published.</small></div></div>
+        <div><span aria-hidden="true">03</span><div><b>Questions about a piece</b><small>Contact the gallery with questions before placing an order.</small></div></div>
       </section>
 
       {collections.length > 0 && (
@@ -68,10 +68,10 @@ export default async function HomePage() {
           <div className="jp-home-section-inner">
             <div className="jp-home-section-heading">
               <div>
-                <div className="section-kicker">厳選コレクション</div>
-                <h2 id="collections-heading" className="section-title">コレクションから探す</h2>
+                <div className="section-kicker">CURATED COLLECTIONS</div>
+                <h2 id="collections-heading" className="section-title">Explore by collection</h2>
               </div>
-              <Link href="/shop" className="text-link">すべての商品を見る</Link>
+              <Link href="/shop" className="text-link">View all products</Link>
             </div>
             <div className="jp-home-collection-grid">
               {collections.slice(0, 4).map((collection) => (
@@ -97,10 +97,10 @@ export default async function HomePage() {
         <div className="jp-home-section-inner">
           <div className="jp-home-section-heading">
             <div>
-              <div className="section-kicker">オンラインカタログ</div>
-              <h2 id="catalogue-heading" className="section-title">オンラインストアの商品</h2>
+              <div className="section-kicker">THE ONLINE COLLECTION</div>
+              <h2 id="catalogue-heading" className="section-title">Explore the collection</h2>
             </div>
-            {products.length > 0 && <Link href="/shop" className="text-link">商品をもっと見る</Link>}
+            {products.length > 0 && <Link href="/shop" className="text-link">View more products</Link>}
           </div>
           {products.length > 0 ? (
             <div className="jp-home-products">
@@ -110,9 +110,9 @@ export default async function HomePage() {
             </div>
           ) : (
             <div className="jp-home-empty">
-              <h3>商品を準備しています</h3>
-              <p>商品情報と写真の確認が済み次第、こちらに掲載します。現在の取り扱いについてはお問い合わせください。</p>
-              <Link href="/contact" className="button-outline">お問い合わせ</Link>
+              <h3>The collection is taking shape</h3>
+              <p>Products will be listed here as their information and photography are confirmed. Contact the gallery with an enquiry in the meantime.</p>
+              <Link href="/contact" className="button-outline">Contact the gallery</Link>
             </div>
           )}
         </div>
@@ -120,15 +120,15 @@ export default async function HomePage() {
 
       <section className="jp-home-story" aria-labelledby="home-story-heading">
         <div className="jp-home-story-copy">
-          <div className="section-kicker">Desert Art Galleryについて</div>
-          <h2 id="home-story-heading" className="section-title">品物の背景まで、<em>ていねいに。</em></h2>
+          <div className="section-kicker">ABOUT DESERT ART GALLERY</div>
+          <h2 id="home-story-heading" className="section-title">Every piece has a story, <em>worth discovering.</em></h2>
           <p>
-            Desert Art Galleryは、ラージャスターン州ジャイサルメールを拠点とするオンラインストアです。
-            商品そのものの魅力と、確認できる情報を大切にしてご紹介します。
+            Desert Art Gallery is an online collection based in Jaisalmer, Rajasthan, India.
+            We present each piece with care, sharing its character and the information we can verify.
           </p>
-          <Link href="/story" className="text-link">私たちについて</Link>
+          <Link href="/story" className="text-link">Discover our story</Link>
         </div>
-        <div className="jp-home-story-art" role="img" aria-label="Desert Art Galleryのロゴを使ったデザインパネル">
+        <div className="jp-home-story-art" role="img" aria-label="Desert Art Gallery brand panel">
           <span>DAG</span>
         </div>
       </section>

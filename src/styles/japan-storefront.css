@@ -1,8 +1,8 @@
 /* Scoped to the customer storefront. Owner/admin routes use admin-theme.css. */
 .jp-storefront { min-height: 100vh; background: #f5f0e7; color: #25231f; }
-/* Japan-first storefront system
+/* Japan-inspired storefront system
    Direction: POJ Studio editorial craft storytelling + Macaroni Shoten's
-   approachable curation, with practical Japanese shopping information.
+   approachable curation, with the discovery and reassurance patterns of Japanese retail.
    This file replaces the previous public-facing theme layers. The owner
    workspace remains independently styled by admin-theme.css. */
 .jp-storefront{
@@ -19,8 +19,8 @@
   --atelier-shadow: 0 16px 45px rgba(37,35,31,.09);
   --atelier-container: 1360px;
   --atelier-gutter: clamp(18px, 4.4vw, 68px);
-  --atelier-body: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
-  --atelier-display: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", serif;
+  --atelier-body: var(--font-body), "Helvetica Neue", Arial, sans-serif;
+  --atelier-display: var(--font-display), Georgia, "Times New Roman", serif;
   --jp-font-ui: var(--atelier-body);
   --jp-font-display: var(--atelier-display);
   color-scheme: light;
@@ -38,7 +38,7 @@
   min-height:48px; padding:12px 22px; display:inline-flex; align-items:center; justify-content:center; gap:9px;
   border:1px solid var(--atelier-ink); border-radius:2px; font-size:12px; font-weight:700; letter-spacing:.04em;
   line-height:1.5; text-align:center; transition:background .18s ease,color .18s ease,border-color .18s ease;
-}.jp-storefront .button-primary{ background:var(--atelier-ink); color:#fff; }.jp-storefront .button-primary:hover{ background:var(--atelier-clay-dark); border-color:var(--atelier-clay-dark); }.jp-storefront .button-outline{ background:transparent; color:var(--atelier-ink); }.jp-storefront .button-outline:hover{ background:var(--atelier-ink); color:#fff; }.jp-storefront .dark-button{ background:var(--atelier-ink); color:#fff; }.jp-storefront /* Header: a compact Japanese ecommerce utility zone, .jp-storefront visible search and category row. */
+}.jp-storefront .button-primary{ background:var(--atelier-ink); color:#fff; }.jp-storefront .button-primary:hover{ background:var(--atelier-clay-dark); border-color:var(--atelier-clay-dark); }.jp-storefront .button-outline{ background:transparent; color:var(--atelier-ink); }.jp-storefront .button-outline:hover{ background:var(--atelier-ink); color:#fff; }.jp-storefront .dark-button{ background:var(--atelier-ink); color:#fff; }.jp-storefront /* Header: a compact Japan-informed ecommerce utility zone, .jp-storefront visible search and category row. */
 .jp-storefront .announcement{
   min-height:30px; padding:5px 15px; display:flex; align-items:center; justify-content:center;
   background:var(--atelier-ink); color:#f7f3ec; font-size:10px; font-weight:600; letter-spacing:.12em; text-align:center;
