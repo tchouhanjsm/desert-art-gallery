@@ -21,8 +21,10 @@ describe("English storefront typography", () => {
   });
 
   it("uses the font packages already declared by the application", () => {
-    expect(packageJson.dependencies?.["@fontsource-variable/playfair-display"]).toMatch(/^\\^?5\\./);
-    expect(packageJson.dependencies?.["@fontsource-variable/inter"]).toMatch(/^\\^?5\\./);
+    const playfair = packageJson.dependencies?.["@fontsource-variable/playfair-display"] ?? "";
+    const inter = packageJson.dependencies?.["@fontsource-variable/inter"] ?? "";
+    expect(playfair.startsWith("5.") || playfair.startsWith("^5.")).toBe(true);
+    expect(inter.startsWith("5.") || inter.startsWith("^5.")).toBe(true);
     expect(globalStyles).toContain("--font-display:");
     expect(globalStyles).toContain("--font-body:");
   });
