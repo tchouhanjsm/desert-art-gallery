@@ -78,6 +78,28 @@ Images are written into the matching product-slug folder using `01-primary`, `02
 
 The downloader only stages image files. It does not create public media records, change product data, approve image rights or publish products. After inspecting the staged photographs, use the database-aware intake preview and import commands below to attach them to the matching MySQL draft products.
 
+## Recovered Etsy product-folder mapping
+
+Use this workflow when original Etsy photographs have been recovered into title-named folders under `public/images/products/`.
+
+First run the read-only mapping preview:
+
+~~~bash
+npm run media:map-recovered
+~~~
+
+The command scans each product folder's immediate files, reports supported image counts and byte sizes, identifies oversized images, unsupported files, nested directories and filesystem errors, then compares folder titles against the local MySQL catalogue.
+
+Title matching is deliberately conservative. It applies Unicode compatibility normalization, case folding, underscore-to-space conversion, dash normalization and whitespace collapsing. It does not remove punctuation, use fuzzy matching, infer a product from a partial title or generate a product slug from the folder name.
+
+This matters for Etsy imports: the catalogue import creates a slug with a stable hash derived from listing data, so a title-only slugification cannot reproduce the stored product slug. The mapping preview looks up the actual database product and only labels a row as a `unique_etsy_draft_candidate` when one normalized title candidate exists, its source provider is Etsy, and its status is still draft.
+
+Other outcomes remain explicit for owner review: unmatched titles, ambiguous MySQL title matches, duplicate recovered folder titles, non-Etsy title matches and non-draft Etsy products. Every row has `manualReviewRequired=true`; a candidate is not an approved mapping.
+
+The preview is read-only. It does not read image bytes, calculate content hashes, rename or copy files, write a mapping manifest, change MySQL or publish products. Hidden macOS metadata files such as `.DS_Store` and `._*` are ignored. Nested directories are reported rather than traversed. The later staging workflow must validate file signatures and exact product mappings before creating importer-compatible folders.
+
+Keep the recovered originals untouched until the mapping report has been reviewed and a separate staging preview is clean. Never run the existing exact-slug media importer directly against the Etsy title-named recovery folders.
+
 ## Match and import into local MySQL
 
 After the Etsy listing CSV has been imported as draft products, run the database-aware preview:
