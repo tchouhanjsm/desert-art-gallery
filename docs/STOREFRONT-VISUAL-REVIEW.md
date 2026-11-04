@@ -53,3 +53,8 @@ The new information architecture is shopping-first: compact multi-zone header, v
 - [ ] Lighthouse and Core Web Vitals review
 
 Do not mark any checklist item complete until screenshot or test evidence is linked with the branch commit SHA.
+
+
+## Follow-up audit — 2026-11-04
+
+The route capture script currently samples home, shop, one development preview product and cart at 390, 768 and 1440 px. This is a smoke-capture subset, not the full visual acceptance matrix. Expand it before release to cover every customer route, both account implementations, collection/story/artisans/journal/contact/wishlist/checkout, and admin/owner visual isolation. Use persisted, rights-approved product data only when evaluating real catalogue imagery; keep preview-artwork captures clearly labelled.
