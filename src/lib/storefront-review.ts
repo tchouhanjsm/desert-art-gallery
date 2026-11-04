@@ -45,3 +45,10 @@ export const storefrontReviewViewports = [
   { id: "desktop-1440", width: 1440, height: 1000 },
   { id: "wide-1600", width: 1600, height: 1100 },
 ] as const;
+
+
+/** Navigation is intentionally replaced by the capture loop; Chromium reports
+ * canceled speculative requests as ERR_ABORTED, not as broken resources. */
+export function isExpectedNavigationAbort(errorText: string | null | undefined): boolean {
+  return Boolean(errorText && /net::ERR_ABORTED|net::ERR_CANCELED|ERR_BLOCKED_BY_CLIENT/i.test(errorText));
+}
