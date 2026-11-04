@@ -64,6 +64,24 @@ export function getMediaStorageDriver(
   return value;
 }
 
+export function validateMediaStorageConfiguration(
+  environment: NodeJS.ProcessEnv = process.env,
+): MediaStorageDriver {
+  const driver = getMediaStorageDriver(environment);
+  if (driver === "s3") {
+    readMediaStorageConfig(environment);
+    return driver;
+  }
+  const root = environment.MEDIA_STORAGE_ROOT?.trim();
+  if (root && !path.isAbsolute(root)) {
+    throw new Error("MEDIA_STORAGE_ROOT must be an absolute filesystem path.");
+  }
+  if (!root && environment.NODE_ENV === "production") {
+    throw new Error("MEDIA_STORAGE_ROOT must point to persistent storage when using filesystem media storage in production.");
+  }
+  return driver;
+}
+
 export function readMediaStorageConfig(
   environment: NodeJS.ProcessEnv = process.env,
 ): MediaStorageConfig {
