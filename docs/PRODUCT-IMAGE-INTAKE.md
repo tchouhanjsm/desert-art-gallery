@@ -107,6 +107,20 @@ The preview is read-only. It does not read image bytes, calculate content hashes
 
 Keep the recovered originals untouched until the mapping report has been reviewed and a separate staging preview is clean. Never run the existing exact-slug media importer directly against the Etsy title-named recovery folders.
 
+## Diagnose the MySQL catalogue before photo mapping
+
+The recovered-photo audit requires a non-empty local MySQL product catalogue. Before trying to resolve unmatched folders, run:
+
+~~~bash
+npm run db:catalogue-preflight
+~~~
+
+This read-only command validates that the configured target is loopback-only, then reports the connected database name, server identity, migration/table presence, product counts by lifecycle status and source provider, variant/media counts, rights-pending media totals and the latest catalogue import batches. It never prints the database URL, username or password and never modifies MySQL.
+
+Interpret `photoMappingGate=blocked_empty_catalogue` as a hard stop: do not create mappings, stage images or invoke the media importer. Check that `.env` points to the intended local database and locate the authoritative Etsy Listings Download CSV. Preview that CSV with `npm run db:import-products -- <path-to-csv>`; preview does not write products. Only after reviewing the preview and confirming the exact intended local database should the explicit owner-authorized commit process be considered.
+
+If prior import batches are present but the products table is empty, stop and investigate the target database, migration history and backup/restore state instead of re-importing blindly.
+
 ## Deep audit and owner-review reports
 
 Run the full read-only audit before staging any recovered original photographs:
