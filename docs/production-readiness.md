@@ -6,7 +6,7 @@ This register separates code present in the repository from integrations that ha
 
 ## Current Japan-first redesign status — 2026-11-04
 
-The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). The Japanese-first storefront implementation was merged to `main` in PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17) at merge commit `5758694f0f20a67546998d7bae6455c4e557e8ea` on 4 November 2026. Continue from `main`; do not resume development on the merged feature branch.
+The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). The Japanese-inspired English-language storefront presentation was initially merged to `main` in PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17), followed by route/viewport QA in PR [#18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18). The owner clarified on 4 November 2026 that Japanese describes design conventions only; customer-facing content must remain English. The follow-up language correction is tracked separately. Continue from `main`; do not resume development on the merged feature branch.
 
 The active public root layout no longer imports the superseded Desert Atelier/Desert Modern theme layers. `src/styles/japan-storefront.css` owns the customer storefront presentation; `src/styles/admin-theme.css` owns operations presentation. The commerce/backend safeguards remain unchanged by the theme merge.
 
