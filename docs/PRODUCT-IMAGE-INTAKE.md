@@ -1,5 +1,8 @@
 # Product photography intake
 
+> **Japan-first redesign:** this workflow remains authoritative for photo identity, staging, rights and storage. The new Japanese customer theme does not relax any intake or publication control. See [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md).
+
+
 The product photography workspace is private and excluded from Git. It is an intake area, not a public web directory and not a direct database import mechanism.
 
 ## Prepare the folders
@@ -200,3 +203,21 @@ After image intake:
 The public product-media route checks the published product and its rights-confirmed media record before returning an image. The intake folder is never served directly by Next.js.
 
 Do not bulk-import or publish images based solely on filenames. Review the photo-to-product matches, image content, generated alt text and commercial-use permission before confirming rights or publishing.
+
+
+## Japan-first catalogue/photo identity notes (2026-11-04)
+
+The uploaded Etsy Listings Download CSV contains 5,216 image URL references across 527 listings. Each row has at least two references and 496 rows have all ten image slots. This is a count of URL cells in the export—not a count of distinct downloaded files or proof that those files match the recovered local photo archive.
+
+The previous local recovery inventory reported 315 title-named folders and 3,116 image files (approximately 2.34 GB). Treat that as an earlier local audit snapshot; rerun `npm run media:audit-recovered` before staging. The two inventories are not one-to-one and must not be reconciled by assumed folder order, repeated title or filename guess.
+
+In this Etsy export, 316 distinct title strings appear across 527 rows. Repeated-title groups are common, and a generic tribal jacket title appears 53 times. There are 60 blank SKU values and 13 duplicate-SKU groups (26 rows). Consequently:
+
+- Do not use title-only matching as a general identity join.
+- Use a unique source SKU as supporting evidence, never as the sole image-rights approval.
+- Hold blank/duplicate SKU rows for owner review and use visual product evidence plus the original listing context.
+- Record each confirmed product ID/slug and primary image in the owner-review mapping manifest.
+- A checksum proves file identity, not that the photo depicts the selected product.
+- Keep uncertain folders/photos on HOLD. Never auto-approve rights, remove duplicate files or publish products.
+
+The importer may download only whitelisted Etsy image references through the existing HTTPS host and file-signature safety gate. Recovered originals remain untouched; approved copies go through private intake and application-managed storage. Git is for code and documentation, not the photo archive or local review artifacts.
