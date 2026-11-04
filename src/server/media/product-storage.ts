@@ -69,6 +69,10 @@ export function getProductMediaUrl(key: string): string {
   return "/product-media/" + safeProductStorageKey(key).split("/").map(encodeURIComponent).join("/");
 }
 
+export function getAdminProductMediaUrl(key: string): string {
+  return "/api/admin/product-media/" + safeProductStorageKey(key).split("/").map(encodeURIComponent).join("/");
+}
+
 function absoluteProductMediaPath(key: string): string {
   const root = getMediaStorageRoot();
   const fullPath = path.resolve(root, ...safeProductStorageKey(key).split("/"));
