@@ -37,6 +37,7 @@ jobs:
       DATABASE_URL: mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_test
       MEDIA_STORAGE_ROOT: /tmp/desert-gallery-ci-media
       MYSQL_INTEGRATION_TEST: "1"
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:4174
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
