@@ -990,7 +990,7 @@ This addendum records the initial implementation branch without changing the ori
 
 - Public CSS: `src/styles/japan-storefront.css`; root layout imports this layer.
 - Palette: warm ivory, soft ivory, ink, restrained terracotta, muted sand, warm grey and fine borders as listed in the design system.
-- The public layout sets `lang="ja"`. Current font declarations are system-stack candidates; no bundled Japanese font is yet adopted.
+- The public layout sets `lang="en"`. Inter Variable and Playfair Display Variable are bundled locally for English UI typography.
 - Product names, descriptions and source attribute values are not auto-translated. English UI does not change the source language or factual content of merchant records.
 - No currency conversion, tax-included labels, shipping rates, returns promises, legal seller details, payment methods, reviews or ranking data are invented.
 
@@ -1021,7 +1021,7 @@ These are source-export observations only. They do not mean the CSV was imported
 
 | Date | Update |
 |---|---|
-| 2026-11-04 | Owner adopted Japan-first ecommerce direction as SOT. Initial route map, shared Japanese shell, core shopping/customer journeys and documentation alignment recorded. Product source content, currency, taxonomy and image rights remain subject to owner/reviewer validation. |
+| 2026-11-04 | Owner adopted Japanese-inspired ecommerce conventions as the design direction. The storefront content language is English; the initial Japanese-language implementation was corrected in a later owner clarification. Product source content, currency, taxonomy and image rights remain subject to owner/reviewer validation. |
 
 
 ## Implementation addendum — 2026-11-04 — storefront regression hardening
@@ -1098,5 +1098,5 @@ These are source-export observations only. They do not mean the CSV was imported
 - Add a Playwright-backed capture matrix for 24 customer/operations entry routes across 360, 414, 768, 1440 and 1600 px. Each capture records status, final URL, document language, horizontal overflow, heading/image/button checks, browser console errors and failed requests, alongside the screenshot.
 - Run the capture against a healthy local/CI application and publish the CI evidence as a short-lived workflow artifact. Local captures remain under ignored `.local-data/visual-review/`.
 - Empty CI databases may correctly return 404 for dynamic product and collection routes. The manifest must record those outcomes; it must not convert them into fake sample catalogue records or imply product visual acceptance.
-- Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, native-speaker Japanese copy, screen-reader/keyboard review, Japan-based performance testing and legal/merchant approvals remain separate acceptance gates.
+- Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, English UI copy and visual review, screen-reader/keyboard review, performance testing with the intended audience and legal/merchant approvals remain separate acceptance gates.
 - The Phase 5 capture harness is being implemented in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); exact-head CI and generated route evidence are pending.
