@@ -544,6 +544,7 @@ suite("real MySQL migration and catalogue integration", () => {
     const slug = "csv-import-" + id;
     const categorySlug = "csv-category-" + id;
     const sku = "CSV-" + id.slice(0, 8);
+    const importingAdminId = randomUUID();
     const csv = [
       "slug,title,short_description,description,category_slug,price,currency,compare_at_price,sku,quantity_on_hand,materials,sizes,measurements,condition_notes,provenance,craft_story",
       [slug, "Imported test textile", "Verified short detail", "Merchant supplied description", categorySlug, "12.50", "USD", "", sku, "3", "Cotton|Silk", "M|L", '"{""chest"":""40 cm""}"', "Good condition", "Owner supplied provenance", "Merchant supplied story"].join(","),
@@ -563,7 +564,7 @@ suite("real MySQL migration and catalogue integration", () => {
       expect(before).toHaveLength(0);
 
       await expect(commitLocalCatalogueCsv("import.csv", bytes, "incorrect-confirmation")).rejects.toThrow("explicit");
-      const result = await commitLocalCatalogueCsv("import.csv", bytes, "IMPORT_TO_LOCAL_MYSQL");
+      const result = await commitLocalCatalogueCsv("import.csv", bytes, "IMPORT_TO_LOCAL_MYSQL", importingAdminId);
       expect(result.productsCreated).toBe(1);
       expect(result.stockUnitsAdded).toBe(3);
       const [product] = await db.select().from(products).where(eq(products.slug, slug));
@@ -580,6 +581,7 @@ suite("real MySQL migration and catalogue integration", () => {
       const [batch] = await db.select().from(catalogueImportBatches)
         .where(eq(catalogueImportBatches.sourceSha256, sha));
       expect(batch.productsCreated).toBe(1);
+      expect(batch.createdBy).toBe(importingAdminId);
       await expect(commitLocalCatalogueCsv("import.csv", bytes, "IMPORT_TO_LOCAL_MYSQL")).rejects.toThrow("not ready to commit");
     } finally {
       const [product] = await db.select().from(products).where(eq(products.slug, slug));
