@@ -36,7 +36,7 @@ function csvRow(overrides: Record<string, string> = {}): string {
     owner_note: "Inspected the source images and confirmed this exact listing.",
     ...overrides,
   };
-  const headers = Object.keys(values);
+  const headers = Object.keys(values) as Array<keyof typeof values>;
   const cell = (value: string) => '"' + value.replace(/"/g, '""') + '"';
   return [headers.join(","), headers.map((header) => cell(values[header])).join(",")].join("\r\n") + "\r\n";
 }
