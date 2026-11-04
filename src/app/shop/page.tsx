@@ -20,7 +20,7 @@ export default async function ShopPage() {
   return (
     <div className="page-shell atelier-page-shell">
       <header className="atelier-page-heading">
-        <div className="section-kicker">DESERT ART GALLERY · ONLINE STORE</div>
+        <div className="section-kicker">Desert Art Gallery · オンラインストア</div>
         <h1>商品一覧</h1>
         <p>現在オンラインストアでご覧いただける商品です。掲載情報や仕様について確認したい点がございましたら、商品ごとにお問い合わせください。</p>
         <div className="atelier-heading-meta">
