@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { closeMySqlPool, getMySqlDb } from "../src/server/db";
 import { adminUsers } from "../src/server/db/schema";
 import { hashOwnerPassword } from "../src/server/auth/password";
@@ -56,7 +57,7 @@ async function main() {
     }
 
     await tx.insert(adminUsers).values({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       email,
       displayName: displayName.slice(0, 160) || "Gallery Staging Owner",
       passwordHash: hashOwnerPassword(password),
