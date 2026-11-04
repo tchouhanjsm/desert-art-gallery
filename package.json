@@ -24,7 +24,8 @@
     "media:download-etsy": "node --env-file=.env --import=tsx scripts/download-etsy-images.ts",
     "media:map-recovered": "node --env-file=.env --import=tsx scripts/preview-recovered-product-mapping.ts",
     "media:audit-recovered": "node --env-file=.env --import=tsx scripts/audit-recovered-product-photos.ts",
-    "db:catalogue-preflight": "node --env-file=.env --import=tsx scripts/catalogue-preflight.ts"
+    "db:catalogue-preflight": "node --env-file=.env --import=tsx scripts/catalogue-preflight.ts",
+    "media:stage-recovered": "node --env-file=.env --import=tsx scripts/stage-recovered-product-photos.ts"
   },
   "dependencies": {
     "next": "^15.1.6",
