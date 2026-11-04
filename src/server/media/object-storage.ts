@@ -28,6 +28,22 @@ export type S3MediaAdapter = {
   delete(input: { key: string }): Promise<void>;
 };
 
+function assertSafeObjectKey(key: string): string {
+  if (!key || key.length > 512 || key.startsWith("/") || key.includes("\\") || key.includes("\0")) {
+    throw new Error("Private media object key is invalid.");
+  }
+  const segments = key.split("/");
+  if (segments.length < 3 || segments.some((segment) =>
+    !segment || segment === "." || segment === ".." || !/^[a-zA-Z0-9._-]+$/.test(segment)
+  )) {
+    throw new Error("Private media object key is invalid.");
+  }
+  if (segments[0] !== "products" && segments[0] !== "editorial") {
+    throw new Error("Private media object key is outside an approved namespace.");
+  }
+  return segments.join("/");
+}
+
 type GetObjectOutput = {
   Body?: Uint8Array | { transformToByteArray?: () => Promise<Uint8Array> } | null;
 };
@@ -97,9 +113,10 @@ export function createS3MediaAdapter(
 ): S3MediaAdapter {
   return {
     async put({ key, bytes, contentType }) {
+      const safeKey = assertSafeObjectKey(key);
       await send(new PutObjectCommand({
         Bucket: bucket,
-        Key: key,
+        Key: safeKey,
         Body: Buffer.from(bytes),
         ContentLength: bytes.byteLength,
         ContentType: contentType,
@@ -107,9 +124,10 @@ export function createS3MediaAdapter(
       }));
     },
     async get({ key }) {
+      const safeKey = assertSafeObjectKey(key);
       let response: GetObjectOutput;
       try {
-        response = await send(new GetObjectCommand({ Bucket: bucket, Key: key })) as GetObjectOutput;
+        response = await send(new GetObjectCommand({ Bucket: bucket, Key: safeKey })) as GetObjectOutput;
       } catch (error) {
         if (isObjectNotFound(error)) return null;
         throw error;
@@ -123,7 +141,8 @@ export function createS3MediaAdapter(
       throw new Error("The S3-compatible media store returned an unsupported object stream.");
     },
     async delete({ key }) {
-      await send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+      const safeKey = assertSafeObjectKey(key);
+      await send(new DeleteObjectCommand({ Bucket: bucket, Key: safeKey }));
     },
   };
 }
