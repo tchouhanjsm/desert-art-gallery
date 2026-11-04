@@ -1,5 +1,7 @@
 # Desert Art Gallery — Commerce Product & Delivery Plan
 
+> **Current customer-facing design authority:** [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md). This plan's former Desert Atelier storefront direction is superseded as of 4 November 2026. Owner operations and cost/hosting decisions remain separate.
+
 **Document status:** Proposed product direction  
 **Decision date:** 2 November 2026  
 **Primary objective:** Build a premium, owner-operable e-commerce platform locally first; validate and deploy it on Hostinger only after the experience and core workflows are implemented and locally tested.
@@ -49,59 +51,50 @@ The project will be judged as a commercial product, not only as a collection of 
 
 ## 3. Theme and template selection
 
-### 3.1 Selected storefront direction: “Desert Atelier — Contemporary Heritage”
+### 3.1 Selected storefront direction: Japan-first curated lifestyle ecommerce
 
-**Decision:** create a bespoke storefront theme in the existing Next.js application. Use open-source commerce starters as reference material and selectively port useful patterns; do not replace the existing app with another complete starter.
+**Decision (4 November 2026):** replace the previous Desert Atelier / Contemporary Heritage / Desert Modern public theme with the Japanese-first customer storefront described in [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). That brief is the source of truth. The former palette, typography and hotel/gallery-destination homepage composition are retired.
 
-The direction combines the visual restraint of a premium gallery with the warmth and material character of Indian craft.
+Creative references:
 
-#### Visual identity
+- [POJ Studio](https://pojstudio.com/) — premium editorial product presentation, collection merchandising, craft stories and useful product information.
+- [Macaroni Shoten](https://shop.macaro-ni.jp/) — accessible everyday curation, lifestyle framing and direct category discovery.
+- [TokyoTronic Japanese ecommerce layout guidance](https://www.tokyotronic.com/how-japanese-ecommerce-pages-are-laid-out/) — practical header/navigation, search, breadcrumbs, filters, item counts, product decision content and shipping/reassurance architecture.
+- [Nextcreative Japanese web design guidance](https://nextcreative.jp/en/blog/japanese-web-design-foreign-companies) — localisation beyond literal translation, complete trust information, Japanese content structure and mobile-first detail.
 
-| Design token | Proposed direction | Usage |
+Do not clone the reference brands or assume their categories/products/policies exist in this catalogue. The customer should recognise a real online shop in the first viewport.
+
+#### Creative and interaction direction
+
+- Japanese-first shopping UI with a compact multi-zone header, visible search, account/cart controls and a useful category row.
+- Product-led campaign hero, category discovery and published product grid near the top of the homepage.
+- Editorial stories support shopping; long destination introductions do not precede product discovery.
+- Category pages include real counts, functional filters/sorts and mobile two-column grids where the catalogue justifies them.
+- Product details place real price/currency, stock, variants and configured delivery/tax disclosures near the purchase control.
+- Cart and checkout use natural Japanese labels and field-level guidance while preserving the existing server-authoritative order flow.
+- The owner/admin workspace remains a separate operational product.
+
+#### Initial public design tokens
+
+| Token | Value | Usage |
 |---|---|---|
-| Gallery ivory | `#F7F4EE` | Main page backgrounds |
-| Warm stone | `#E8DFD2` | Alternating sections and surfaces |
-| Deep ink | `#27231F` | Text, navigation and strong actions |
-| Terracotta | `#A65D45` | Primary accent and selected states |
-| Antique brass | `#A88D61` | Fine details, separators and restrained highlights |
-| Muted sage | `#737664` | Secondary accent where appropriate |
+| Warm ivory | `#F5F0E7` | Main page canvas |
+| Soft ivory | `#FBF9F5` | Cards/surfaces |
+| Ink | `#25231F` | Text and structural UI |
+| Terracotta | `#A54E34` | Restrained accent |
+| Muted sand | `#A79B7D` | Secondary detail |
+| Warm grey | `#716A61` | Supporting text |
+| Border | `#DED7CC` | Rules and controls |
 
-These are starting design tokens, not a substitute for a contrast audit. Final values must pass WCAG contrast checks for their actual foreground/background combinations.
+Initial CSS lives in `src/styles/japan-storefront.css`. The active root layout sets `lang="ja"`. Its current Japanese font stack uses system fallbacks; a bundled JP font is a separate measured/licensed decision. Browser glyph and contrast checks remain required.
 
-#### Typography
+#### Product content and commerce safeguards
 
-Retain the current locally installed font candidates:
-
-- **Cormorant Garamond Variable** for display headings, editorial statements and product storytelling.
-- **DM Sans Variable** for navigation, product metadata, forms, buttons and operational text.
-
-Review weights, line length, responsive scale and loading behaviour before adding any new font dependency. Avoid unnecessary externally hosted font requests.
-
-#### Storefront composition
-
-- Large, original photography with intentional art direction.
-- Asymmetric editorial layouts rather than repetitive grids on every section.
-- Clear category and collection discovery.
-- Product cards with calm typography and immediately legible price/availability.
-- Product detail pages with a strong gallery, clear purchase panel, dimensions/materials, provenance/story and delivery information.
-- Consistent mobile shopping patterns and large touch targets.
-- Subtle transitions only where they improve feedback or orientation.
-- No generic SaaS gradients, excessive glass effects, decorative motion or indiscriminate rounded cards.
-
-#### Page design scope
-
-1. Homepage and campaign/hero sections.
-2. Shop/category landing and catalogue browsing.
-3. Collection landing and collection detail.
-4. Product detail and image gallery.
-5. Search, filters, sort and empty states.
-6. Cart and checkout.
-7. Customer login, account, orders and wishlist.
-8. Story, artisans, journal and contact.
-9. Shipping, returns, privacy and terms content.
-10. Error, loading, unavailable and not-found states.
-
-The existing route structure and commerce behaviour should be retained where they are sound. Visual redesign must not silently remove working routes or SEO metadata.
+- Keep Etsy English titles/descriptions intact until owner-entered Japanese content has been reviewed by a qualified Japanese-language reviewer.
+- Preserve the CSV's USD source currency. Do not convert to JPY or claim tax-included prices without an approved merchant price/tax decision.
+- The supplied export has no category or variation fields. Do not infer categories, variant combinations or best-seller rankings.
+- Keep product images private until owner mapping and usage rights are confirmed.
+- Preserve backend/API/authentication/catalogue/inventory/shipping/tax/checkout contracts. Presentation changes do not authorise database or payment changes.
 
 ### 3.2 Storefront reference: Epic Design Labs Next.js Ecommerce Starter
 
