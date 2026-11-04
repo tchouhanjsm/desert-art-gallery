@@ -100,3 +100,21 @@ A redesign is not production-ready until owner inputs, image rights, Japanese co
 - [ ] Mobile menu and category disclosures expose their expanded state and are keyboard-operable; Escape and focus return are verified in-browser.
 - [ ] Sitemap contains published catalogue products/collections only; development preview records must not be indexed.
 - [ ] Production robots excludes both `/admin/` and `/owner/`; staging excludes all routes.
+
+
+## 9. Automated route and viewport capture
+
+The repository's Playwright visual-review command captures the 24-route matrix in `src/lib/storefront-review.ts` at 360, 414, 768, 1440 and 1600 px (120 route/viewport combinations). The manifest records the main-document status, final URL, title/document language, horizontal overflow, H1 count, images without an `alt` attribute, buttons without a detectable accessible name, browser console errors, page errors and failed requests.
+
+Local run:
+
+```bash
+npx playwright install chromium
+npm run visual:review
+```
+
+Start the local application first and ensure `/api/health` returns success. Set `STOREFRONT_REVIEW_BASE_URL` and `STOREFRONT_REVIEW_OUTPUT_DIR` to target a local or staging environment and choose a separate output folder. Captures and the JSON manifest are written to ignored `.local-data/visual-review/`; never commit screenshots, customer data or private media.
+
+CI runs the same matrix against a production build and uploads the capture set as a seven-day workflow artifact. The CI database is intentionally blank: product and collection routes may return 404, which is recorded as an expected data-empty outcome. That does not prove a real product page has passed visual review. The `/admin` route is unauthenticated and may redirect to owner login; the capture does not authenticate or test privileged workflows.
+
+Review every artifact manually. Automated captures do not provide pixel-diff baselines, screen-reader acceptance, native-speaker approval, complete keyboard testing, real merchant media validation or authenticated customer/owner UAT. Do not mark visual or production acceptance complete based on artifact generation alone.
