@@ -179,7 +179,7 @@ describe("recovered product photo approval and staging", () => {
     const roots = await createSourceFiles(workspace);
     const parsed = parseRecoveredPhotoApprovalCsv(csvRow());
     const plan = await previewRecoveredPhotoStaging(parsed, { workspaceRoot: workspace, ...roots });
-    await writeFile(path.join(roots.sourceRoot, "Recovered Jacket", "detail.png"), Buffer.from("changed after preview"));
+    await writeFile(path.join(roots.sourceRoot, "Recovered Jacket", "detail.png"), Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x03]));
     await expect(
       commitRecoveredPhotoStaging(RECOVERED_PHOTO_STAGING_CONFIRMATION, plan, workspace),
     ).rejects.toThrow(/changed after preview/i);
