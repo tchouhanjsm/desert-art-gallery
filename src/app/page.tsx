@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { LookbookBand } from "@/components/LookbookBand";
 import { TrustStrip } from "@/components/TrustStrip";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
@@ -126,6 +127,8 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+
+      <LookbookBand products={products} />
 
       <section className="atelier-story">
         <div className="atelier-story-mark" aria-hidden="true">DAG<br /><span>JAISALMER</span></div>

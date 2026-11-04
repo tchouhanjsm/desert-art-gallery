@@ -8,7 +8,7 @@ import { useCart } from "@/components/CartProvider";
 import { useWishlist } from "@/components/WishlistProvider";
 import { primaryNavigation } from "@/lib/navigation";
 
-export function Header() {
+export function Header({ collections = [] }: { collections?: { slug: string; name: string }[] }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -79,7 +79,25 @@ export function Header() {
         )}
 
         <nav id="primary-navigation" className={menuOpen ? "main-nav open" : "main-nav"} aria-label="Primary navigation">
-          {primaryNavigation.map((item) => (
+          {primaryNavigation.map((item) => item.href === "/shop" && collections.length > 0 ? (
+            <div className="nav-mega" key={item.href}>
+              <Link href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</Link>
+              <div className="nav-mega-panel">
+                <div>
+                  <span className="nav-mega-title">Collections</span>
+                  {collections.map((c) => (
+                    <Link href={"/collections/" + c.slug} key={c.slug} onClick={() => setMenuOpen(false)}>{c.name}</Link>
+                  ))}
+                </div>
+                <div>
+                  <span className="nav-mega-title">Browse</span>
+                  <Link href="/shop" onClick={() => setMenuOpen(false)}>All pieces</Link>
+                  <Link href="/artisans" onClick={() => setMenuOpen(false)}>Meet the makers</Link>
+                  <Link href="/journal" onClick={() => setMenuOpen(false)}>Journal</Link>
+                </div>
+              </div>
+            </div>
+          ) : (
             <Link href={item.href} key={item.href} onClick={() => setMenuOpen(false)}>
               {item.label}
             </Link>

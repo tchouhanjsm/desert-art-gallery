@@ -10,6 +10,7 @@ import { SiteChrome } from "@/components/SiteChrome";
 import { CartProvider } from "@/components/CartProvider";
 import { WishlistProvider } from "@/components/WishlistProvider";
 import { getSiteUrl } from "@/lib/site-url";
+import { getStorefrontCollections } from "@/lib/catalogue";
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -27,13 +28,16 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const menuCollections = await getStorefrontCollections()
+    .then((items) => items.slice(0, 6).map((item) => ({ slug: item.slug, name: item.name })))
+    .catch(() => []);
   return (
     <html lang="en">
       <body>
         <CartProvider>
           <WishlistProvider>
-            <SiteChrome>{children}</SiteChrome>
+            <SiteChrome collections={menuCollections}>{children}</SiteChrome>
           </WishlistProvider>
         </CartProvider>
       </body>
