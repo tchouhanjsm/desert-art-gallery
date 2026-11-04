@@ -70,7 +70,7 @@ describe("English-language, Japan-informed storefront contract", () => {
     const checkout = source("../components/CheckoutForm.tsx");
     const order = source("../app/account/orders/[id]/page.tsx");
 
-    expect(checkout).toContain("no payment is collected");
+    expect(checkout).toContain("No payment is collected");
     expect(checkout).toContain("order draft only");
     expect(order).toContain("This is an unpaid order draft.");
     expect(order).toContain("No payment has been requested or received.");
