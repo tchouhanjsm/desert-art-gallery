@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Product } from "./products";
-import { selectStorefrontHeroProduct } from "./storefront-presentation";
+import { isPublishedProductRecord, selectStorefrontHeroProduct } from "./storefront-presentation";
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
@@ -36,5 +36,20 @@ describe("selectStorefrontHeroProduct", () => {
     expect(selectStorefrontHeroProduct([
       makeProduct({ id: "product-123", image: " " }),
     ])).toBeNull();
+  });
+});
+
+
+describe("isPublishedProductRecord", () => {
+  it("rejects development preview records with no persisted ID", () => {
+    expect(isPublishedProductRecord(makeProduct())).toBe(false);
+  });
+
+  it("accepts records with a non-empty persisted ID", () => {
+    expect(isPublishedProductRecord(makeProduct({ id: "product-123" }))).toBe(true);
+  });
+
+  it("rejects whitespace-only IDs", () => {
+    expect(isPublishedProductRecord(makeProduct({ id: "  " }))).toBe(false);
   });
 });
