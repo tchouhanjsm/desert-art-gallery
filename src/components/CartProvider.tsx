@@ -64,11 +64,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ lines: currentLines }), cache: "no-store",
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "カートの情報を更新できませんでした。");
+      if (!response.ok) throw new Error(result.error || "Could not update your bag. Please try again.");
       setPreview(Array.isArray(result.items) ? result.items as CartPreviewItem[] : []);
       setError("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "カートの情報を更新できませんでした。");
+      setError(cause instanceof Error ? cause.message : "Could not update your bag. Please try again.");
       setPreview([]);
     } finally { setIsLoading(false); }
   }, []);
@@ -100,7 +100,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [hydrated, lines, pathname]);
 
   const addItem = useCallback((slug: string, maximum: number, variantId?: string) => {
-    if (maximum < 1) { setError("この商品は現在ご購入いただけません。"); return; }
+    if (maximum < 1) { setError("This item is currently unavailable."); return; }
     setLines((current) => mergeCartLine(current, slug, 1, Math.min(99, maximum), variantId));
     setDrawerOpen(true);
   }, []);
@@ -124,22 +124,22 @@ function CartDrawer() {
     if (item.priceMinor !== null && item.currency) totals[item.currency] = (totals[item.currency] ?? 0) + item.priceMinor * item.quantityRequested;
   }
   return <div className="cart-overlay" role="presentation" onClick={closeDrawer}>
-    <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="カート" onClick={(event) => event.stopPropagation()}>
-      <div className="cart-drawer-header"><div><div className="section-kicker">カート</div><h2>カート</h2></div><button className="icon-button" onClick={closeDrawer} aria-label="カートを閉じる">×</button></div>
-      {isLoading && <p className="cart-state">商品情報と在庫を確認しています…</p>}
+    <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(event) => event.stopPropagation()}>
+      <div className="cart-drawer-header"><div><div className="section-kicker">YOUR BAG</div><h2>Your bag</h2></div><button className="icon-button" onClick={closeDrawer} aria-label="Close shopping bag">×</button></div>
+      {isLoading && <p className="cart-state">Checking product details and availability…</p>}
       {error && <p className="cart-error" role="status">{error}</p>}
-      {!lines.length ? <div className="empty-note">カートは空です。<br/><Link href="/shop" className="empty-link" onClick={closeDrawer}>商品を見る</Link></div> :
+      {!lines.length ? <div className="empty-note">Your bag is empty.<br/><Link href="/shop" className="empty-link" onClick={closeDrawer}>Continue shopping</Link></div> :
         <div className="cart-drawer-lines">{preview.map((item) => <article className="cart-line" key={cartLineKey(item.slug, item.variantId ?? undefined)}>
           {item.image ? <Image src={item.image} alt={item.imageAlt} width={88} height={116} unoptimized /> : <div className="cart-line-placeholder" aria-hidden="true" />}
           <div className="cart-line-details"><h3>{item.name}</h3>
             {item.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}
-            {item.priceMinor !== null && item.currency ? <p>{formatMoneyFromMinor(item.priceMinor, item.currency)}</p> : <p>価格を確認できません</p>}
-            <div className="cart-quantity"><button aria-label="数量を1つ減らす" onClick={() => setQuantity(item.slug, item.quantityRequested - 1, item.variantId ?? undefined)}>−</button><span>{item.quantityRequested}</span><button aria-label="数量を1つ増やす" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1, item.variantId ?? undefined)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug, item.variantId ?? undefined)}>削除</button></div>
-            {!item.available && <small className="cart-error">現在の在庫は{item.availableQuantity}点です。数量を変更してください。</small>}
+            {item.priceMinor !== null && item.currency ? <p>{formatMoneyFromMinor(item.priceMinor, item.currency)}</p> : <p>Price unavailable</p>}
+            <div className="cart-quantity"><button aria-label="Decrease quantity" onClick={() => setQuantity(item.slug, item.quantityRequested - 1, item.variantId ?? undefined)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1, item.variantId ?? undefined)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug, item.variantId ?? undefined)}>Remove</button></div>
+            {!item.available && <small className="cart-error">Only {item.availableQuantity} available. Please adjust the quantity.</small>}
           </div>
         </article>)}</div>}
-      {!!Object.keys(totals).length && <div className="cart-drawer-total"><span>商品小計</span><strong>{Object.entries(totals).map(([currency, amount]) => formatMoneyFromMinor(amount, currency)).join(" · ")}</strong></div>}
-      <div className="cart-drawer-footer"><Link href="/cart" className="button-primary dark-button" onClick={closeDrawer}>カートを見る</Link><p>送料・税金は含まれていません。配送・税金・決済の設定が完了した後に注文手続きへ進めます。</p></div>
+      {!!Object.keys(totals).length && <div className="cart-drawer-total"><span>Subtotal</span><strong>{Object.entries(totals).map(([currency, amount]) => formatMoneyFromMinor(amount, currency)).join(" · ")}</strong></div>}
+      <div className="cart-drawer-footer"><Link href="/cart" className="button-primary dark-button" onClick={closeDrawer}>View bag</Link><p>Shipping and taxes are not included. Checkout will be available once delivery, tax and payment settings have been configured.</p></div>
     </aside>
   </div>;
 }
