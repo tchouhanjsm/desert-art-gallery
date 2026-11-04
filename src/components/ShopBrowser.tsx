@@ -63,11 +63,11 @@ export function ShopBrowser({ products }: { products: Product[] }) {
     <div className="atelier-shop-browser">
       <div className="shop-toolbar atelier-shop-toolbar">
         <span className="atelier-results-count" role="status" aria-live="polite">
-          <strong>{visible.length.toLocaleString("ja-JP")}</strong>
-          <span>{visible.length.toLocaleString("ja-JP")}件の商品</span>
+          <strong>{visible.length.toLocaleString("en-IN")}</strong>
+          <span>{visible.length.toLocaleString("en-IN")} products</span>
         </span>
         <div className="shop-controls atelier-shop-controls">
-          <label className="visually-hidden" htmlFor="shop-search">商品を検索</label>
+          <label className="visually-hidden" htmlFor="shop-search">Search products</label>
           <input
             id="shop-search"
             type="search"
@@ -78,9 +78,9 @@ export function ShopBrowser({ products }: { products: Product[] }) {
               setQuery(nextQuery);
               updateUrl({ q: nextQuery, category, sort });
             }}
-            placeholder="商品名・キーワードで検索"
+            placeholder="Search by product or keyword"
           />
-          <label className="visually-hidden" htmlFor="shop-category">カテゴリーで絞り込む</label>
+          <label className="visually-hidden" htmlFor="shop-category">Filter by category</label>
           <select
             id="shop-category"
             value={category}
@@ -91,10 +91,10 @@ export function ShopBrowser({ products }: { products: Product[] }) {
             }}
           >
             {categories.map((item) => (
-              <option key={item} value={item}>{item === ALL_SHOP_CATEGORY ? "すべての商品" : item}</option>
+              <option key={item} value={item}>{item === ALL_SHOP_CATEGORY ? "All products" : item}</option>
             ))}
           </select>
-          <label className="visually-hidden" htmlFor="shop-sort">並び替え</label>
+          <label className="visually-hidden" htmlFor="shop-sort">Sort by</label>
           <select
             id="shop-sort"
             value={sort}
@@ -104,19 +104,19 @@ export function ShopBrowser({ products }: { products: Product[] }) {
               updateUrl({ q: query, category, sort: nextSort }, "push");
             }}
           >
-            <option value="featured">おすすめ順</option>
-            <option value="name">商品名順</option>
-            <option value="price-low">価格の安い順</option>
-            <option value="price-high">価格の高い順</option>
+            <option value="featured">Featured</option>
+            <option value="name">Name</option>
+            <option value="price-low">Price: low to high</option>
+            <option value="price-high">Price: high to low</option>
           </select>
           {hasActiveFilters && (
-            <button className="atelier-clear-filters" type="button" onClick={clearFilters}>条件をクリア</button>
+            <button className="atelier-clear-filters" type="button" onClick={clearFilters}>Clear filters</button>
           )}
         </div>
       </div>
 
       {categories.length > 2 && (
-        <div className="shop-chips" role="group" aria-label="カテゴリーで絞り込む">
+        <div className="shop-chips" role="group" aria-label="Filter by category">
           {categories.map((item) => (
             <button
               key={item}
@@ -128,7 +128,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
                 updateUrl({ q: query, category: item, sort }, "push");
               }}
             >
-              {item === ALL_SHOP_CATEGORY ? "すべての商品" : item}
+              {item === ALL_SHOP_CATEGORY ? "All products" : item}
             </button>
           ))}
         </div>
@@ -141,13 +141,13 @@ export function ShopBrowser({ products }: { products: Product[] }) {
       ) : (
         <div className="atelier-empty-catalogue">
           <span className="atelier-empty-mark" aria-hidden="true">✳</span>
-          <h2>{products.length ? "該当する商品が見つかりませんでした" : "商品を準備しています"}</h2>
+          <h2>{products.length ? "No products matched your search" : "Catalogue in preparation"}</h2>
           <p>{products.length
-            ? "検索語を変えるか、絞り込み条件を解除してもう一度お試しください。"
-            : "掲載準備が整った商品から順次公開します。現在の取り扱いについてはお問い合わせください。"}</p>
+            ? "Try another search term or clear your filters and try again."
+            : "Products will be published as their details and media are approved. Contact us with questions about current availability."}</p>
           {hasActiveFilters
-            ? <button className="button-outline" type="button" onClick={clearFilters}>すべての条件を解除</button>
-            : <Link className="button-outline" href="/contact">お問い合わせ</Link>}
+            ? <button className="button-outline" type="button" onClick={clearFilters}>Clear all filters</button>
+            : <Link className="button-outline" href="/contact">Contact us</Link>}
         </div>
       )}
     </div>
