@@ -14,6 +14,7 @@ const customerInterfaceFiles = [
   "../app/story/page.tsx",
   "../app/artisans/page.tsx",
   "../app/journal/page.tsx",
+  "../app/journal/[slug]/page.tsx",
   "../app/contact/page.tsx",
   "../app/cart/page.tsx",
   "../app/checkout/page.tsx",
@@ -24,6 +25,7 @@ const customerInterfaceFiles = [
   "../app/login/legacy-login-form.tsx",
   "../app/register/customer-register-form.tsx",
   "../app/account/customer-page.tsx",
+  "../app/account/recovery/page.tsx",
   "../app/account/legacy-page.tsx",
   "../app/account/orders/[id]/page.tsx",
   "../components/Header.tsx",
@@ -39,6 +41,12 @@ const customerInterfaceFiles = [
   "../components/CheckoutForm.tsx",
   "../lib/navigation.ts",
   "../lib/storefront-information.ts",
+  "../lib/site-content.ts",
+  "../lib/storefront-presentation.ts",
+  "../app/api/cart/preview/route.ts",
+  "../app/api/cart/reserve/route.ts",
+  "../app/api/cart/sync/route.ts",
+  "../app/api/checkout/orders/route.ts",
 ];
 
 describe("English-language, Japan-informed storefront contract", () => {
@@ -51,6 +59,7 @@ describe("English-language, Japan-informed storefront contract", () => {
     const cjkCharacters = /[\u3040-\u30ff\u3400-\u9fff]/u;
     for (const file of customerInterfaceFiles) {
       expect(source(file), file).not.toMatch(cjkCharacters);
+      expect(source(file), file).not.toMatch(/ja[-_]JP/i);
     }
   });
 

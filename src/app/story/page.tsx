@@ -51,7 +51,7 @@ export default function StoryPage() {
         <span className="section-kicker">ENQUIRIES</span>
         <h2>Found something you like?</h2>
         <p>Send us the product name or link with your questions. We will share the details we can verify.</p>
-        <Link className="button-primary" href="/contact">ENQUIRIES</Link>
+        <Link className="button-primary" href="/contact">Contact the gallery</Link>
       </section>
     </div>
   );

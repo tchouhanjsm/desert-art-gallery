@@ -31,7 +31,7 @@ export function CartPageClient() {
       </article>)}
     </section>
     <aside className="cart-summary"><div className="section-kicker">ORDER SUMMARY</div><h2>Items in your cart</h2>
-      {Object.entries(totals).map(([currency, amount]) => <div className="cart-summary-row" key={currency}><span>Subtotal ({currency}）</span><strong>{formatMoneyFromMinor(amount, currency)}</strong></div>)}
+      {Object.entries(totals).map(([currency, amount]) => <div className="cart-summary-row" key={currency}><span>Subtotal ({currency})</span><strong>{formatMoneyFromMinor(amount, currency)}</strong></div>)}
       <p>Shipping, taxes and duties vary by destination.</p>
       <div className="checkout-notice">The next step creates an order draft only. No payment will be collected until an approved payment provider and verified webhooks are configured.</div>
       {canContinue ? <Link href="/checkout" className="button-primary dark-button">Continue to delivery details</Link> : <span className="button-outline checkout-disabled" aria-disabled="true">Check availability before continuing</span>}
