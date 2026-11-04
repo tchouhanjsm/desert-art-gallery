@@ -153,8 +153,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </>
             )}
             <div className="product-accordion">
-              {materials.length > 0 && <details><summary>MATERIALS</summary><p>{materials.join(" , ")}</p></details>}
-              {sizes.length > 0 && <details><summary>SIZE & DETAILS</summary><p>{sizes.join(" , ")}</p></details>}
+              {materials.length > 0 && <details><summary>MATERIALS</summary><p>{materials.join(", ")}</p></details>}
+              {sizes.length > 0 && <details><summary>SIZE & DETAILS</summary><p>{sizes.join(", ")}</p></details>}
               {measurements.length > 0 && (
                 <details><summary>MEASUREMENTS</summary>
                   <dl className="product-measurements">
