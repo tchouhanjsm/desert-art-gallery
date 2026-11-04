@@ -64,6 +64,11 @@ describe("English-language, Japanese-inspired storefront contract", () => {
     expect(offenders, "Japanese UI copy remains in: " + offenders.join(", ")).toEqual([]);
   });
 
+  it("does not apply Japanese number or date formatting to English UI", () => {
+    const offenders = publicInterfaceFiles.filter((path) => source(path).includes('"ja-JP"'));
+    expect(offenders, "Japanese locale formatting remains in: " + offenders.join(", ")).toEqual([]);
+  });
+
   it("retains the intended editorial ecommerce direction in English", () => {
     expect(source("../app/page.tsx")).toContain("CURATED COLLECTIONS");
     expect(source("../app/shop/page.tsx")).toContain("All products");
