@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { chromium } from "playwright";
-import { storefrontReviewRoutes, storefrontReviewViewports } from "../src/lib/storefront-review";
+import { isExpectedNavigationAbort, storefrontReviewRoutes, storefrontReviewViewports } from "../src/lib/storefront-review";
 
 type CaptureRecord = {
   routeId: string;
@@ -18,7 +18,9 @@ type CaptureRecord = {
   horizontalOverflow: boolean | null;
   h1Count: number | null;
   imagesWithoutAlt: number | null;
+  brokenImages: number | null;
   buttonsWithoutAccessibleName: number | null;
+  httpErrors: string[];
   consoleErrors: string[];
   pageErrors: string[];
   failedRequests: string[];
@@ -64,6 +66,16 @@ async function main(): Promise<void> {
     page.setDefaultNavigationTimeout(60_000);
 
     let activeRecord: CaptureRecord | null = null;
+    const requestOwners = new WeakMap<import("playwright").Request, CaptureRecord>();
+    page.on("request", (request) => {
+      if (activeRecord) requestOwners.set(request, activeRecord);
+    });
+    page.on("response", (response) => {
+      const owner = requestOwners.get(response.request()) ?? activeRecord;
+      if (owner && response.status() >= 400 && !response.request().isNavigationRequest()) {
+        owner.httpErrors.push(`${response.status()} ${response.request().method()} ${response.url()}`);
+      }
+    });
     page.on("console", (message) => {
       if (message.type() === "error" && activeRecord) {
         activeRecord.consoleErrors.push(message.text());
@@ -73,11 +85,10 @@ async function main(): Promise<void> {
       activeRecord?.pageErrors.push(error.message);
     });
     page.on("requestfailed", (request) => {
-      if (activeRecord) {
-        activeRecord.failedRequests.push(
-          `${request.method()} ${request.url()} — ${request.failure()?.errorText ?? "request failed"}`,
-        );
-      }
+      const failure = request.failure()?.errorText ?? "request failed";
+      if (isExpectedNavigationAbort(failure)) return;
+      const owner = requestOwners.get(request) ?? activeRecord;
+      owner?.failedRequests.push(`${request.method()} ${request.url()} — ${failure}`);
     });
 
     for (const route of storefrontReviewRoutes) {
@@ -97,7 +108,9 @@ async function main(): Promise<void> {
           horizontalOverflow: null,
           h1Count: null,
           imagesWithoutAlt: null,
+          brokenImages: null,
           buttonsWithoutAccessibleName: null,
+          httpErrors: [],
           consoleErrors: [],
           pageErrors: [],
           failedRequests: [],
@@ -128,6 +141,7 @@ async function main(): Promise<void> {
               horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 1,
               h1Count: document.querySelectorAll("h1").length,
               imagesWithoutAlt: document.querySelectorAll("img:not([alt])").length,
+              brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
               buttonsWithoutAccessibleName: buttons.filter((button) => {
                 const label = button.getAttribute("aria-label")?.trim();
                 const title = button.getAttribute("title")?.trim();
@@ -141,6 +155,7 @@ async function main(): Promise<void> {
           record.horizontalOverflow = metrics.horizontalOverflow;
           record.h1Count = metrics.h1Count;
           record.imagesWithoutAlt = metrics.imagesWithoutAlt;
+          record.brokenImages = metrics.brokenImages;
           record.buttonsWithoutAccessibleName = metrics.buttonsWithoutAccessibleName;
 
           const screenshotName = `${route.id}--${viewport.id}.png`;
