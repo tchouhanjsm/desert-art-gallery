@@ -22,10 +22,10 @@ async function main() {
   const report = buildRecoveredProductMapping(inventory, productRows);
   process.stdout.write(JSON.stringify(report, null, 2) + "\n");
 
-  process.stdout.write(
-    "\nREAD-ONLY MAPPING PREVIEW — no photographs were moved, copied, renamed, uploaded or deleted; no MySQL rows were written.\n",
+  process.stderr.write(
+    "READ-ONLY MAPPING PREVIEW — no photographs were moved, copied, renamed, uploaded or deleted; no MySQL rows were written.\n",
   );
-  process.stdout.write(
+  process.stderr.write(
     "Every candidate requires owner review. Only unique Etsy draft title candidates are eligible for a later reviewed mapping manifest.\n",
   );
 }
