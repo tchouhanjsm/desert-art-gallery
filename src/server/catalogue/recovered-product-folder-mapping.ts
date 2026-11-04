@@ -146,12 +146,13 @@ function buildRecoveredTitleSuggestionIndex(
     }
   }
 
-  const inverseDocumentFrequency = new Map(
-    [...documentFrequency].map(([token, frequency]) => [
+  const inverseDocumentFrequency = new Map<string, number>();
+  for (const [token, frequency] of documentFrequency) {
+    inverseDocumentFrequency.set(
       token,
       Math.log(1 + indexedProducts.length / (1 + frequency)) + 1,
-    ]),
-  );
+    );
+  }
 
   return { products: indexedProducts, inverseDocumentFrequency };
 }
