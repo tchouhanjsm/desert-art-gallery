@@ -69,6 +69,48 @@ jobs:
         run: npm run lint
       - name: Production build
         run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture storefront route and viewport evidence
+        shell: bash
+        env:
+          STOREFRONT_REVIEW_BASE_URL: http://127.0.0.1:4174
+          STOREFRONT_REVIEW_OUTPUT_DIR: .local-data/visual-review/ci-${{ github.sha }}
+        run: |
+          set -euo pipefail
+          server_log=/tmp/desert-art-gallery-visual-review-server.log
+          NODE_ENV=production npm run start -- --hostname 127.0.0.1 --port 4174 > "$server_log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          ready=0
+          for attempt in {1..45}; do
+            if curl --fail --silent "$STOREFRONT_REVIEW_BASE_URL/api/health" >/dev/null; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat "$server_log" >&2
+            echo "Production server health check did not become ready." >&2
+            exit 1
+          fi
+
+          npm run visual:review
+      - name: Upload storefront visual review
+        if: always() && hashFiles('.local-data/visual-review/ci-*/manifest.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: storefront-route-review-${{ github.sha }}
+          path: .local-data/visual-review/ci-${{ github.sha }}
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
       - name: Set up Chrome for Lighthouse
         uses: browser-actions/setup-chrome@v1
       - name: Lighthouse mobile performance budget
