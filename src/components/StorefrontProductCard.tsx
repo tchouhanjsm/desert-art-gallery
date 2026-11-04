@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { isRemoteImage } from "@/lib/image";
 import { formatMoneyFromMinor } from "@/lib/money";
 import type { Product } from "@/lib/products";
 import { PreviewArtwork } from "@/components/PreviewArtwork";
@@ -38,7 +39,7 @@ export function StorefrontProductCard({ product }: { product: Product }) {
               alt={product.imageAlt}
               fill
               sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 23vw"
-              unoptimized
+              unoptimized={isRemoteImage(product.image)}
             />
           )}
           {isPreview && <span className="atelier-preview-label">Photography pending</span>}

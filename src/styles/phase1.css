@@ -46,3 +46,21 @@
 .atelier-story{background:linear-gradient(135deg,var(--indigo),#14203a)!important}
 .atelier-contact{background:var(--madder)!important;color:#fff}
 .atelier-contact h2 em,.atelier-contact .section-kicker{color:var(--turmeric)!important}
+
+/* Phase 2 — product page */
+.product-accordion{max-width:760px;border-top:1px solid var(--atelier-line)}
+.product-accordion details{border-bottom:1px solid var(--atelier-line)}
+.product-accordion summary{display:flex;justify-content:space-between;align-items:center;padding:18px 0;font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;list-style:none}
+.product-accordion summary::-webkit-details-marker{display:none}
+.product-accordion summary::after{content:"+";font-size:20px;font-weight:400;color:var(--madder)}
+.product-accordion details[open] summary::after{content:"–"}
+.product-accordion details>p,.product-accordion details>dl{margin:0 0 20px;color:var(--atelier-muted);font-size:15px;line-height:1.8}
+.mobile-buy-bar{display:none}
+@media(max-width:760px){
+  .mobile-buy-bar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--cream);border-top:1px solid var(--atelier-line);box-shadow:0 -10px 30px rgba(40,32,24,.1)}
+  .mobile-buy-bar div{min-width:0;display:grid;font-size:14px}
+  .mobile-buy-bar b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  .mobile-buy-bar span{color:var(--atelier-muted);font-size:12px}
+  .mobile-buy-bar .button-primary{flex:none;min-height:46px;padding:12px 24px}
+  .atelier-page-shell{padding-bottom:90px}
+}

@@ -8,6 +8,7 @@ import { buildProductEnquiryHref } from "@/lib/product-enquiry";
 import type { Metadata } from "next";
 import { AddToBagButton } from "@/components/AddToBagButton";
 import { ProductGallery } from "@/components/ProductGallery";
+import { getSiteUrl } from "@/lib/site-url";
 import { WishlistToggle } from "@/components/WishlistToggle";
 
 export function generateStaticParams() {
@@ -63,6 +64,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       isPrimary: true,
     }];
 
+  const siteUrl = getSiteUrl();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    ...(product.description || product.note ? { description: product.description || product.note } : {}),
+    image: galleryImages.map((image) => new URL(image.url, siteUrl).toString()),
+    ...(product.category ? { category: product.category } : {}),
+    ...(product.id && product.priceMinor != null && product.currency ? {
+      offers: {
+        "@type": "Offer",
+        priceCurrency: product.currency,
+        price: (resolvedVariantPrices[0] ?? product.priceMinor) / 100,
+        availability: hasAvailableStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        url: new URL("/products/" + product.slug, siteUrl).toString(),
+      },
+    } : {}),
+  };
+
   const measurements = formatProductMeasurements(product.measurements);
   const materials = product.materials ?? [];
   const sizes = product.sizes ?? [];
@@ -78,6 +98,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="page-shell atelier-page-shell">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="breadcrumb atelier-breadcrumb">
         <Link href="/shop">THE GALLERY</Link>
         {product.category ? <><span aria-hidden="true">/</span><span>{product.category}</span></> : null}
@@ -140,17 +161,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         {hasProductInformation ? (
           <>
             {product.description && <p className="product-long-description">{product.description}</p>}
-            <dl className="product-attribute-list">
-              {materials.length > 0 && <div><dt>Materials</dt><dd>{materials.join(", ")}</dd></div>}
-              {sizes.length > 0 && <div><dt>Sizes</dt><dd>{sizes.join(", ")}</dd></div>}
+            <div className="product-accordion">
+              {materials.length > 0 && <details open><summary>Materials</summary><p>{materials.join(", ")}</p></details>}
+              {sizes.length > 0 && <details open><summary>Sizes</summary><p>{sizes.join(", ")}</p></details>}
               {measurements.length > 0 && (
-                <div>
-                  <dt>Measurements</dt>
-                  <dd><dl className="product-measurements">
+                <details open><summary>Measurements</summary>
+                  <dl className="product-measurements">
                     {measurements.map((measurement) => (
                       <div key={measurement.label}><dt>{measurement.label}</dt><dd>{measurement.value}</dd></div>
                     ))}
-                  </dl></dd>
+                  </dl>
+                </details>
+              )}
+              {product.conditionNotes && <details open><summary>Condition notes</summary><p>{product.conditionNotes}</p></details>}
+              {product.provenance && <details open><summary>Provenance</summary><p>{product.provenance}</p></details>}
+              {product.craftStory && <details><summary>Additional story</summary><p>{product.craftStory}</p></details>}
+            </div></dd>
                 </div>
               )}
               {product.conditionNotes && <div><dt>Condition notes</dt><dd>{product.conditionNotes}</dd></div>}
@@ -165,6 +191,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         )}
       </section>
+      <div className="mobile-buy-bar">
+        <div><b>{product.name}</b><span>{priceLabel}</span></div>
+        <Link className="button-primary" href={buildProductEnquiryHref(product.slug)}>Enquire</Link>
+      </div>
     </div>
   );
 }

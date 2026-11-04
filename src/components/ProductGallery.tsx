@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { isRemoteImage } from "@/lib/image";
 import type { ProductImage } from "@/lib/products";
 
 export function ProductGallery({ images, title }: { images: ProductImage[]; title: string }) {
@@ -24,7 +25,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
           fill
           priority
           sizes="(max-width:700px) 90vw, 55vw"
-          unoptimized
+          unoptimized={isRemoteImage(active.url)}
         />
         {images.length > 1 && (
           <div className="product-gallery-navigation" aria-label="Gallery navigation">
@@ -55,7 +56,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
                 width={76}
                 height={96}
                 sizes="76px"
-                unoptimized
+                unoptimized={isRemoteImage(image.url)}
               />
             </button>
           ))}
