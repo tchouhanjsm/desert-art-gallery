@@ -55,6 +55,7 @@ describe("English-language, Japanese-inspired storefront contract", () => {
   it("sets the public document language to English", () => {
     expect(source("../app/layout.tsx")).toContain('<html lang="en">');
     expect(source("../app/layout.tsx")).not.toContain('<html lang="ja">');
+    expect(source("../app/account/customer-page.tsx")).not.toContain("ja-JP");
   });
 
   it("keeps customer-facing source copy in English across the whole shopping journey", () => {
