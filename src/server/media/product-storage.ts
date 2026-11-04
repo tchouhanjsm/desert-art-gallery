@@ -1,7 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getMediaStorageRoot } from "./storage";
+import {
+  getMediaStorageDriver,
+  readPrivateMediaObject,
+  removePrivateMediaObject,
+  storePrivateMediaObject,
+} from "./object-storage";
 import type { EditorialImageMime } from "./storage";
 
 const extensionByMime: Record<EditorialImageMime, string> = {
@@ -42,7 +47,6 @@ export function createProductStorageKey(productId: string, mimeType: EditorialIm
   return safeProductStorageKey("products/" + productId + "/" + randomUUID() + "." + extensionByMime[mimeType]);
 }
 
-
 export function createDeterministicProductStorageKey(
   productId: string,
   contentSha256: string,
@@ -82,17 +86,21 @@ function absoluteProductMediaPath(key: string): string {
   return fullPath;
 }
 
+function localPathForKey(key: string): string | undefined {
+  return getMediaStorageDriver() === "local" ? absoluteProductMediaPath(key) : undefined;
+}
+
 export async function storeProductMedia(key: string, bytes: Uint8Array): Promise<void> {
-  const destination = absoluteProductMediaPath(key);
-  await mkdir(path.dirname(destination), { recursive: true, mode: 0o700 });
-  const temporary = destination + "." + randomUUID() + ".tmp";
-  try {
-    await writeFile(temporary, bytes, { flag: "wx", mode: 0o600 });
-    await rename(temporary, destination);
-  } catch (error) {
-    await rm(temporary, { force: true }).catch(() => undefined);
-    throw error;
-  }
+  const safeKey = safeProductStorageKey(key);
+  const extension = safeKey.split(".").pop()?.toLowerCase() ?? "";
+  const mimeType = mimeByExtension[extension];
+  if (!mimeType) throw new Error("Product media file extension is unsupported.");
+  await storePrivateMediaObject({
+    key: safeKey,
+    bytes,
+    contentType: mimeType,
+    localPath: localPathForKey(safeKey),
+  });
 }
 
 export async function readProductMedia(key: string): Promise<{ bytes: Buffer; mimeType: EditorialImageMime } | null> {
@@ -100,14 +108,17 @@ export async function readProductMedia(key: string): Promise<{ bytes: Buffer; mi
   const extension = safeKey.split(".").pop()?.toLowerCase() ?? "";
   const mimeType = mimeByExtension[extension];
   if (!mimeType) return null;
-  try {
-    return { bytes: await readFile(absoluteProductMediaPath(safeKey)), mimeType };
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw error;
-  }
+  return readPrivateMediaObject({
+    key: safeKey,
+    contentType: mimeType,
+    localPath: localPathForKey(safeKey),
+  });
 }
 
 export async function removeProductMedia(key: string): Promise<void> {
-  await rm(absoluteProductMediaPath(key), { force: true });
+  const safeKey = safeProductStorageKey(key);
+  await removePrivateMediaObject({
+    key: safeKey,
+    localPath: localPathForKey(safeKey),
+  });
 }
