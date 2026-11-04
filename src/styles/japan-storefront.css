@@ -1,12 +1,11 @@
 /* Scoped to the customer storefront. Owner/admin routes use admin-theme.css. */
 .jp-storefront { min-height: 100vh; background: #f5f0e7; color: #25231f; }
-.jp-storefront /* Japan-first storefront system
+/* Japan-first storefront system
    Direction: POJ Studio editorial craft storytelling + Macaroni Shoten's
    approachable curation, with practical Japanese shopping information.
    This file replaces the previous public-facing theme layers. The owner
    workspace remains independently styled by admin-theme.css. */
-
-:root{
+.jp-storefront{
   --atelier-ivory: #f5f0e7;
   --atelier-paper: #fbf9f5;
   --atelier-stone: #e8dfd2;
