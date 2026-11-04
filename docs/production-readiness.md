@@ -258,3 +258,12 @@ Production activation requires merchant-authorized catalogue data and original p
 - Added guide and policy destinations to the Japanese footer. The mobile header no longer hides the account and wishlist links; source-level regression checks cover their availability.
 - Japanese copy is an initial translation for engineering review, not a native-speaker approval. Exact-head CI, browser visual QA, policy approval and accessibility testing remain outstanding.
 - Added a tablet footer breakpoint: the new five-column desktop information architecture collapses to a two-column grid below 1000px, with the brand block spanning the row. The existing narrower mobile breakpoint remains intact.
+
+
+## Follow-up — 2026-11-04 — Japanese customer-facing copy completion
+
+- Translated remaining static interface headings and microcopy on homepage, shop, collection, story, artisans, journal and contact routes.
+- Localised the legacy Supabase customer order-detail draft notice, including its reservation-expiry fallback. It states in Japanese that no payment was requested or received.
+- Translated visual-design alt text, the short brand tagline and the footer location descriptor. Merchant-owned product titles, descriptions, category names, collection labels and artisan names/biographies remain source content until owner-approved Japanese copy is supplied.
+- Added `src/lib/japanese-copy-contract.test.ts` to guard key Japanese route headings and the no-payment draft notice against accidental English regressions.
+- The branch remains a draft PR. Native-speaker review, route-by-route visual QA and exact-head CI remain outstanding.
