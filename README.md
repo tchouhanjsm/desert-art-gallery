@@ -4,7 +4,7 @@ A Japanese-inspired, English-language curated lifestyle ecommerce store for text
 
 ## Product, UX and design source of truth
 
-**Read first:** [Japan-First Ecommerce Redesign](docs/JAPAN-ECOMMERCE-REDESIGN.md). This is the controlling brief for the public storefront, English-language storefront and source-content preservation, customer journeys, visual references, route map, acceptance gates and future redesign work. The former Desert Atelier / Desert Modern public themes are superseded. See [Storefront Design System](docs/STOREFRONT-DESIGN-SYSTEM.md), [Quality Gates](docs/STOREFRONT-QUALITY-GATES.md) and [Production Readiness](docs/production-readiness.md) for implementation status.
+**Read first:** [Japan-First Ecommerce Redesign](docs/JAPAN-ECOMMERCE-REDESIGN.md). This is the controlling brief for the public storefront, English-language storefront and source-content preservation, customer journeys, visual references, route map, acceptance gates and future redesign work. Japanese describes layout inspiration only; the public UI language remains English. The former Desert Atelier / Desert Modern public themes are superseded. See [Storefront Design System](docs/STOREFRONT-DESIGN-SYSTEM.md), [Quality Gates](docs/STOREFRONT-QUALITY-GATES.md) and [Production Readiness](docs/production-readiness.md) for implementation status.
 
 Product data and photography must remain evidence-led: the Etsy export contains USD source prices and English text; do not automatically convert currency or machine-translate product claims. Keep products as drafts until identity, content, image rights and merchant policies are reviewed.
 
