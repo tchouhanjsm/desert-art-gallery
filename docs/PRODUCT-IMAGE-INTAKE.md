@@ -109,7 +109,7 @@ Keep the recovered originals untouched until the mapping report has been reviewe
 
 ## Owner-approved recovery staging
 
-The audit's mapping-review CSV includes four empty owner fields: `approved_product_id`, `approved_product_slug`, `primary_image_filename` and `owner_note`. Review the original folder visually, choose the actual draft product and select the correct primary image. Then set `owner_decision` to exactly `APPROVED`. Keep other rows as `NOT_REVIEWED`, `HOLD` or `REJECTED`. A manual override outside the exact-title candidate list needs a detailed owner note.
+The audit's mapping-review CSV includes four empty owner fields: `approved_product_id`, `approved_product_slug`, `primary_image_filename` and `owner_note`. Review the original folder visually, choose the actual draft product and select the correct primary image. Then set `owner_decision` to exactly `APPROVED`. Keep other rows as `NOT_REVIEWED`, `HOLD` or `REJECTED`. A manual override outside the exact-title candidate list needs a detailed owner note of at least 20 characters; the note should state how the owner independently verified the recovered folder against the selected catalogue record.
 
 Generate a read-only staging preview using the edited mapping CSV:
 
