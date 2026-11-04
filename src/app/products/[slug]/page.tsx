@@ -146,7 +146,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             className="button-outline enquiry-button"
             href={buildProductEnquiryHref(product.slug)}
           >
-            Enquire about this piece <span aria-hidden="true">↗</span>
+            Enquire about this piece
           </Link>
           <div className="detail-footnote">
             Desert Art Gallery · Jaisalmer, Rajasthan, India<br />

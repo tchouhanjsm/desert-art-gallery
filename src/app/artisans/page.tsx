@@ -38,7 +38,7 @@ export default async function ArtisansPage() {
           <div className="info-copy">
             <p>This space is reserved for profiles that have been reviewed and approved by the people featured. No names, portraits, biographies or experience claims will be published here without their permission.</p>
             <p>For questions about the making or details of a particular piece, contact the gallery.</p>
-            <Link className="contact-link" href="/contact">CONTACT THE GALLERY ↗</Link>
+            <Link className="contact-link" href="/contact">CONTACT THE GALLERY</Link>
           </div>
         </div>
       );

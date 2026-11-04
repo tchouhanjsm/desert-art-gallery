@@ -128,7 +128,7 @@ function CartDrawer() {
       <div className="cart-drawer-header"><div><div className="section-kicker">YOUR SELECTION</div><h2>Your bag</h2></div><button className="icon-button" onClick={closeDrawer} aria-label="Close shopping bag">×</button></div>
       {isLoading && <p className="cart-state">Refreshing current product and stock details…</p>}
       {error && <p className="cart-error" role="status">{error}</p>}
-      {!lines.length ? <div className="empty-note">Your bag is waiting for its first piece.<br/><Link href="/shop" className="empty-link" onClick={closeDrawer}>EXPLORE THE COLLECTION ↗</Link></div> :
+      {!lines.length ? <div className="empty-note">Your bag is waiting for its first piece.<br/><Link href="/shop" className="empty-link" onClick={closeDrawer}>EXPLORE THE COLLECTION</Link></div> :
         <div className="cart-drawer-lines">{preview.map((item) => <article className="cart-line" key={cartLineKey(item.slug, item.variantId ?? undefined)}>
           {item.image ? <Image src={item.image} alt={item.imageAlt} width={88} height={116} unoptimized /> : <div className="cart-line-placeholder" aria-hidden="true" />}
           <div className="cart-line-details"><h3>{item.name}</h3>

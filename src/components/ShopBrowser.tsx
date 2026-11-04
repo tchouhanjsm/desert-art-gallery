@@ -130,7 +130,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
                 updateUrl({ q: "", category: ALL_SHOP_CATEGORY, sort: "featured" }, "push");
               }}
             >
-              Clear filters <span aria-hidden="true">↗</span>
+              Clear filters
             </button>
           )}
         </div>

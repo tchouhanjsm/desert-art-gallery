@@ -15,7 +15,7 @@ export function CartPageClient() {
   const canContinue = !isLoading && !error && lines.length > 0 && preview.length === lines.length
     && preview.every((item) => item.available && item.priceMinor !== null && Boolean(item.currency))
     && Object.keys(totals).length === 1;
-  if (!lines.length) return <div className="empty-note">Your bag is currently empty.<br/><Link href="/shop" className="empty-link">EXPLORE THE COLLECTION ↗</Link></div>;
+  if (!lines.length) return <div className="empty-note">Your bag is currently empty.<br/><Link href="/shop" className="empty-link">EXPLORE THE COLLECTION</Link></div>;
   return <div className="cart-page-layout">
     <section className="cart-page-lines">
       {isLoading && <p className="cart-state">Refreshing current product and stock details…</p>}

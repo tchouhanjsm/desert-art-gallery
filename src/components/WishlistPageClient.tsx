@@ -27,7 +27,7 @@ export function WishlistPageClient() {
     void load();
     return () => { cancelled = true; };
   }, [slugs]);
-  if (!slugs.length) return <div className="empty-note">Your wishlist is ready for its first discovery.<br/><Link href="/shop" className="empty-link">EXPLORE THE COLLECTION ↗</Link></div>;
+  if (!slugs.length) return <div className="empty-note">Your wishlist is ready for its first discovery.<br/><Link href="/shop" className="empty-link">EXPLORE THE COLLECTION</Link></div>;
   return <div>
     {loading && <p className="cart-state">Refreshing saved pieces…</p>}
     <div className="wishlist-grid">{items.map((item) => <article className="wishlist-card" key={item.slug}>

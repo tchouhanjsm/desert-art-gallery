@@ -42,7 +42,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <div className="section-kicker">A CURATED PATH THROUGH THE GALLERY</div>
         <h1>{collection.name}<em>.</em></h1>
         <p>{collection.description}</p>
-        <Link className="text-link" href="/shop">Explore all pieces <span aria-hidden="true">↗</span></Link>
+        <Link className="text-link" href="/shop">Explore all pieces</Link>
       </header>
       {collection.image && collection.image !== "/images/textile-placeholder.svg" && (
         <div className="atelier-collection-hero">

@@ -15,8 +15,8 @@
   --atelier-brass: #a88d61;
   --atelier-sage: #737664;
   --atelier-line: rgba(55, 46, 37, .17);
-  --atelier-display: var(--font-display, "Cormorant Garamond Variable", Georgia, serif);
-  --atelier-body: var(--font-body, "DM Sans Variable", Arial, sans-serif);
+  --atelier-display: var(--font-display, "Playfair Display Variable", Georgia, serif);
+  --atelier-body: var(--font-body, "Inter Variable", Arial, sans-serif);
   --atelier-container: 1380px;
   --atelier-gutter: clamp(22px, 5.5vw, 88px);
   --atelier-shadow: 0 24px 70px rgba(40, 32, 24, .12);

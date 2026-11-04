@@ -55,7 +55,7 @@ export default async function JournalPage() {
     {cards.length ? <div className="journal-grid">{cards.map((post) => <article className="journal-card" key={post.id}>
       <Link href={"/journal/" + post.slug}>
         {post.cover ? <div className="journal-photo"><Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={post.cover} alt={post.cover_image_alt?.trim() || post.title} fill sizes="(max-width:700px) 88vw, 30vw" /></div> : <div className="journal-photo journal-photo-empty" aria-hidden="true">DESERT ART GALLERY</div>}
-        <div className="section-kicker">{post.category}</div><h2>{post.title}</h2><p>{post.excerpt}</p><span className="text-link">READ THE STORY ↗</span>
+        <div className="section-kicker">{post.category}</div><h2>{post.title}</h2><p>{post.excerpt}</p><span className="text-link">Read the story</span>
       </Link>
     </article>)}</div> : <div className="empty-note">No stories have been published yet. Please visit again soon.</div>}
   </div>;

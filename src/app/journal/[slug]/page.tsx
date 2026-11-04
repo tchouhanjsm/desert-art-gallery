@@ -54,6 +54,6 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
       if (block.startsWith("### ")) return <h3 key={index}>{block.slice(4)}</h3>;
       return <p key={index}>{block}</p>;
     })}</div>
-    <div className="center-action"><Link href="/journal" className="text-link">BACK TO JOURNAL ↗</Link></div>
+    <div className="center-action"><Link href="/journal" className="text-link">BACK TO JOURNAL</Link></div>
   </article>;
 }

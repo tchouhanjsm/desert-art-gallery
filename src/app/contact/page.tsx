@@ -31,7 +31,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
             <h2 id="enquiry-context-heading">{requestedProduct.name}</h2>
             <p>{requestedProduct.category || "Desert Art Gallery"} · Product context retained from the listing you selected.</p>
           </div>
-          <Link className="text-link" href={"/products/" + requestedProduct.slug}>Return to this piece ↗</Link>
+          <Link className="text-link" href={"/products/" + requestedProduct.slug}>Return to this piece</Link>
           <p className="atelier-enquiry-status" role="status">
             Your enquiry context is ready, but no message has been sent. The gallery&apos;s official contact channel is still awaiting confirmation.
           </p>
@@ -64,7 +64,7 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
           <div className="atelier-contact-delivery" id="delivery-enquiries">
             <h3>Delivery enquiries</h3>
             <p>Shipping availability, charges, taxes, duties and estimated delivery depend on the destination and confirmed order. No delivery rate or timing is promised by this page.</p>
-            <Link href="/contact#delivery-enquiries">Read the delivery note ↗</Link>
+            <Link href="/contact#delivery-enquiries">Read the delivery note</Link>
           </div>
         </aside>
       </div>

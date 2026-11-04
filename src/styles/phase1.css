@@ -101,3 +101,30 @@
 .lookbook-caption{position:absolute;inset:auto 0 0 0;display:grid;gap:2px;padding:48px 22px 20px;background:linear-gradient(transparent,rgba(0,0,0,.7));font-size:14px}
 .lookbook-caption i{font-style:normal;font-size:12px;opacity:.8}
 @media(max-width:760px){.lookbook-grid{grid-template-columns:1fr;grid-template-rows:none}.lookbook-tile{aspect-ratio:4/5}.lookbook-tile-1{grid-row:auto}}
+
+/* Phase 5 — less "generated", more shop-like typography */
+/* next/font injects --font-display/--font-body on <body>; re-point the design tokens there so they resolve to the loaded files. */
+body{--atelier-display:var(--font-display),Georgia,serif;--atelier-body:var(--font-body),system-ui,sans-serif}
+body{font-size:16px;line-height:1.6}
+/* one-colour headings, no accent word */
+.section-title em,.atelier-page-heading h1 em,.atelier-hero-content h1 em,.atelier-contact h2 em,h1 em,h2 em,h3 em{font-style:normal;color:inherit!important}
+.lookbook .section-title em{color:inherit!important}
+.section-title{font-weight:500;letter-spacing:-.01em;line-height:1.12;font-size:clamp(30px,3.8vw,50px)}
+.atelier-hero-content h1{font-weight:600;letter-spacing:-.015em;line-height:1.06;font-size:clamp(38px,6vw,78px)}
+.atelier-hero-content h1 em{color:inherit!important}
+.page-heading h1,.atelier-page-heading h1{font-weight:500;letter-spacing:-.01em;line-height:1.1}
+/* sentence-case labels, nav and buttons */
+.section-kicker,.eyebrow{text-transform:none;letter-spacing:.02em;font-size:14px;font-weight:600}
+.announcement{text-transform:none;letter-spacing:.02em;font-size:13px}
+.wordmark span{letter-spacing:.06em;font-weight:600}
+.wordmark small{display:none}
+.main-nav a{text-transform:none;letter-spacing:.01em;font-size:15px;font-weight:500}
+.button-primary,.button-outline,.hero--atelier .button-primary{text-transform:none;letter-spacing:.01em;font-size:15px;font-weight:600}
+.text-link,.atelier-hero-secondary,.atelier-product-category,.atelier-product-action,.product-category,.atelier-note-bar,.footer-main h4{text-transform:none;letter-spacing:.01em}
+.text-link,.atelier-hero-secondary{font-size:14px;font-weight:600}
+.atelier-product-category{font-size:13px}
+.atelier-product-action{font-size:13px}
+.product-accordion summary{text-transform:none;letter-spacing:0;font-size:15px}
+.footer-main h4,.footer-bottom,.footer-brand>span{text-transform:none;letter-spacing:.01em;font-size:13px}
+.nav-mega-title{text-transform:none;letter-spacing:.01em;font-size:13px}
+.atelier-hero-foot,.atelier-hero-stamp{display:none}
