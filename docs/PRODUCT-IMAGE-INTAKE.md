@@ -88,6 +88,13 @@ First run the read-only mapping preview:
 npm run media:map-recovered
 ~~~
 
+To retain a machine-readable local report outside Git:
+
+~~~bash
+mkdir -p .local-data/recovery/reports
+npm run --silent media:map-recovered > .local-data/recovery/reports/recovered-product-mapping.json
+~~~
+
 The command scans each product folder's immediate files, reports supported image counts and byte sizes, identifies oversized images, unsupported files, nested directories and filesystem errors, then compares folder titles against the local MySQL catalogue.
 
 Title matching is deliberately conservative. It applies Unicode compatibility normalization, case folding, underscore-to-space conversion, dash normalization and whitespace collapsing. It does not remove punctuation, use fuzzy matching, infer a product from a partial title or generate a product slug from the folder name.
