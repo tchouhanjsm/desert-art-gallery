@@ -13,24 +13,24 @@ import {
 
 describe("S3-compatible private media storage", () => {
   it("defaults to local filesystem storage", () => {
-    expect(getMediaStorageDriver({} as NodeJS.ProcessEnv)).toBe("local");
-    expect(getMediaStorageDriver({ MEDIA_STORAGE_DRIVER: "local" } as NodeJS.ProcessEnv)).toBe("local");
+    expect(getMediaStorageDriver({})).toBe("local");
+    expect(getMediaStorageDriver({ MEDIA_STORAGE_DRIVER: "local" })).toBe("local");
   });
 
   it("rejects unknown storage drivers and unsafe endpoint URLs", () => {
-    expect(() => getMediaStorageDriver({ MEDIA_STORAGE_DRIVER: "public" } as NodeJS.ProcessEnv)).toThrow(/MEDIA_STORAGE_DRIVER/i);
+    expect(() => getMediaStorageDriver({ MEDIA_STORAGE_DRIVER: "public" })).toThrow(/MEDIA_STORAGE_DRIVER/i);
     const valid = {
       MEDIA_S3_ENDPOINT: "https://abc.r2.cloudflarestorage.com",
       MEDIA_S3_BUCKET: "gallery-private",
       MEDIA_S3_ACCESS_KEY_ID: "test-access-key",
       MEDIA_S3_SECRET_ACCESS_KEY: "test-secret-key",
-    } as NodeJS.ProcessEnv;
+    };
     const { MEDIA_S3_ENDPOINT: _endpoint, ...missingEndpoint } = valid;
-    expect(() => readMediaStorageConfig(missingEndpoint as NodeJS.ProcessEnv)).toThrow(/MEDIA_S3_ENDPOINT is required/i);
+    expect(() => readMediaStorageConfig(missingEndpoint)).toThrow(/MEDIA_S3_ENDPOINT is required/i);
     expect(() => readMediaStorageConfig({
       ...valid,
       MEDIA_S3_ENDPOINT: "http://abc.r2.cloudflarestorage.com",
-    } as NodeJS.ProcessEnv)).toThrow(/HTTPS/i);
+    })).toThrow(/HTTPS/i);
   });
 
   it("requires a complete S3 endpoint, private bucket identity and credentials", () => {
@@ -39,7 +39,7 @@ describe("S3-compatible private media storage", () => {
       MEDIA_S3_BUCKET: "gallery-private",
       MEDIA_S3_ACCESS_KEY_ID: "test-access-key",
       MEDIA_S3_SECRET_ACCESS_KEY: "test-secret-key",
-    } as NodeJS.ProcessEnv)).toEqual({
+    })).toEqual({
       endpoint: "https://abc.r2.cloudflarestorage.com",
       region: "auto",
       bucket: "gallery-private",
@@ -57,16 +57,16 @@ describe("S3-compatible private media storage", () => {
       MEDIA_S3_BUCKET: "gallery-private",
       MEDIA_S3_ACCESS_KEY_ID: "test-access-key",
       MEDIA_S3_SECRET_ACCESS_KEY: "test-secret-key",
-    } as NodeJS.ProcessEnv)).toBe("s3");
+    })).toBe("s3");
     expect(() => validateMediaStorageConfiguration({
       MEDIA_STORAGE_DRIVER: "s3",
       NODE_ENV: "production",
-    } as NodeJS.ProcessEnv)).toThrow(/MEDIA_S3_ENDPOINT is required/i);
+    })).toThrow(/MEDIA_S3_ENDPOINT is required/i);
     expect(() => validateMediaStorageConfiguration({
       MEDIA_STORAGE_DRIVER: "local",
       NODE_ENV: "production",
       MEDIA_STORAGE_ROOT: "",
-    } as NodeJS.ProcessEnv)).toThrow(/persistent storage/i);
+    })).toThrow(/persistent storage/i);
   });
 
   it("uploads private, typed objects and reads/deletes them without public URLs", async () => {
