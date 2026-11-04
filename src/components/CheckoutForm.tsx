@@ -185,7 +185,7 @@ export function CheckoutForm({
       {cartError && <p className="checkout-error" role="alert">{cartError}</p>}
       {message && <p className="checkout-error" role="alert">{message}</p>}
       {holdExpiry && <p className="checkout-blocker" role="status">Stock is temporarily reserved until {new Date(holdExpiry).toLocaleString("en-IN")}. If an order draft is not created, the configured process will release the reservation.</p>}
-      <div className="checkout-notice" role="note">この操作では、This action creates an order draft only; no payment is collected. The draft and temporary stock reservation expire. Payments will remain disabled until the payment provider and webhooks have been fully verified.</div>
+      <div className="checkout-notice" role="note">This action creates an unpaid order draft only; no payment is collected. The draft and temporary stock reservation expire. Payments will remain disabled until the payment provider and webhooks have been fully verified.</div>
       <button className="button-primary dark-button" type="submit" disabled={!canPrepare || busy}>{busy ? "Creating order draft…" : "Create order draft"}</button>
     </form>
     <aside className="cart-summary checkout-summary">
