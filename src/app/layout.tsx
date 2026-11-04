@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "@/styles/admin-theme.css";
 import "@/styles/japan-storefront.css";
+import "@/styles/admin-theme.css";
 import { SiteChrome } from "@/components/SiteChrome";
 import { CartProvider } from "@/components/CartProvider";
 import { WishlistProvider } from "@/components/WishlistProvider";
