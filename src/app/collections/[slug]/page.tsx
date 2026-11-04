@@ -39,10 +39,10 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   return (
     <div className="page-shell atelier-page-shell">
       <header className="atelier-page-heading atelier-collection-heading">
-        <div className="section-kicker">コレクション</div>
+        <div className="section-kicker">COLLECTION</div>
         <h1>{collection.name}<em>.</em></h1>
         <p>{collection.description}</p>
-        <Link className="text-link" href="/shop">すべての商品を見る</Link>
+        <Link className="text-link" href="/shop">View all products</Link>
       </header>
       {collection.image && collection.image !== "/images/textile-placeholder.svg" && (
         <div className="atelier-collection-hero">
@@ -56,9 +56,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
       ) : (
         <div className="atelier-empty-catalogue">
           <span className="atelier-empty-mark" aria-hidden="true">✳</span>
-          <h2>このコレクションは準備中です。</h2>
-          <p>現在ご案内できる商品や在庫についてはお問い合わせください。</p>
-          <Link className="button-outline" href="/contact">お問い合わせ</Link>
+          <h2>This collection is being prepared.</h2>
+          <p>Contact us for information about current availability.</p>
+          <Link className="button-outline" href="/contact">Contact us</Link>
         </div>
       )}
     </div>
