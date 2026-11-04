@@ -59,7 +59,9 @@ No live data is imported automatically, and no production deployment or payment 
 
 ## CI
 
-Pull-request CI runs against a GitHub-managed MySQL service and validates migrations, typecheck, tests, lint and production build. This hosted service does not require a local database container runtime on the developer device.
+The Next.js build uses standalone output. CI packages the traced Node.js runtime, static assets and tracked public assets into `desert-art-gallery-staging.tar.gz` for seven days. The artifact excludes local databases, credentials, recovered product photographs and application-managed media. See docs/CI-RELEASE-ARTIFACT.md for runtime and staging requirements.
+
+Pull-request CI runs against a GitHub-managed MySQL service and validates migrations, typecheck, tests, lint and production build. This hosted service does not require a local database container runtime on the developer device. A successful build also publishes a short-lived self-hosted Node.js staging artifact.
 
 
 The MySQL customer order lifecycle and merchant shipping/tax configuration are documented in docs/MYSQL-ORDER-CHECKOUT-PHASE-7.md. Keep payment processing disabled until the provider/webhook security phase is reviewed and enabled separately.
