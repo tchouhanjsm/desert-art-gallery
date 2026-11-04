@@ -53,7 +53,7 @@ export const footerNavigation: NavigationSection[] = [
     title: "Policies",
     links: [
       { href: "/privacy", label: "Privacy policy (draft)" },
-      { href: "/terms", label: "利用規約（草案）" },
+      { href: "/terms", label: "Terms of service (draft)" },
     ],
   },
 ];

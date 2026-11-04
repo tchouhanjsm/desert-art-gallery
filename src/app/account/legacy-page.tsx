@@ -84,7 +84,7 @@ export async function LegacyAccountPage() {
       </form></details>
     </section>
     <section className="account-section">
-      <div className="section-kicker">ORDER HISTORY</div><h2>ご注文</h2>
+      <div className="section-kicker">ORDER HISTORY</div><h2>Orders</h2>
       {orders.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Order number</th><th>Date</th><th>Status</th><th>Total</th><th>Tracking</th></tr></thead><tbody>
         {orders.map((order) => <tr key={order.id}><td><Link href={"/account/orders/" + order.id}>{order.order_number}</Link></td><td>{new Date(order.created_at).toLocaleDateString("en-IN")}</td><td><span className={"admin-status status-" + order.status}>{formatLegacyOrderStatus(order.status)}</span></td><td>{formatMoneyFromMinor(order.total_minor, order.currency)}</td><td>{safeTrackingUrl(order.tracking_url) ? <a href={safeTrackingUrl(order.tracking_url) ?? undefined} target="_blank" rel="noreferrer">{order.tracking_carrier || "Track shipment"}</a> : order.tracking_number || "—"}</td></tr>)}
       </tbody></table></div> : <div className="empty-note">There is no order history for this account yet.</div>}

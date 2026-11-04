@@ -26,7 +26,7 @@ export function Footer() {
       <div className="jp-footer-bottom">
         <span>© {new Date().getFullYear()} DESERT ART GALLERY</span>
         <span>For questions about products, shipping or orders, please visit our contact page.</span>
-        <Link href="/contact">お問い合わせ</Link>
+        <Link href="/contact">Contact the gallery</Link>
       </div>
     </footer>
   );
