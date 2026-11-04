@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   buildRecoveredProductMapping,
   normalizeRecoveredProductTitle,
+  recoveredProductMappingCsv,
   scanRecoveredProductFolders,
   type RecoveredProductFolderInventory,
   type RecoveredProductRecord,
@@ -73,6 +74,59 @@ describe("recovered product folder mapping", () => {
     expect(report.mappings[0].status).toBe("unique_etsy_draft_candidate");
     expect(report.mappings[0].manualReviewRequired).toBe(true);
     expect(report.mappings[0].candidateProducts[0].slug).toBe(etsyProduct().slug);
+  });
+
+  it("ranks close title matches as suggestions without upgrading them to exact candidates", () => {
+    const product = etsyProduct({
+      title: "Vintage Raali Patchwork Jacket: Handmade Kantha Quilted Coat",
+      slug: "vintage-raali-patchwork-jacket-a1b2c3d",
+    });
+    const report = buildRecoveredProductMapping(
+      inventoryWith(["Vintage_Raali Patchwork Jacket Handmade Kantha Coat"]),
+      [product],
+    );
+
+    expect(report.mappings[0].status).toBe("unmatched");
+    expect(report.mappings[0].manualReviewRequired).toBe(true);
+    expect(report.mappings[0].candidateProducts).toEqual([]);
+    expect(report.mappings[0].suggestedProducts[0]).toMatchObject({
+      id: product.id,
+      slug: product.slug,
+      sourceProvider: "etsy",
+    });
+    expect(report.mappings[0].suggestedProducts[0].similarityScore).toBeGreaterThan(0.7);
+    expect(report.summary.unmatchedFoldersWithSuggestions).toBe(1);
+    expect(report.summary.suggestedProductCandidates).toBe(1);
+
+    const csv = recoveredProductMappingCsv(report);
+    expect(csv).toContain('"suggested_product_ids"');
+    expect(csv).toContain('"suggested_product_scores"');
+    expect(csv).toContain('"NOT_REVIEWED"');
+  });
+
+  it("does not suggest a product when a folder shares only one generic title token", () => {
+    const report = buildRecoveredProductMapping(
+      inventoryWith(["Vintage Leather Jacket"]),
+      [etsyProduct({ title: "Handmade Banjara Wool Patchwork Jacket" })],
+    );
+    expect(report.mappings[0].status).toBe("unmatched");
+    expect(report.mappings[0].suggestedProducts).toEqual([]);
+  });
+
+  it("does not add fuzzy suggestions when an exact title candidate already exists", () => {
+    const exact = etsyProduct();
+    const close = etsyProduct({
+      id: "product-2",
+      title: "Banjara Jacket, Vintage Tribal Coat with Embroidery",
+      slug: "banjara-jacket-embroidery",
+    });
+    const report = buildRecoveredProductMapping(
+      inventoryWith(["Banjara_Jacket, Vintage Tribal Coat"]),
+      [exact, close],
+    );
+    expect(report.mappings[0].status).toBe("unique_etsy_draft_candidate");
+    expect(report.mappings[0].candidateProducts).toHaveLength(1);
+    expect(report.mappings[0].suggestedProducts).toEqual([]);
   });
 
   it("does not use fuzzy or punctuation-stripping title matching", () => {
