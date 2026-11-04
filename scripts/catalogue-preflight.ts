@@ -2,7 +2,7 @@ import type { RowDataPacket } from "mysql2";
 import { closeMySqlPool, getMySqlPool } from "../src/server/db";
 import { assertLocalMySqlTarget } from "../src/server/db/safety";
 
-type TableRow = RowDataPacket & { table_name: string };
+type TableRow = RowDataPacket & { table_name: string; table_type: string; engine: string | null; table_rows: number | string | null };
 type ServerRow = RowDataPacket & {
   database_name: string;
   server_version: string;
@@ -31,7 +31,7 @@ async function main() {
   if (!server) throw new Error("MySQL returned no server identity.");
 
   const [tableRows] = await pool.query<TableRow[]>(
-    "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()",
+    "SELECT table_name, table_type, engine, table_rows FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name",
   );
   const tables = new Set(tableRows.map((row) => row.table_name));
   const has = (name: string) => tables.has(name);
@@ -49,7 +49,18 @@ async function main() {
     },
     schema: {
       tableCount: tables.size,
+      existingTables: tableRows.map((row) => ({
+        name: row.table_name,
+        type: row.table_type,
+        engine: row.engine,
+        estimatedRows: row.table_rows === null ? null : Number(row.table_rows),
+      })),
       migrationsApplied: has("__drizzle_migrations"),
+      schemaInitializationGate: has("__drizzle_migrations")
+        ? "migration_journal_present"
+        : tables.size === 0
+          ? "empty_database_ready_for_migration_review"
+          : "blocked_existing_tables_without_migration_journal",
       productsTablePresent: has("products"),
       productVariantsTablePresent: has("product_variants"),
       productMediaTablePresent: has("product_media"),
