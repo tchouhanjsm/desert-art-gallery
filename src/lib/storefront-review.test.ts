@@ -13,7 +13,7 @@ describe("storefront visual review matrix", () => {
   });
 
   it("covers customer shopping, account, support and policy routes", () => {
-    const paths = new Set(storefrontReviewRoutes.map((route) => route.path));
+    const paths = new Set<string>(storefrontReviewRoutes.map((route) => route.path));
     for (const path of [
       "/", "/shop", "/cart", "/checkout", "/login", "/register", "/account",
       "/account/recovery", "/wishlist", "/story", "/artisans", "/journal",
