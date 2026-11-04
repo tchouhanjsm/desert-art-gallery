@@ -41,11 +41,11 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
       <div className="atelier-contact-layout">
         <section className="atelier-contact-main">
           <div className="atelier-contact-card">
-            <span className="atelier-contact-card-index">01 / GALLERY</span>
+            <span className="atelier-contact-card-index">01 / お問い合わせ</span>
             <h2>連絡先</h2>
             <p>公式メールアドレスとお問い合わせ方法は、確認後にこちらへ掲載します。</p>
             <p className="atelier-contact-email">公式連絡先は確認中です。</p>
-            <span className="atelier-contact-location">JAISALMER · RAJASTHAN · INDIA</span>
+            <span className="atelier-contact-location">ジャイサルメール · ラージャスターン州 · インド</span>
           </div>
           <div className="atelier-contact-note">
             <span className="section-kicker">在庫について</span>
