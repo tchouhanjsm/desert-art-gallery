@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search, UserRound, Heart, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
 import { useWishlist } from "@/components/WishlistProvider";
@@ -12,6 +12,39 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [collectionsOpen, setCollectionsOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const collectionsButtonRef = useRef<HTMLButtonElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen && !collectionsOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      setCollectionsOpen(false);
+      if (menuOpen) menuButtonRef.current?.focus();
+      else collectionsButtonRef.current?.focus();
+    }
+
+    function handleOutsidePointer(event: PointerEvent) {
+      if (!(event.target instanceof Node)) return;
+      const insideNav = navRef.current?.contains(event.target) ?? false;
+      const insideMenuButton = menuButtonRef.current?.contains(event.target) ?? false;
+      if (!insideNav && !insideMenuButton) {
+        setMenuOpen(false);
+        setCollectionsOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("pointerdown", handleOutsidePointer);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("pointerdown", handleOutsidePointer);
+    };
+  }, [menuOpen, collectionsOpen]);
   const { lineCount, openDrawer } = useCart();
   const { count: wishlistCount } = useWishlist();
 
@@ -20,6 +53,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
   function closeMenus() {
     setMenuOpen(false);
     setSearchOpen(false);
+    setCollectionsOpen(false);
   }
 
   return (
@@ -63,6 +97,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
               <span className="bag-count">{lineCount}</span>
             </button>
             <button
+              ref={menuButtonRef}
               className="icon-button mobile-menu-button"
               type="button"
               aria-label={menuOpen ? "メニューを閉じる" : "メニューを開く"}
@@ -75,12 +110,22 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
           </div>
         </div>
 
-        <nav id="primary-navigation" className={menuOpen ? "main-nav jp-main-nav open" : "main-nav jp-main-nav"} aria-label="メインナビゲーション">
+        <nav ref={navRef} id="primary-navigation" className={menuOpen ? "main-nav jp-main-nav open" : "main-nav jp-main-nav"} aria-label="メインナビゲーション">
           {primaryNavigation.map((item) => item.href === "/shop" && collections.length > 0 ? (
             <div className="jp-nav-collection" key={item.href}>
               <Link href={item.href} onClick={closeMenus}>{item.label}</Link>
-              <ChevronDown size={13} aria-hidden="true" />
-              <div className="jp-nav-panel">
+              <button
+                ref={collectionsButtonRef}
+                className="jp-nav-disclosure"
+                type="button"
+                aria-label={collectionsOpen ? "カテゴリーを閉じる" : "カテゴリーを開く"}
+                aria-expanded={collectionsOpen}
+                aria-controls="shop-category-panel"
+                onClick={() => setCollectionsOpen((open) => !open)}
+              >
+                <ChevronDown size={13} aria-hidden="true" />
+              </button>
+              <div id="shop-category-panel" className={collectionsOpen ? "jp-nav-panel is-open" : "jp-nav-panel"}>
                 <Link href="/shop" onClick={closeMenus}>すべての商品を見る</Link>
                 {collections.map((collection) => (
                   <Link href={"/collections/" + collection.slug} key={collection.slug} onClick={closeMenus}>{collection.name}</Link>
