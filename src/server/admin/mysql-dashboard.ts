@@ -13,7 +13,7 @@ const LOW_STOCK_THRESHOLD = 3;
 
 type CountRow = { count: number | string };
 
-async function countValue(query: Promise<CountRow[]>): Promise<number> {
+async function countValue(query: PromiseLike<CountRow[]>): Promise<number> {
   const [row] = await query;
   return Number(row?.count ?? 0);
 }
