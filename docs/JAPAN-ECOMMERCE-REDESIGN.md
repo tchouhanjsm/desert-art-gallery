@@ -1061,3 +1061,11 @@ These are source-export observations only. They do not mean the CSV was imported
 - Native-speaker copy review, all-route untranslated-string audit, verified legal disclosures, product taxonomy, merchant-approved JPY pricing/tax/shipping/returns and customer-support details.
 - Lighthouse HTML/JSON and measured Core Web Vitals review, ideally from Japan/Asia-Pacific.
 - No screenshot or production/staging visual acceptance is claimed by this source-level review.
+
+
+## Implementation addendum — 2026-11-04 — static storefront copy audit
+
+- Translated static English headings and overlines on homepage, shop, collection, story, artisans, journal and contact screens.
+- Translated the legacy customer order-detail unpaid-draft warning and its expiry fallback; it explicitly states that no payment was requested or received.
+- Localised design-study accessibility text, brand tagline and footer location. Merchant-source product names/descriptions, categories, collection names and artisan details remain unchanged pending owner-approved Japanese equivalents.
+- Added source-level regression assertions in `src/lib/japanese-copy-contract.test.ts`. These assertions do not replace native-speaker review or browser accessibility testing.
