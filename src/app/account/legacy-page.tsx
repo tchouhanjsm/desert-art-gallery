@@ -34,7 +34,7 @@ export async function LegacyAccountPage() {
     supabase.from("orders").select("id,order_number,status,currency,total_minor,created_at,tracking_carrier,tracking_number,tracking_url").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
     supabase.from("addresses").select("id,recipient_name,address_line_1,address_line_2,city,region,postal_code,country_code,is_default_shipping").eq("user_id", user.id).order("is_default_shipping", { ascending: false }).order("created_at", { ascending: false }),
   ]);
-  if (profileResult.error || orderResult.error || addressResult.error) throw new Error("Unable to load your account information.");
+  if (profileResult.error || orderResult.error || addressResult.error) throw new Error("アカウント情報を読み込めませんでした。");
   const profile = profileResult.data;
   const orders = (orderResult.data ?? []) as OrderRow[];
   const addresses = (addressResult.data ?? []) as AddressRow[];
@@ -77,7 +77,7 @@ export async function LegacyAccountPage() {
         <label>市区町村<input name="city" required maxLength={120}/></label>
         <label>都道府県・州・地域<input name="region" maxLength={120}/></label>
         <label>郵便番号<input name="postal_code" required maxLength={24}/></label>
-        <label>国コード<input name="country_code" placeholder="IN, US, GB…" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}"/></label>
+        <label>国コード<input name="country_code" placeholder="例：JP、IN、US" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}"/></label>
         <label>電話番号<input name="phone" maxLength={40}/></label>
         <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes"/> 既定の配送先にする</label>
         <button type="submit" className="button-primary dark-button">住所を保存</button>
