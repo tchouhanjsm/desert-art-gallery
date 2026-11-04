@@ -1014,3 +1014,15 @@ These are source-export observations only. They do not mean the CSV was imported
 | Date | Update |
 |---|---|
 | 2026-11-04 | Owner adopted Japan-first ecommerce direction as SOT. Initial route map, shared Japanese shell, core shopping/customer journeys and documentation alignment recorded. Product source content, currency, taxonomy and image rights remain subject to owner/reviewer validation. |
+
+
+## Implementation addendum — 2026-11-04 — storefront regression hardening
+
+### Verified finding and follow-up
+
+- GitHub Actions CI run #317 for PR #17, head `2e61b635b31e67728251366dab401d45589e461c`, stopped during `npm run typecheck` because two Supabase SDK method names in the legacy login form had been altered during Japanese UI localisation. The patch restores `resetPasswordForEmail` and `signInWithPassword`; SDK/API identifiers must never be translated.
+- The homepage now uses a dedicated hero-product selector that requires a persisted catalogue ID and a non-empty image URL. Development preview records have no persisted ID and remain clearly labelled preview artwork in product cards; they cannot be mistaken for published hero photography.
+- Added regression tests for preview-only catalogue data, mixed preview/persisted products and empty image URLs.
+- Lighthouse artifacts are uploaded only when the expected manifest exists, so a previous validation failure is not obscured by an unrelated missing-artifact error.
+- PR #17 is open as a draft against `main`. At this addendum, the fixes have been committed for a new exact-head CI run; typecheck, tests, lint, build and Lighthouse results are not yet claimed.
+- Browser visual QA across the required viewport matrix, Japanese native-speaker copy review, bundled Japanese glyph/line-break validation and accessibility review remain release gates. No catalogue import, photo matching, rights approval, payment activation or production deployment is part of this patch.

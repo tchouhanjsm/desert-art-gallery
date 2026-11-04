@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
+import { selectStorefrontHeroProduct } from "@/lib/storefront-presentation";
 
 export const metadata = {
   title: "ラージャスターンのテキスタイルと手仕事",
@@ -13,7 +14,7 @@ export default async function HomePage() {
     getStorefrontCollections(),
     getStorefrontProducts(),
   ]);
-  const heroProduct = products[0] ?? null;
+  const heroProduct = selectStorefrontHeroProduct(products);
 
   return (
     <div className="jp-home">

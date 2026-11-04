@@ -237,3 +237,12 @@ Production activation requires merchant-authorized catalogue data and original p
 - Inspected the uploaded Etsy export: 527 rows; USD only; all source quantity values are 1; 5,216 source image URL references; 60 blank SKU rows; 13 duplicate SKU groups; repeated titles; no category/section or variation data. See `docs/ETSY-LISTINGS-IMPORT.md`.
 - Current blockers: owner-reviewed category taxonomy; SKU/title/photo reconciliation; Japanese product translations; JPY retail-price and tax policy; shipping/duties/returns and legal operator details; native-speaker copy review; JP font/glyph QA; route-by-route visual/accessibility/performance evidence.
 - No CSV import, photo upload, rights approval, product publication, payment activation or production deployment is claimed by this PR.
+
+
+## Follow-up — 2026-11-04 — Japan-first storefront regression hardening
+
+- The exact-head CI run #317 on commit `2e61b635b31e67728251366dab401d45589e461c` stopped at TypeScript checking. It identified two incorrectly localised Supabase SDK calls in `src/app/login/legacy-login-form.tsx`: `resetPasswordForEmail` and `signInWithPassword`. These API identifiers (and the local password setter) are restored to standard TypeScript names in the follow-up patch.
+- The homepage now selects its hero from persisted catalogue products with a non-empty image URL. Development-only preview records have no database ID and cannot be rendered as published hero photography. The existing catalogue service continues to control published status and media rights.
+- Added unit coverage for preview-only catalogues, selecting a persisted product after preview records, and rejecting empty image URLs.
+- The Lighthouse report upload now runs only when its manifest exists. This avoids a secondary missing-artifact failure when an earlier validation step stops the job; it does not suppress the underlying typecheck/test/lint/build failure.
+- The new exact-head workflow run is required to verify the patch. Visual screenshots, Japanese native-speaker review, accessibility and performance evidence remain outstanding. This update does not authorise product publication, photo rights approval, payment activation or production deployment.
