@@ -51,9 +51,9 @@ describe("English-language, Japanese-inspired storefront contract", () => {
   });
 
   it("keeps customer-facing source copy in English across the whole shopping journey", () => {
-    const japaneseText = /[\\u3000-\\u30ff\\u3400-\\u9fff]/;
+    const japaneseText = /[\u3000-\u30ff\u3400-\u9fff]/;
     const offenders = publicInterfaceFiles.filter((path) => japaneseText.test(source(path)));
-    expect(offenders, `Japanese UI copy remains in: ${offenders.join(", ")}`).toEqual([]);
+    expect(offenders, \`Japanese UI copy remains in: \${offenders.join(", ")}\`).toEqual([]);
   });
 
   it("retains the intended editorial ecommerce direction in English", () => {
