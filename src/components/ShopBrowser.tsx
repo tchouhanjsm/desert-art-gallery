@@ -135,6 +135,24 @@ export function ShopBrowser({ products }: { products: Product[] }) {
           )}
         </div>
       </div>
+      {categories.length > 2 && (
+        <div className="shop-chips" role="group" aria-label="Filter by category">
+          {categories.map((item) => (
+            <button
+              key={item}
+              type="button"
+              className="shop-chip"
+              aria-pressed={category === item}
+              onClick={() => {
+                setCategory(item);
+                updateUrl({ q: query, category: item, sort }, "push");
+              }}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      )}
       {visible.length ? (
         <div className="atelier-product-grid">
           {visible.map((product) => (

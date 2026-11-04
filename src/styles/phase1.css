@@ -64,3 +64,11 @@
   .mobile-buy-bar .button-primary{flex:none;min-height:46px;padding:12px 24px}
   .atelier-page-shell{padding-bottom:90px}
 }
+
+/* Phase 3 — shop browsing */
+.shop-chips{display:flex;gap:10px;overflow-x:auto;padding:4px 0 22px;margin:0 -2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.shop-chips::-webkit-scrollbar{display:none}
+.shop-chip{flex:none;min-height:42px;padding:0 20px;border:1px solid var(--atelier-line);border-radius:999px;background:#fffdfa;color:var(--atelier-ink);font-size:13px;letter-spacing:.04em;transition:background .2s,color .2s,border-color .2s}
+.shop-chip:hover{border-color:var(--atelier-ink)}
+.shop-chip[aria-pressed="true"]{background:var(--atelier-ink);border-color:var(--atelier-ink);color:#fff}
+@media(max-width:760px){.atelier-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:22px 12px!important}}
