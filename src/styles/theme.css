@@ -1111,3 +1111,103 @@ main { min-height: 55vh; }
 @media (prefers-reduced-motion: reduce) {
   .wishlist-toggle--compact { transition: none; }
 }
+
+/* -------------------------------------------------------------------------
+   DESERT MODERN — new gallery identity
+   Archival indigo, sun-washed parchment, sandstone and oxidised copper.
+   Deliberately overrides presentation only; commerce and admin behavior stay
+   unchanged. Product photography remains the primary visual material.
+   ------------------------------------------------------------------------- */
+:root {
+  --atelier-ivory: #f5f0e6;
+  --atelier-paper: #fbf8f1;
+  --atelier-stone: #e5dac7;
+  --atelier-sand: #d4c1a3;
+  --atelier-ink: #202b3b;
+  --atelier-muted: #6d6a62;
+  --atelier-clay: #a9563b;
+  --atelier-clay-dark: #783c2d;
+  --atelier-brass: #c08b42;
+  --atelier-sage: #66766b;
+  --atelier-line: rgba(32, 43, 59, .18);
+  --atelier-shadow: 0 24px 70px rgba(32, 43, 59, .13);
+}
+html, body { background: var(--atelier-ivory); color: var(--atelier-ink); }
+::selection { background: #d6b77f; color: #202b3b; }
+:focus-visible { outline-color: #b87937; }
+.section-kicker, .atelier-product-category, .atelier-value > span { color: #a9563b; }
+.section-title, .atelier-page-heading h1, .atelier-product-meta h3,
+.atelier-collection-copy h3, .atelier-empty-catalogue h3 {
+  color: var(--atelier-ink);
+}
+.section-title em, .atelier-page-heading h1 em,
+.atelier-hero-content h1 em, .atelier-contact h2 em,
+.atelier-intro-copy .section-title em { color: #c08b42; }
+.text-link, .atelier-note-bar a, .atelier-product-action,
+.atelier-breadcrumb a { color: #783c2d; border-color: #c08b42; }
+.button-primary { background: #202b3b; border-color: #202b3b; }
+.button-primary:hover { background: #783c2d; border-color: #783c2d; }
+.button-outline { border-color: #202b3b; color: #202b3b; }
+.button-outline:hover { background: #202b3b; color: #fbf8f1; }
+.announcement { background: #202b3b; color: #f5f0e6; }
+.site-header { background: rgba(245, 240, 230, .97); border-color: rgba(32,43,59,.17); }
+.wordmark span { color: #202b3b; }
+.wordmark small, .atelier-product-meta p, .atelier-page-heading > p,
+.atelier-intro-copy p, .atelier-featured-heading p,
+.atelier-value p, .atelier-contact p { color: #6d6a62; }
+.main-nav a { color: #344255; }
+.main-nav a::after { background: #c08b42; }
+.icon-button:hover { background: #e5dac7; color: #783c2d; }
+.bag-count, .wishlist-count { background: #a9563b; }
+.hero--atelier { background: #202b3b; }
+.hero--atelier::after {
+  background:
+    linear-gradient(90deg, rgba(22,31,45,.94) 0%, rgba(32,43,59,.76) 46%, rgba(32,43,59,.16) 100%),
+    linear-gradient(0deg, rgba(22,31,45,.5), transparent 44%);
+}
+.atelier-hero-content .eyebrow { color: #e4c58d; }
+.atelier-hero-content h1 em { color: #e2b76e; }
+.hero--atelier .button-primary { background: #f5f0e6; border-color: #f5f0e6; color: #202b3b; }
+.hero--atelier .button-primary:hover { background: #d6b77f; border-color: #d6b77f; }
+.atelier-hero-secondary { color: #f5f0e6; }
+.atelier-hero-secondary:hover { color: #e2b76e; }
+.atelier-hero-foot { border-color: rgba(245,240,230,.35); }
+.atelier-hero-stamp { color: rgba(245,240,230,.78); }
+.atelier-hero-stamp i { color: #e2b76e; }
+.atelier-note-bar { background: #e9dfcf; color: #5e5c56; border-color: var(--atelier-line); }
+.atelier-intro-art, .atelier-collection-image, .atelier-product-media,
+.atelier-story-image, .atelier-product-gallery-wrap .detail-gallery-main {
+  background: #e5dac7;
+}
+.atelier-art-index, .atelier-preview-label { background: rgba(251,248,241,.94); color: #344255; }
+.atelier-collections { background: #e9dfcf; }
+.atelier-collection-arrow, .atelier-product-open { background: #f5f0e6; color: #202b3b; }
+.atelier-collection-card:hover .atelier-collection-arrow { background: #d6b77f; }
+.atelier-product-card { border-color: var(--atelier-line); }
+.atelier-product-bottom { border-color: var(--atelier-line); }
+.atelier-empty-catalogue { background: #f0e8da; border-color: var(--atelier-line); }
+.atelier-empty-mark { color: #c08b42; }
+.atelier-story { background: #202b3b; color: #f5f0e6; }
+.atelier-story-copy .section-kicker { color: #d6b77f; }
+.atelier-story-copy .section-title { color: #fbf8f1; }
+.atelier-story-copy .section-title em, .atelier-light-link { color: #e2b76e; }
+.atelier-story-image { background: #6f6252; }
+.atelier-story-mark { color: rgba(226,183,110,.17); }
+.atelier-values { background: #e9dfcf; }
+.atelier-contact { background: #f5f0e6; }
+.atelier-contact h2 { color: #202b3b; }
+.atelier-shop-toolbar { border-color: var(--atelier-line); }
+.atelier-shop-controls input, .atelier-shop-controls select {
+  border-color: var(--atelier-line); background: #fbf8f1; color: #202b3b;
+}
+.atelier-clear-filters { color: #783c2d; border-color: #c08b42; }
+.atelier-product-price-panel { background: #f0e8da; border-color: var(--atelier-line); }
+.atelier-stock-note { color: #66766b; }
+.atelier-product-details-pending { background: #f0e8da; border-color: var(--atelier-line); }
+.atelier-image-disclaimer { color: #6d6a62; }
+@media (max-width: 760px) {
+  .atelier-hero-content h1 { letter-spacing: -.04em; }
+  .atelier-note-bar { background: #e9dfcf; }
+  .atelier-story { background: #202b3b; }
+}
+
