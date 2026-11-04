@@ -20,7 +20,7 @@ describe("storefront conversion contract", () => {
     expect(contactPage).toContain("searchParams");
     expect(contactPage).toContain("parseProductEnquirySlug(params.product)");
     expect(contactPage).toContain("getStorefrontProduct(requestedSlug)");
-    expect(contactPage).toContain("no message has been sent");
+    expect(contactPage).toContain("メッセージは送信されていません");
   });
 
   it("offers a wishlist action outside the product link on each catalogue card", () => {
@@ -33,8 +33,8 @@ describe("storefront conversion contract", () => {
 
   it("provides previous and next controls and selected thumbnail states in the gallery", () => {
     const gallery = readFileSync(join(root, "src/components/ProductGallery.tsx"), "utf8");
-    expect(gallery).toContain("View previous product image");
-    expect(gallery).toContain("View next product image");
+    expect(gallery).toContain("前の商品画像を見る");
+    expect(gallery).toContain("次の商品画像を見る");
     expect(gallery).toContain('aria-pressed={activeIndex === index}');
     expect(gallery).toContain("aria-live=\"polite\"");
   });
@@ -44,7 +44,7 @@ describe("storefront conversion contract", () => {
       join(root, "src/app/products/[slug]/page.tsx"),
       "utf8",
     );
-    expect(productPage).toContain("Additional product details have not yet been supplied");
-    expect(productPage).toContain("Materials, measurements, condition and provenance are not assumed");
+    expect(productPage).toContain("この商品について、追加情報はまだ掲載されていません。");
+    expect(productPage).toContain("素材、寸法、状態、来歴などは推測で補っていません。");
   });
 });
