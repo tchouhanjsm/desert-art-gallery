@@ -25,7 +25,8 @@ describe("S3-compatible private media storage", () => {
       MEDIA_S3_ACCESS_KEY_ID: "test-access-key",
       MEDIA_S3_SECRET_ACCESS_KEY: "test-secret-key",
     } as NodeJS.ProcessEnv;
-    expect(() => readMediaStorageConfig(valid)).toThrow(/MEDIA_S3_ENDPOINT is required/i);
+    const { MEDIA_S3_ENDPOINT: _endpoint, ...missingEndpoint } = valid;
+    expect(() => readMediaStorageConfig(missingEndpoint as NodeJS.ProcessEnv)).toThrow(/MEDIA_S3_ENDPOINT is required/i);
     expect(() => readMediaStorageConfig({
       ...valid,
       MEDIA_S3_ENDPOINT: "http://abc.r2.cloudflarestorage.com",
@@ -45,6 +46,27 @@ describe("S3-compatible private media storage", () => {
       accessKeyId: "test-access-key",
       secretAccessKey: "test-secret-key",
     });
+  });
+
+  it("checks readiness configuration without exposing any storage credentials", async () => {
+    const { validateMediaStorageConfiguration } = await import("./object-storage");
+    expect(validateMediaStorageConfiguration({
+      MEDIA_STORAGE_DRIVER: "s3",
+      MEDIA_S3_ENDPOINT: "https://abc.r2.cloudflarestorage.com",
+      MEDIA_S3_REGION: "auto",
+      MEDIA_S3_BUCKET: "gallery-private",
+      MEDIA_S3_ACCESS_KEY_ID: "test-access-key",
+      MEDIA_S3_SECRET_ACCESS_KEY: "test-secret-key",
+    } as NodeJS.ProcessEnv)).toBe("s3");
+    expect(() => validateMediaStorageConfiguration({
+      MEDIA_STORAGE_DRIVER: "s3",
+      NODE_ENV: "production",
+    } as NodeJS.ProcessEnv)).toThrow(/MEDIA_S3_ENDPOINT is required/i);
+    expect(() => validateMediaStorageConfiguration({
+      MEDIA_STORAGE_DRIVER: "local",
+      NODE_ENV: "production",
+      MEDIA_STORAGE_ROOT: "",
+    } as NodeJS.ProcessEnv)).toThrow(/persistent storage/i);
   });
 
   it("uploads private, typed objects and reads/deletes them without public URLs", async () => {
