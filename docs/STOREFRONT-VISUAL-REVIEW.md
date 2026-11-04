@@ -68,7 +68,7 @@ These are CI lab measurements on the blank test database, not field Core Web Vit
 
 ## Phase 5 route and viewport evidence
 
-The Playwright capture matrix in `src/lib/storefront-review.ts` now defines 24 customer/operations routes across 360, 414, 768, 1440 and 1600 px. The runner writes full-page screenshots and a JSON manifest to ignored `.local-data/visual-review/`. CI uploads its result as a short-lived artifact.
+The Playwright capture matrix in `src/lib/storefront-review.ts` now defines 24 customer/operations routes across 360, 414, 768, 1440 and 1600 px. The runner writes full-page screenshots and a JSON manifest to ignored `.local-data/visual-review/`. CI uploads its result as a short-lived artifact. The harness is under review in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); do not claim its capture artifact exists until that exact-head workflow completes.
 
 The CI test database contains no merchant catalogue. Dynamic product and collection routes may correctly resolve to not-found; screenshots of those empty states are not product-image or catalogue acceptance. `/admin` is unauthenticated and may redirect to `/owner/login`; signed-in owner/dashboard views still require staging UAT.
 
