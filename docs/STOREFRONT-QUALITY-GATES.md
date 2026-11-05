@@ -55,6 +55,7 @@ Use realistic English production-length strings, long merchant-supplied product 
 - [ ] Primary image mapping, alt text, MIME, file size, checksum, sort order and image rights are verified.
 - [ ] Private media remains inaccessible until existing permission/publication rules allow it.
 - [ ] Preview artwork is explicitly identified and never represented as product photography.
+- [ ] Product and collection placeholders use abstract, non-literal surfaces with a clear pending-photography label; avoid repeating oversized brand monograms across catalogue tiles.
 
 ## 5. Performance gates
 
