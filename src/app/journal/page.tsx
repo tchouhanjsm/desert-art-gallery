@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
+import { StorefrontPageHeading } from "@/components/StorefrontPageHeading";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasMySqlDatabase } from "@/server/db";
 import { getPublishedJournalPosts, type JournalRecord } from "@/server/editorial/repository";
@@ -28,7 +29,12 @@ export default async function JournalPage() {
   } else {
     const supabase = await createSupabaseServerClient();
     if (!supabase) return <div className="page-shell">
-      <div className="page-heading"><div className="section-kicker">THE GALLERY JOURNAL</div><h1>Journal</h1><p>Explore textiles, handmade work and the cultures behind them.</p></div>
+      <StorefrontPageHeading
+        eyebrow="THE GALLERY JOURNAL"
+        title="Journal"
+        description="Explore textiles, handmade work and the cultures behind them."
+        className="page-heading"
+      />
       <div className="empty-note">Articles will appear here once the publishing workflow is connected and each story is approved.</div>
     </div>;
 
@@ -51,7 +57,12 @@ export default async function JournalPage() {
   }
 
   return <div className="page-shell">
-    <div className="page-heading"><div className="section-kicker">NOTES FROM THE DESERT</div><h1>Journal & stories</h1><p>Stories about textiles, craft and the cultures that keep these traditions alive.</p></div>
+    <StorefrontPageHeading
+      eyebrow="NOTES FROM THE DESERT"
+      title="Journal & stories"
+      description="Stories about textiles, craft and the cultures that keep these traditions alive."
+      className="page-heading"
+    />
     {cards.length ? <div className="journal-grid">{cards.map((post) => <article className="journal-card" key={post.id}>
       <Link href={"/journal/" + post.slug}>
         {post.cover ? <div className="journal-photo"><Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={post.cover} alt={post.cover_image_alt?.trim() || post.title} fill sizes="(max-width:700px) 88vw, 30vw" /></div> : <div className="journal-photo journal-photo-empty" aria-hidden="true">DESERT ART GALLERY</div>}
