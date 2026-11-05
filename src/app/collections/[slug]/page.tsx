@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { StorefrontImage } from "@/components/StorefrontImage";
 import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -47,7 +47,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
       </header>
       {isPublishedCollectionImage(collection) && (
         <div className="atelier-collection-hero">
-          <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="100vw" />
+          <StorefrontImage placeholder="blur" blurDataURL={galleryBlurDataUrl} src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="100vw" />
         </div>
       )}
       {productsInCollection.length ? (

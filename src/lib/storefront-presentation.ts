@@ -17,15 +17,22 @@ export function selectStorefrontHeroProduct(products: readonly Product[]): Produ
   ) ?? null;
 }
 
-/** Only persisted collections with a real image path and descriptive alt text use photo tiles. */
+/** A collection photo is rendered only when the data projection explicitly confirms its rights. */
 export function isPublishedCollectionImage(collection: {
   id?: string;
   image?: string | null;
   imageAlt?: string | null;
+  imageApproved?: boolean;
 }): boolean {
-  return typeof collection.id === "string" && collection.id.trim().length > 0
-    && typeof collection.image === "string" && collection.image.trim().length > 0
-    && typeof collection.imageAlt === "string" && collection.imageAlt.trim().length > 0;
+  if (collection.imageApproved !== true) return false;
+  if (typeof collection.id !== "string" || collection.id.trim().length === 0) return false;
+  if (typeof collection.image !== "string" || collection.image.trim().length === 0) return false;
+  const imagePath = collection.image.trim().split(/[?#]/, 1)[0];
+  if (imagePath === "/images/textile-placeholder.svg") return false;
+  if (typeof collection.imageAlt !== "string") return false;
+  const alt = collection.imageAlt.trim();
+  if (!alt || /^(?:image|photo|photograph|picture|collection image|placeholder|untitled)(?:\s+\d+)?$/i.test(alt)) return false;
+  return true;
 }
 
 /** Only merchant-supplied product facts are surfaced on the product card. */
@@ -37,13 +44,19 @@ export function getProductCardFacts(product: Product): string[] {
   return facts;
 }
 
-/** A card is purchase-ready only when a published product/variant is priced and in stock. */
+/**
+ * The PDP add-to-bag control requires a persisted, priced product and currency.
+ * Variant-level prices may fall back to the product price, so stock—not a
+ * duplicated variant price—is the final per-option check.
+ */
 export function hasPurchasableProductOption(product: Product): boolean {
   if (!isPublishedProductRecord(product)) return false;
+  if (typeof product.priceMinor !== "number" || !Number.isSafeInteger(product.priceMinor) || product.priceMinor < 0) return false;
+  if (typeof product.currency !== "string" || product.currency.trim().length === 0) return false;
   if (product.variants?.length) {
     return product.variants.some((variant) =>
-      variant.status === "active" && typeof variant.priceMinor === "number" && variant.quantityOnHand > 0
+      variant.status === "active" && variant.quantityOnHand > 0
     );
   }
-  return typeof product.priceMinor === "number" && Boolean(product.currency) && (product.quantityOnHand ?? 0) > 0;
+  return (product.quantityOnHand ?? 0) > 0;
 }

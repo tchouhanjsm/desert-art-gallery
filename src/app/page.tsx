@@ -1,8 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
+import { StorefrontImage } from "@/components/StorefrontImage";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
-import { isPublishedCollectionImage, selectStorefrontHeroProduct } from "@/lib/storefront-presentation";
+import { ALL_SHOP_CATEGORY, getShopCategories } from "@/lib/shop-query";
+import { isPublishedCollectionImage, isPublishedProductRecord, selectStorefrontHeroProduct } from "@/lib/storefront-presentation";
 
 export const metadata = {
   title: "Textiles and Handcrafted Pieces from Rajasthan",
@@ -15,6 +16,8 @@ export default async function HomePage() {
     getStorefrontProducts(),
   ]);
   const heroProduct = selectStorefrontHeroProduct(products);
+  const publishedCategories = getShopCategories(products.filter(isPublishedProductRecord))
+    .filter((category) => category !== ALL_SHOP_CATEGORY);
 
   return (
     <div className="jp-home">
@@ -27,13 +30,15 @@ export default async function HomePage() {
           </p>
           <div className="jp-home-hero-actions">
             <Link className="button-primary" href="/shop">Shop all products</Link>
-            <Link className="text-link" href="/shop">Browse categories</Link>
+            <Link className="text-link" href={publishedCategories.length ? "#shop-categories" : "/shop"}>
+              {publishedCategories.length ? "Browse categories" : "Explore the shop"}
+            </Link>
           </div>
         </div>
-        <div className="jp-home-hero-media">
+        <div className={heroProduct ? "jp-home-hero-media" : "jp-home-hero-media jp-home-hero-media--empty"}>
           {heroProduct ? (
             <Link href={"/products/" + heroProduct.slug} aria-label={heroProduct.name + " — view product details"}>
-              <Image
+              <StorefrontImage
                 src={heroProduct.image}
                 alt={heroProduct.imageAlt || heroProduct.name}
                 fill
@@ -61,6 +66,23 @@ export default async function HomePage() {
         <div><span aria-hidden="true">03</span><div><b>Clear before you order</b><small>Ask us to confirm price, availability and delivery details.</small></div></div>
       </section>
 
+      {publishedCategories.length > 0 && (
+        <section className="jp-home-category-discovery" id="shop-categories" aria-labelledby="shop-categories-heading">
+          <div className="jp-home-section-inner">
+            <div className="section-kicker">SHOP BY CATEGORY</div>
+            <h2 id="shop-categories-heading" className="section-title">Find a starting point</h2>
+            <div className="jp-home-category-links">
+              {publishedCategories.map((category) => (
+                <Link className="jp-home-category-link" href={"/shop?category=" + encodeURIComponent(category)} key={category}>
+                  {category}
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {collections.filter(isPublishedCollectionImage).length > 0 && (
         <section className="jp-home-section jp-home-section--muted" aria-labelledby="collections-heading">
           <div className="jp-home-section-inner">
@@ -75,7 +97,7 @@ export default async function HomePage() {
               {collections.filter(isPublishedCollectionImage).slice(0, 4).map((collection) => (
                 <Link className="jp-home-collection-card" href={"/collections/" + collection.slug} key={collection.slug}>
                   <div className="jp-home-collection-media">
-                    <Image
+                    <StorefrontImage
                       src={collection.image}
                       alt={collection.imageAlt || collection.name}
                       fill
@@ -116,7 +138,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="jp-home-story" aria-labelledby="home-story-heading">
+      <section className="jp-home-story jp-home-story--compact" aria-labelledby="home-story-heading">
         <div className="jp-home-story-copy">
           <div className="section-kicker">THE GALLERY APPROACH</div>
           <h2 id="home-story-heading" className="section-title">A closer look at <em>craft and character.</em></h2>
@@ -124,11 +146,6 @@ export default async function HomePage() {
             From Jaisalmer, Rajasthan, we bring together distinctive textiles and handcrafted objects. Every listing is built around the individual piece—not generic claims.
           </p>
           <Link href="/story" className="text-link">Our approach to curation</Link>
-        </div>
-        <div className="jp-home-story-art jp-home-editorial-note">
-          <span className="section-kicker">CURATION NOTES</span>
-          <strong>Material<br />Texture<br />Provenance<br />Character</strong>
-          <small>Facts are shared when verified. Nothing is guessed to fill a listing.</small>
         </div>
       </section>
     </div>

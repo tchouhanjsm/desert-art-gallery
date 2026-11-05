@@ -1,11 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
+import { StorefrontImage } from "@/components/StorefrontImage";
 import { galleryBlurDataUrl } from "@/lib/image";
 import { formatMoneyFromMinor } from "@/lib/money";
 import type { Product } from "@/lib/products";
 import { PreviewArtwork } from "@/components/PreviewArtwork";
 import { WishlistToggle } from "@/components/WishlistToggle";
-import { getProductCardFacts, hasPurchasableProductOption } from "@/lib/storefront-presentation";
+import { getProductCardFacts, hasPurchasableProductOption, isPublishedProductRecord } from "@/lib/storefront-presentation";
 
 function previewVariant(category: string): "textile" | "embroidered" | "object" | "heritage" {
   const value = category.toLowerCase();
@@ -16,7 +16,7 @@ function previewVariant(category: string): "textile" | "embroidered" | "object" 
 }
 
 export function StorefrontProductCard({ product }: { product: Product }) {
-  const isPreview = !product.id;
+  const isPreview = !isPublishedProductRecord(product);
   const facts = getProductCardFacts(product);
   const purchasable = hasPurchasableProductOption(product);
   const price = product.priceMinor != null && product.currency
@@ -25,7 +25,7 @@ export function StorefrontProductCard({ product }: { product: Product }) {
 
   return (
     <article className="atelier-product-card">
-      {product.id && (
+      {isPublishedProductRecord(product) && (
         <div className="atelier-product-card-wishlist">
           <WishlistToggle slug={product.slug} compact />
         </div>
@@ -35,7 +35,7 @@ export function StorefrontProductCard({ product }: { product: Product }) {
           {isPreview ? (
             <PreviewArtwork title={product.name} category={product.category} variant={previewVariant(product.category)} />
           ) : (
-            <Image
+            <StorefrontImage
               placeholder="blur"
               blurDataURL={galleryBlurDataUrl}
               src={product.image}

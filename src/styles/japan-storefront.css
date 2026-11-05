@@ -181,3 +181,26 @@
 .jp-storefront .atelier-empty-catalogue .atelier-empty-mark{margin:0 0 2px;}
 .jp-storefront .atelier-empty-catalogue h2{font-size:clamp(19px,2vw,25px);}
 .jp-storefront .atelier-empty-catalogue p{max-width:620px;margin:0 auto 7px;line-height:1.8;}
+
+
+/* Phase 6 review: truthful category discovery, resilient imagery and compact editorial. */
+.jp-storefront .jp-home-category-discovery{padding:clamp(32px,4vw,52px) var(--atelier-gutter);border-bottom:1px solid var(--atelier-line);background:var(--atelier-paper);}
+.jp-storefront .jp-home-category-discovery .section-title{margin:7px 0 18px;font-size:clamp(23px,2.4vw,32px);}
+.jp-storefront .jp-home-category-links{display:flex;flex-wrap:wrap;gap:9px;}
+.jp-storefront .jp-home-category-link{min-height:44px;padding:9px 14px;display:inline-flex;align-items:center;gap:14px;border:1px solid var(--atelier-line);background:var(--atelier-ivory);font-size:12px;transition:border-color .18s ease,background .18s ease;}
+.jp-storefront .jp-home-category-link span{color:var(--atelier-clay);font-size:14px;}
+.jp-storefront .jp-home-category-link:hover{border-color:var(--atelier-clay);background:#f0e9df;}
+.jp-storefront .jp-home-hero-media--empty{height:auto;min-height:360px;max-height:none;aspect-ratio:auto;overflow:visible;}
+.jp-storefront .jp-home-hero-media--empty .jp-home-hero-empty{height:100%;min-height:360px;justify-content:center;}
+.jp-storefront .jp-home-story--compact{grid-template-columns:minmax(0,760px);justify-content:center;padding-top:clamp(38px,4.5vw,58px);padding-bottom:clamp(38px,4.5vw,58px);}
+.jp-storefront .jp-home-story--compact .jp-home-story-copy{justify-self:start;width:min(720px,100%);}
+.jp-storefront .jp-image-unavailable{position:absolute;inset:0;z-index:1;display:grid;place-items:center;padding:18px;background:linear-gradient(145deg,#e8dfd2,#f0e9df);color:var(--atelier-muted);text-align:center;font-size:10px;letter-spacing:.08em;text-transform:uppercase;}
+.jp-storefront .product-gallery-thumb{position:relative;}
+@media(max-width:760px){
+  .jp-storefront .jp-home-category-discovery{padding-top:30px;padding-bottom:30px;}
+  .jp-storefront .jp-home-category-links{gap:7px;}
+  .jp-storefront .jp-home-category-link{min-height:44px;padding:8px 11px;font-size:11px;}
+  .jp-storefront .jp-home-hero-media--empty{min-height:0;}
+  .jp-storefront .jp-home-hero-media--empty .jp-home-hero-empty{height:auto;min-height:250px;padding:24px;justify-content:center;}
+  .jp-storefront .jp-home-story--compact{grid-template-columns:minmax(0,1fr);padding-top:38px;padding-bottom:38px;}
+}
