@@ -40,6 +40,29 @@ Run npm run local:prepare to create the ignored .local-data workspace, npm run d
 
 The private workspace reserves .local-data/mysql for a dedicated local MySQL data directory, .local-data/media for application-managed media, .local-data/imports for private source files and .local-data/backups for backups. None of these private files should be committed. The prepare command does not initialize or move an existing database. A native MySQL installation may keep its data in a system-managed directory until a separate instance is safely configured for the project directory. Do not repoint or reinitialize an existing database as a shortcut.
 
+## Local backup and restore
+
+After native MySQL, the local owner and private media are configured, create paired restore points before making material data changes:
+
+```bash
+npm run db:backup
+npm run db:backup -- --commit --confirm-local-backup
+```
+
+Restore only into a newly created, empty, separate local MySQL database and a new absolute media path. The command defaults to a read-only validation:
+
+```bash
+npm run db:restore -- --backup "<backup-folder>" --target-media "/absolute/new/media/path"
+```
+
+Commit only after reviewing the target:
+
+```bash
+npm run db:restore -- --backup "<backup-folder>" --target-media "/absolute/new/media/path" --commit --confirm-local-restore
+```
+
+The backup bundle is unencrypted and includes private media; store it on encrypted, access-controlled storage. S3 media mode is not covered. See docs/LOCAL-MYSQL-BACKUP-RESTORE-PHASE-12.md for the recovery workflow and acceptance limits.
+
 ## Product photography intake
 
 Recovered originals are kept out of Git and staged only after explicit owner approval. The read-only mapping review can be turned into private importer-compatible copies with `npm run media:stage-recovered`; it never modifies the recovered originals or writes product-media rows. See docs/PRODUCT-IMAGE-INTAKE.md.
