@@ -43,6 +43,7 @@ type DatabaseIdentityRow = RowDataPacket & {
   server_comment: string;
 };
 type CountRow = RowDataPacket & { total: number | string };
+type MediaKeyRow = RowDataPacket & { storage_key: string };
 
 export type LocalBackupSourcePlan = {
   databaseName: string;
@@ -80,6 +81,7 @@ type DatabaseSnapshot = {
   serverVersion: string;
   tableCount: number;
   migrationCount: number;
+  productMediaKeys: string[];
 };
 
 type MediaInventoryItem = {
@@ -164,6 +166,9 @@ async function inspectDatabase(databaseUrl: string): Promise<{ config: ReturnTyp
     );
     const tableCount = Number(tableRows[0]?.total ?? 0);
     const migrationCount = Number(migrationRows[0]?.total ?? 0);
+    const [mediaRows] = await connection.query<MediaKeyRow[]>(
+      "SELECT storage_key FROM product_media ORDER BY storage_key",
+    );
     if (tableCount < 1 || migrationCount < 1) {
       throw new Error("Database schema or migration journal is empty; no application backup was created.");
     }
@@ -175,6 +180,7 @@ async function inspectDatabase(databaseUrl: string): Promise<{ config: ReturnTyp
         serverVersion: identity.server_version,
         tableCount,
         migrationCount,
+        productMediaKeys: mediaRows.map((row) => row.storage_key),
       },
     };
   } finally {
@@ -436,6 +442,17 @@ export async function inspectLocalBackupSource(input: {
     throw new Error("Local backup is unavailable while MEDIA_STORAGE_DRIVER=s3.");
   }
   const files = await enumerateMediaFiles(mediaRoot);
+  const availableMediaPaths = new Set(files.map((file) => file.relativePath));
+  const missingProductMedia = snapshot.productMediaKeys.filter((key) => {
+    const safeKey = validateMediaBackupPath(key);
+    return !availableMediaPaths.has(safeKey);
+  });
+  if (missingProductMedia.length > 0) {
+    throw new Error(
+      "Private media backup is incomplete: " + missingProductMedia.length
+      + " product media record(s) reference files that are missing from MEDIA_STORAGE_ROOT. No backup was created.",
+    );
+  }
   return {
     databaseName: snapshot.name,
     serverVersion: snapshot.serverVersion,
@@ -516,6 +533,7 @@ export async function createLocalBackupBundle(input: {
       || identity.snapshot.serverVersion !== plan.serverVersion
       || identity.snapshot.migrationCount !== plan.migrationCount
       || identity.snapshot.tableCount !== plan.tableCount
+      || JSON.stringify(identity.snapshot.productMediaKeys) !== JSON.stringify(plan.productMediaKeys)
     ) {
       throw new Error("Database schema changed while the backup was being prepared. No backup bundle was published; retry after writes settle.");
     }
