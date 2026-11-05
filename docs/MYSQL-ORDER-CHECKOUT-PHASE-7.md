@@ -60,3 +60,14 @@ The configured rates are independent additive components calculated on the item 
 The storefront branch translates customer-facing checkout labels and places postal code near the start of the address form. It does not add furigana fields, Japanese postcode lookup, prefecture-specific validation or address-model columns. The current backend contract remains generic (`recipient_name`, `address_line_1/2`, `city`, `region`, `postal_code`, `country_code`, `phone`). Any Japan-specific fields require a separately reviewed backwards-compatible persistence/API plan and tests.
 
 The UI must continue to fail closed when no merchant-approved shipping zone/rate or country/currency tax disclosure exists. No JPY conversion, tax-inclusion label, shipping price/timeline or payment method is inferred by localisation.
+
+
+## Checkout UX resilience follow-up — 2026-11-05
+
+This frontend-only follow-up preserves the Phase 7 server contracts and makes two customer-journey corrections:
+
+- Reservation and order-draft idempotency keys are generated as a pair and retained for the same normalized checkout request. A retry after an ambiguous network response reuses both keys; an edited order request receives a new pair. Cart-line order and harmless address/note whitespace differences do not create a different fingerprint.
+- Choosing a saved address is now explicit state. Editing any address field switches the selector to the custom-address option and explains that the saved address itself is not modified.
+- The order summary exposes the configured shipping charge once a rate is selected. It does not invent a tax amount or final total: configured tax and the final total remain server-computed and are shown in the resulting order review.
+
+No schema, API route, inventory behaviour, shipping/tax calculation, order lifecycle, payment or seller-policy behaviour changes. Live payment remains disabled.

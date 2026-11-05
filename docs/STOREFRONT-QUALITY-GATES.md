@@ -130,3 +130,14 @@ Review every artifact manually. Automated captures do not provide pixel-diff bas
 - [ ] The product-detail mobile sticky action navigates to real purchase controls for buyable products and to enquiry for products without a verified purchasable option.
 - [ ] Only active variants can contribute to product availability and add-to-bag options.
 - [ ] No client-provided price, availability or media value is promoted to server authority.
+
+
+## 11. Checkout retry and delivery-address UX
+
+- [ ] Repeating the same checkout payload reuses both the reservation and order-draft idempotency keys.
+- [ ] Changing cart lines, destination/address, selected shipping rate or delivery note creates a new checkout attempt key pair.
+- [ ] Address whitespace and cart-line ordering alone do not create a new request fingerprint when the server normalizes them to the same request.
+- [ ] Editing any field after selecting a saved delivery address switches the selector to the custom-address option; it never implies the account's saved address was modified.
+- [ ] The order summary shows the actual configured shipping amount only after an applicable rate is selected.
+- [ ] Tax and grand total remain server-calculated; the browser does not estimate, override or invent them.
+- [ ] Order drafts remain explicitly unpaid. No provider logos, card fields, payment capture or paid-state transition are introduced.

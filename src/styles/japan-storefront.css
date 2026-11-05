@@ -243,3 +243,26 @@
   .jp-storefront .cart-page-line .cart-line-media{width:95px;}
   .jp-storefront .atelier-product-actions{scroll-margin-top:90px;}
 }
+
+
+/* Phase 8 — checkout review clarity and saved-address editing state. */
+.jp-storefront .checkout-saved-address small{
+  display:block;
+  margin-top:7px;
+  color:var(--atelier-muted);
+  font-size:10px;
+  line-height:1.7;
+}
+.jp-storefront .checkout-total-pending{
+  margin-top:15px;
+  padding:12px 13px;
+  border:1px solid var(--atelier-line);
+  background:var(--atelier-paper);
+  color:var(--atelier-muted);
+  font-size:10px;
+  line-height:1.8;
+}
+.jp-storefront .checkout-summary .cart-summary-row strong{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}

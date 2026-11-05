@@ -1156,3 +1156,13 @@ The Playwright capture matrix is aligned to the owner-requested viewport widths:
 - Self-hosted staging archive, 19.2 MB, was packaged and uploaded but **not deployed**.
 - CI is unauthenticated and uses an empty catalogue. Dynamic product and collection pages return documented 404 states; their real product content, variants, cart population and photography remain unverified.
 - Evidence: [route review](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13395789564), [Lighthouse](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13396750732), [staging archive](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13396950369).
+
+
+## Phase 8 — checkout retry safety and order-review clarity — 2026-11-05
+
+- Reuse the same stock-reservation and order-draft idempotency key pair when retrying an unchanged checkout request. Normalize the same inputs as the API and ignore cart-line ordering so a browser retry replays the same attempt.
+- Generate a new pair only when cart lines, destination/address, shipping rate or delivery note changes.
+- Keep saved-address selection controlled. Editing any field after selecting a saved address switches the selector to the one-time custom-address option; the account's saved record is not edited by checkout.
+- Show the configured shipping amount in the order summary. Do not calculate tax or grand totals in the browser; show that the server will calculate and display them in the unpaid order review.
+- Preserve the server-owned price, reservation snapshots, shipping/tax fail-closed rules, customer ownership, expiry and unpaid-draft/payment boundary.
+- No payment provider, webhook, customer address schema or product/merchant policy is added.

@@ -2,6 +2,13 @@
 
 Last reviewed: 2026-11-05 (Asia/Kolkata)
 
+## Current checkout resilience increment — 2026-11-05
+
+Checkout now retains a matching idempotency key pair across retries of the same normalized order request, including retries after ambiguous network failures. The fingerprint normalizes address/note data and cart-line ordering. Editing any delivery-address field clears the saved-address selection to show that the order will use a custom one-time address; the saved record itself is not modified. The checkout order summary displays configured shipping when selected and explicitly leaves tax/final-total computation to the server.
+
+**Scope:** frontend only. No reservation/order APIs, MySQL schema, pricing/tax calculation, inventory, expiry, payment provider or webhook behaviour changed. Payment remains disabled. Exact-head CI pending. Merchant-configured destination/shipping/tax rules and authenticated customer UAT remain necessary.
+
+
 ## Current storefront frontend continuation — 2026-11-05
 
 The English-language storefront redesign continues on [PR #21](https://github.com/tchouhanjsm/desert-art-gallery/pull/21), branch `feat/visual-merchandising-ecommerce-phase6`. PR #20 has merged; PR #21 was synchronized with the resulting `main` head before this increment. This is not a new redesign or a new PR.
