@@ -169,3 +169,15 @@ Automated CI is not signed-in customer acceptance. The following remain open: re
 - [ ] Shared page and section heading primitives preserve semantic heading levels, IDs, existing route classes and optional actions.
 - [ ] Category labels and visible counts derive from the same catalogue records used for filtering and result sets. No hard-coded category counts or popularity signals.
 - [ ] Superseded stylesheet overlays are not reintroduced as additional cascade layers.
+
+
+## 14. Deterministic customer interaction smoke checks
+
+The CI production server is exercised after the route/viewport capture, using the existing Playwright installation and the intentionally empty MySQL test catalogue.
+
+Required checks:
+- [ ] Header search submits a term to `/shop?q=...` and the shop restores the query into its search field.
+- [ ] Mobile navigation opens with `aria-expanded=true`, closes with Escape and restores focus to its trigger.
+- [ ] The empty shopping bag opens as a labelled modal dialog, displays the empty state, closes with Escape and restores focus to its trigger.
+
+These checks do not create products, alter customer data, authenticate users, create order drafts, reserve inventory or attempt payments. They complement route/viewport screenshots; they do not replace signed-in UAT, full keyboard/screen-reader review or human visual sign-off.
