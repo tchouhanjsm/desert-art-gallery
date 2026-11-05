@@ -141,3 +141,10 @@ Review every artifact manually. Automated captures do not provide pixel-diff bas
 - [ ] The order summary shows the actual configured shipping amount only after an applicable rate is selected.
 - [ ] Tax and grand total remain server-calculated; the browser does not estimate, override or invent them.
 - [ ] Order drafts remain explicitly unpaid. No provider logos, card fields, payment capture or paid-state transition are introduced.
+
+
+### Phase 8 automated evidence — 2026-11-05
+
+[Run #384](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41989843935) passed for the checkout-resilience PR head: migrations, typecheck, 320 tests, lint, build, 120 route/viewport captures and Lighthouse. Home Lighthouse: 92/95/96/100; shop: 90/96/96/100; zero assertion failures. The capture manifest reports zero capture failures, horizontal overflow, broken images, missing/generic alt labels, unnamed buttons, HTTP errors, failed requests or page errors. Fifteen console 404 messages are limited to the intentionally empty database's product/collection routes and deliberate not-found route.
+
+Automated CI is not signed-in customer acceptance. The following remain open: retry after a real ambiguous network response, saved address editing under an authenticated customer, order creation with merchant-configured shipping and tax, review of a real server-calculated order total, and cancellation/expiry UAT. No payment flow is available or implied.

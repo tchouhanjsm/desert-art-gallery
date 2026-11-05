@@ -71,3 +71,16 @@ This frontend-only follow-up preserves the Phase 7 server contracts and makes tw
 - The order summary exposes the configured shipping charge once a rate is selected. It does not invent a tax amount or final total: configured tax and the final total remain server-computed and are shown in the resulting order review.
 
 No schema, API route, inventory behaviour, shipping/tax calculation, order lifecycle, payment or seller-policy behaviour changes. Live payment remains disabled.
+
+
+## Checkout UX resilience — exact-head validation (2026-11-05)
+
+The frontend retry/address/order-summary increment was validated by [PR #22 CI run #384](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41989843935) on `e71ae85bdf2975e50cfdede960076e5ebcef55a8`.
+
+Passed: MySQL setup/migrations, TypeScript typecheck, **320 unit/integration tests**, lint, production build, 120 Playwright route/viewport captures, Lighthouse budget/assertions and self-hosted staging archive packaging.
+
+Lighthouse results (Performance / Accessibility / Best Practices / SEO): homepage **92 / 95 / 96 / 100**; shop **90 / 96 / 96 / 100**. Lighthouse assertions: zero failures. The route manifest had zero capture failures, horizontal overflow, broken images, missing/generic alt labels, unnamed buttons, HTTP errors, failed requests or page errors. Its 15 console 404 messages were limited to empty-database product/collection routes and the intentional not-found route.
+
+Artifacts: [route review](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397956203), [Lighthouse](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397562703), [staging package — not deployed](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397876821).
+
+These automated results do not prove an authenticated checkout with live merchant shipping/tax configuration. Owner-approved staging UAT and customer-account checks remain required. No provider, payment webhook, payment capture or paid-state transition was enabled.

@@ -1166,3 +1166,18 @@ The Playwright capture matrix is aligned to the owner-requested viewport widths:
 - Show the configured shipping amount in the order summary. Do not calculate tax or grand totals in the browser; show that the server will calculate and display them in the unpaid order review.
 - Preserve the server-owned price, reservation snapshots, shipping/tax fail-closed rules, customer ownership, expiry and unpaid-draft/payment boundary.
 - No payment provider, webhook, customer address schema or product/merchant policy is added.
+
+
+### Phase 8 exact-head validation — 2026-11-05
+
+[PR #22 CI run #384](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41989843935) passed on commit `e71ae85bdf2975e50cfdede960076e5ebcef55a8`.
+
+- MySQL migration setup, TypeScript typecheck, all 320 unit/integration tests, lint and production build passed.
+- Playwright captured 120/120 route/viewport combinations across 24 routes at 390, 430, 768, 1280 and 1440px. There were no capture failures.
+- Manifest: all 120 documents used `lang=en`; zero horizontal overflow, broken images, missing/generic alt labels, unnamed buttons, HTTP errors, failed requests or page errors.
+- Fifteen console 404 messages occurred only on the empty-database product route, collection route and intentional not-found route, repeated across the five widths. This is the documented empty-catalogue test state, not a media failure.
+- Lighthouse assertions reported zero failures. Home: **92 Performance / 95 Accessibility / 96 Best Practices / 100 SEO**. Shop: **90 / 96 / 96 / 100**.
+- Self-hosted staging archive (19.2 MB) was packaged and uploaded; it was not deployed.
+- Evidence: [route review artifact](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397956203), [Lighthouse artifact](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397562703), [staging archive](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397876821).
+
+The CI database is intentionally blank and the browser run is unauthenticated. These checks do not replace authenticated customer UAT with merchant-configured destination/shipping/tax rules, real product records or manual review of a populated order draft. Payment remains disabled.
