@@ -4,6 +4,8 @@ import { formatMoneyFromMinor } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCurrentCustomer, isMySqlCustomerAuthEnabled } from "@/server/auth/local-customer";
 import { getMySqlCustomerOrder } from "@/server/checkout/mysql-orders";
+import { isRazorpaySandboxConfigured } from "@/server/payments/razorpay";
+import { RazorpayPaymentButton } from "@/components/RazorpayPaymentButton";
 
 function formatOrderStatus(status: string) {
   const labels: Record<string, string> = {
@@ -56,7 +58,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
     return <div className="page-shell">
       <div className="breadcrumb"><Link href="/account">My account</Link> / ORDER {order.orderNumber}</div>
       <div className="page-heading"><div className="section-kicker">ORDER DETAILS</div><h1>{order.orderNumber}</h1><p>Order date: {new Date(order.createdAt).toLocaleDateString("en-IN")}</p><span className={"admin-status status-" + order.status}>{formatOrderStatus(order.status)}</span></div>
-      {order.status === "draft" && <div className="checkout-notice" role="status">This is an unpaid order draft. No payment has been taken. The order draft and temporary stock reservation expire at {new Date(order.expiresAt).toLocaleString("en-IN")}.</div>}
+      {(order.status === "draft" || order.status === "pending_payment") && <div className="checkout-notice" role="status">This order is awaiting verified payment capture. An authorization alone does not confirm payment or unlock fulfilment. The order draft and temporary stock reservation expire at {new Date(order.expiresAt).toLocaleString("en-IN")}.</div>}
       {order.status === "expired" && <div className="checkout-notice" role="status">This order draft has expired and its temporary stock reservation has ended. If the item is still available, start a new checkout.</div>}
       <div className="order-detail-layout">
         <section className="order-item-list">
@@ -80,7 +82,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
           <div className="cart-summary-row"><span>Total</span><strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong></div>
           {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">Track shipment</a></p>}
           {order.trackingNumber && <p>Tracking number: {order.trackingNumber}</p>}
-          {order.status === "draft" && <p>No payment method is connected to this order draft. Do not pay through any method that has not been approved by the gallery.</p>}
+          {(order.status === "draft" || order.status === "pending_payment") && (isRazorpaySandboxConfigured() ? <RazorpayPaymentButton orderId={order.id} orderNumber={order.orderNumber}/> : <p>No payment method is enabled for this order. Do not pay through any method that has not been approved by the gallery.</p>)}
         </aside>
       </div>
     </div>;
