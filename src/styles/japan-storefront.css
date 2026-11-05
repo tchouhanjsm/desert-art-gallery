@@ -351,3 +351,14 @@
 @media(prefers-reduced-motion:reduce){.jp-storefront .storefront-media-placeholder::before,.jp-storefront .storefront-media-placeholder::after{transform:none;}}
 
 .jp-storefront .atelier-product-gallery-wrap .detail-gallery-main{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--atelier-stone);}
+
+
+/* Catalogue-derived counts make category discovery useful without adding
+   hard-coded merchandising labels or unsupported popularity signals. */
+.jp-storefront .jp-home-category-link{gap:8px 14px;}
+.jp-storefront .jp-home-category-name{font-weight:650;}
+.jp-storefront .jp-home-category-link small{color:var(--atelier-muted);font-size:10px;white-space:nowrap;}
+.jp-storefront .jp-home-category-arrow{margin-left:auto;}
+.jp-storefront .shop-chip{display:inline-flex;align-items:center;gap:8px;}
+.jp-storefront .shop-chip-count{color:var(--atelier-muted);font-size:10px;font-variant-numeric:tabular-nums;}
+.jp-storefront .shop-chip[aria-pressed="true"] .shop-chip-count{color:rgba(255,255,255,.78);}
