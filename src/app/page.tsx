@@ -4,7 +4,7 @@ import { StorefrontMediaPlaceholder } from "@/components/StorefrontMediaPlacehol
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { StorefrontSectionHeading } from "@/components/StorefrontSectionHeading";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
-import { ALL_SHOP_CATEGORY, getShopCategories } from "@/lib/shop-query";
+import { ALL_SHOP_CATEGORY, getShopCategorySummary } from "@/lib/shop-query";
 import { isPublishedCollectionImage, isPublishedProductRecord, selectStorefrontHeroProduct } from "@/lib/storefront-presentation";
 
 export const metadata = {
@@ -18,8 +18,8 @@ export default async function HomePage() {
     getStorefrontProducts(),
   ]);
   const heroProduct = selectStorefrontHeroProduct(products);
-  const publishedCategories = getShopCategories(products.filter(isPublishedProductRecord))
-    .filter((category) => category !== ALL_SHOP_CATEGORY);
+  const publishedCategories = getShopCategorySummary(products.filter(isPublishedProductRecord))
+    .filter((item) => item.category !== ALL_SHOP_CATEGORY);
 
   return (
     <div className="jp-home">
@@ -78,10 +78,11 @@ export default async function HomePage() {
             <div className="section-kicker">SHOP BY CATEGORY</div>
             <h2 id="shop-categories-heading" className="section-title">Find a starting point</h2>
             <div className="jp-home-category-links">
-              {publishedCategories.map((category) => (
+              {publishedCategories.map(({ category, count }) => (
                 <Link className="jp-home-category-link" href={"/shop?category=" + encodeURIComponent(category)} key={category}>
-                  {category}
-                  <span aria-hidden="true">↗</span>
+                  <span className="jp-home-category-name">{category}</span>
+                  <small>{count} {count === 1 ? "piece" : "pieces"}</small>
+                  <span className="jp-home-category-arrow" aria-hidden="true">↗</span>
                 </Link>
               ))}
             </div>
