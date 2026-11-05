@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { StorefrontImage } from "@/components/StorefrontImage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { galleryBlurDataUrl } from "@/lib/image";
@@ -18,7 +18,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
   return (
     <div className="detail-gallery">
       <div className="product-image-wrap detail-image detail-gallery-main">
-        <Image placeholder="blur" blurDataURL={galleryBlurDataUrl}
+        <StorefrontImage placeholder="blur" blurDataURL={galleryBlurDataUrl}
           key={active.id}
           src={active.url}
           alt={active.altText || title}
@@ -49,7 +49,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
               aria-pressed={activeIndex === index}
               onClick={() => setActiveIndex(index)}
             >
-              <Image placeholder="blur" blurDataURL={galleryBlurDataUrl}
+              <StorefrontImage placeholder="blur" blurDataURL={galleryBlurDataUrl}
                 src={image.url}
                 alt=""
                 width={76}

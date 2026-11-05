@@ -16,6 +16,22 @@ Keep `<html lang="en">`, all customer-facing headings, navigation, buttons, form
 
 This decision supersedes any later section in this document that calls for Japanese-language content, a `lang="ja"` document, Japanese glyph testing, native-speaker Japanese copy review, Japanese-language taglines, furigana, Japanese address forms, Japan-market user testing or JPY conversion. Those items are not current requirements. Historical references to Japanese retail examples describe design inspiration only.
 
+## Phase 6 — visual merchandising and ecommerce experience
+
+The English-language correction was merged in PR #19. The next milestone is product merchandising and the practical shopping journey. Do not repeat the language correction or change the approved colour palette and Inter/Playfair typography.
+
+Apply six workstreams:
+1. **Photography integrity:** inspect approved media mappings, image source paths, MIME/alt/rights safeguards and rendered results. Never use external stock, hotlink Etsy or substitute generic artwork for product photographs.
+2. **Homepage merchandising:** make the first viewport clearly communicate a real shop; lead with products/collections when approved records exist, retain a deliberate empty-catalogue state when none exist, and keep category discovery early.
+3. **Collections and categories:** surface only published collections; use a real collection image only when its media path and descriptive alt text are approved. Avoid broad static empty collection tiles.
+4. **Product cards and detail:** show truthful source-backed price/currency, supplied category/title/notes, approved images, and verified material/size/condition details. Never add sales badges, popularity, reviews, urgency or stock claims unless supported by data.
+5. **Editorial merchandising:** use editorial modules to explain curation, material, provenance and craft where verified. Replace long generic brand filler with purposeful shopping help; retain story, maker and journal content only when real published content exists.
+6. **Visual evidence:** capture desktop and mobile routes on the exact PR head. Review home, shop, collection and product, plus cart/checkout and supporting pages. CI's blank database is not an adequate real-product visual review; record that limitation explicitly.
+
+Permanent principle: **DO NOT ABANDON MINIMALISM. ABANDON EMPTINESS.** The aim is calm product density, not empty space or invented content.
+
+This phase is presentation-only. Preserve the MySQL catalogue, media storage, image-rights checks, product lifecycle, stock, price, cart, checkout, payments, shipping/tax fail-closed behaviour, security boundaries, imports and admin/owner workflows.
+
 ## 0. Instruction to the AI agent — read this before changing code
 
 You are acting as a senior Japanese ecommerce product-design and frontend engineering team. Your task is to **replace the existing public-facing storefront theme and redesign the complete customer-facing shopping experience**, not to make a few CSS adjustments to the current theme.
@@ -725,11 +741,9 @@ Follow `docs/PRODUCT-IMAGE-INTAKE.md` and the existing private media flow. Every
 
 At minimum test:
 
-- Small mobile: 360px viewport.
-- Common mobile: 390–430px viewport.
-- Tablet: approximately 768px.
-- Laptop: 1280–1440px.
-- Wide desktop: 1600px and above.
+- Mobile: 390px and 430px.
+- Tablet: 768px.
+- Desktop: 1280px and 1440px.
 
 Test realistic long English copy and long merchant-supplied product names; do not rely on short placeholders.
 
@@ -1095,8 +1109,50 @@ These are source-export observations only. They do not mean the CSV was imported
 
 ### Phase 5 — route and viewport QA automation
 
-- Add a Playwright-backed capture matrix for 24 customer/operations entry routes across 360, 414, 768, 1440 and 1600 px. Each capture records status, final URL, document language, horizontal overflow, heading/image/button checks, browser console errors and failed requests, alongside the screenshot.
+- Add a Playwright-backed capture matrix for 24 customer/operations entry routes across 390, 430, 768, 1280 and 1440 px. Each capture records status, final URL, document language, horizontal overflow, heading/image/button checks, browser console errors and failed requests, alongside the screenshot.
 - Run the capture against a healthy local/CI application and publish the CI evidence as a short-lived workflow artifact. Local captures remain under ignored `.local-data/visual-review/`.
 - Empty CI databases may correctly return 404 for dynamic product and collection routes. The manifest must record those outcomes; it must not convert them into fake sample catalogue records or imply product visual acceptance.
 - Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, English UI copy and visual review, screen-reader/keyboard review, performance testing with the intended audience and legal/merchant approvals remain separate acceptance gates.
 - The Phase 5 capture harness is being implemented in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); exact-head CI and generated route evidence are pending.
+
+
+## Phase 7 — cart resilience and product purchase-path clarity — 2026-11-05
+
+This follow-on remains within the existing visual merchandising PR and is still presentation-layer work.
+
+### Implemented in the frontend
+- The cart page and cart drawer render every locally stored line even while the server preview is loading, fails, or omits a line. Product identity can be human-readably derived from the existing slug only as a temporary fallback; price, currency, availability and approved media continue to come exclusively from the server preview.
+- Product and cart image presentation uses the shared resilient storefront image component. A missing image receives an intentional neutral placeholder and does not expose a broken-image icon or raw alt text.
+- The cart drawer has an accessible dialog name, initial focus, keyboard focus containment, Escape-to-close, focus restoration and background scroll locking.
+- Cart quantity controls have product-specific accessible names. Increase is disabled until a matching server preview confirms availability and remaining quantity; removal and decrement remain available while the preview is unresolved.
+- The mobile product-detail sticky action now takes buyable products to their purchase controls. Products without a verified purchasable option retain an enquiry action. Draft/inactive variants do not contribute to public availability.
+- The mobile purchase action is navigation to the actual purchase controls, not a synthetic add-to-cart action; variant selection and the existing cart domain remain authoritative.
+
+### Boundaries preserved
+- No photo archive was uploaded, downloaded, migrated or committed. Real photography remains a later owner-approved media phase.
+- No catalogue, database schema, inventory, reservation, price calculation, checkout, payment, shipping, tax, authentication, import or media-rights logic was changed.
+- No product, price, stock, review, fulfilment or policy information was fabricated.
+- All customer-facing UI remains English-only.
+
+### Validation and remaining acceptance
+- Exact-head CI run #381 passed on commit `419d778baae627fd28c22f7c281b306900231ca5`: MySQL migrations, typecheck, 320 unit/integration tests, lint, production build, 120 Playwright captures at 390/430/768/1280/1440px and Lighthouse. Manual visual inspection, authenticated flows and owner-approved catalogue UAT remain outstanding.
+- CI's blank database can validate empty catalogue and common chrome states, but cannot validate a real product, variant, populated cart or product photography. Merchant-connected UAT is still required.
+- The named `docs/AGENT-DESIGN-REVIEW-PROMPT.md` referenced in the handoff prompt is not present in this repository branch; its contents were not inferred or recreated.
+
+
+### Exact responsive acceptance matrix — 2026-11-05
+
+The Playwright capture matrix is aligned to the owner-requested viewport widths: **390px, 430px, 768px, 1280px and 1440px**. It retains 24 routes × 5 widths = 120 captures. The previous 360px, 414px and 1600px set is superseded for this PR's acceptance run.
+
+
+### Exact-head CI evidence — 2026-11-05
+
+[Run #381](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41986240749) passed on `419d778baae627fd28c22f7c281b306900231ca5`.
+
+- Migrations, TypeScript typecheck, **320 tests**, lint and production build passed.
+- Playwright captured **120/120 route-width combinations** (24 routes × 390, 430, 768, 1280 and 1440px); zero capture failures.
+- Manifest checks: no horizontal overflow, broken images, missing/generic image alt text, unnamed buttons, HTTP errors or failed requests. The 15 browser-console 404 messages correspond to the documented empty-database product/collection and deliberate not-found routes; no page errors were recorded.
+- Lighthouse reports: homepage performance 98, accessibility 95, best practices 96, SEO 100; shop performance 96, accessibility 96, best practices 96, SEO 100. Assertion results: 0 failures.
+- Self-hosted staging archive, 19.2 MB, was packaged and uploaded but **not deployed**.
+- CI is unauthenticated and uses an empty catalogue. Dynamic product and collection pages return documented 404 states; their real product content, variants, cart population and photography remain unverified.
+- Evidence: [route review](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13395789564), [Lighthouse](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13396750732), [staging archive](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13396950369).

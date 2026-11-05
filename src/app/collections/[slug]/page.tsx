@@ -1,10 +1,11 @@
-import Image from "next/image";
+import { StorefrontImage } from "@/components/StorefrontImage";
 import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 import { collections } from "@/lib/products";
+import { isPublishedCollectionImage } from "@/lib/storefront-presentation";
 
 export function generateStaticParams() {
   return process.env.NODE_ENV === "development" ? collections.map((collection) => ({ slug: collection.slug })) : [];
@@ -44,9 +45,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <p>{collection.description}</p>
         <Link className="text-link" href="/shop">View all products</Link>
       </header>
-      {collection.image && collection.image !== "/images/textile-placeholder.svg" && (
+      {isPublishedCollectionImage(collection) && (
         <div className="atelier-collection-hero">
-          <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="100vw" />
+          <StorefrontImage placeholder="blur" blurDataURL={galleryBlurDataUrl} src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="100vw" />
         </div>
       )}
       {productsInCollection.length ? (

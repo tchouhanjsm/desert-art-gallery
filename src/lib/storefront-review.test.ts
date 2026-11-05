@@ -28,9 +28,9 @@ describe("storefront visual review matrix", () => {
       .toEqual(["/admin", "/owner/login"]);
   });
 
-  it("covers the required mobile, tablet, desktop and wide-desktop widths", () => {
+  it("covers the required mobile, tablet and desktop widths", () => {
     expect(storefrontReviewViewports.map((viewport) => viewport.width))
-      .toEqual([360, 414, 768, 1440, 1600]);
+      .toEqual([390, 430, 768, 1280, 1440]);
   });
 });
 

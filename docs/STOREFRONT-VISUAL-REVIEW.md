@@ -1,6 +1,6 @@
 # Japanese-Inspired English-Language Storefront Visual Review
 
-**Review state:** The Phase 5 route/viewport capture harness is merged. The English-language correction is being implemented on a follow-up branch; new screenshots must be captured from that exact branch head before sign-off.  
+**Review state:** PR #19 and PR #20 are merged. PR #21 continues the visual-merchandising work; Phase 7 cart and mobile purchase-path hardening is being validated. Exact-head CI and owner-approved catalogue data are required before sign-off.  
 **Scope:** Public customer storefront only. Owner/admin interfaces remain separate.  
 **Primary implementation:** `src/styles/japan-storefront.css`, imported by `src/app/layout.tsx`.
 
@@ -12,7 +12,7 @@ The product-led information architecture includes a compact announcement row, vi
 
 ## Route coverage
 
-The Phase 5 review script captures the public shopping and operations route matrix across five viewport sizes. Key customer routes include:
+The Phase 5 review script captures the public shopping and operations route matrix at 390px, 430px, 768px, 1280px and 1440px. Key customer routes include:
 
 | Route | Primary review focus |
 |---|---|
@@ -34,6 +34,14 @@ The Phase 5 review script captures the public shopping and operations route matr
 - Shipping, tax, returns, payment, seller identity and legal terms remain provisional until merchant-approved configuration and legal review are supplied.
 - Product images may be published only when the product is published and the relevant usage rights are confirmed.
 
+## Phase 6 visual merchandising focus
+
+- The homepage must surface the shop action and product discovery early. A large text-only hero or monogram panel must not consume the first viewport when approved catalogue products are available.
+- Collection tiles may use photography only when the collection is a persisted owner-managed record with a non-empty media path and reviewed alt text. Local preview placeholders are not collection photography.
+- Product cards should show the actual category, title, merchant note and available verified facts such as material, size and one-of-a-kind status. A buy-ready cue is permitted only when the persisted product/option has a real price, currency and available stock.
+- Preview artwork must be identified as a design placeholder and never shown as product photography.
+- Editorial content should support product discovery and make useful curation information visible. Do not repeat generic brand text merely to fill vertical space.
+
 ## Visual QA limitations
 
 Automated capture validates route loading, viewport rendering and measurable UI properties. It does not replace human visual inspection, authenticated customer journeys, keyboard/screen-reader testing, contrast review, product-photo rights verification or owner/merchant UAT. A successful screenshot run is not a production launch approval.
@@ -48,3 +56,17 @@ Automated capture validates route loading, viewport rendering and measurable UI 
 - [ ] Payment, shipping, tax and legal states are truthful and do not imply unsupported capabilities.
 - [ ] All route/viewport artifacts have been manually inspected.
 - [ ] Authenticated customer and owner workflows have been tested separately.
+
+
+## Phase 7 — cart resilience and product purchase-path clarity
+
+The current frontend increment adds the following customer-journey safeguards:
+
+- Cart rows are anchored to locally stored cart identity and are not hidden when server preview data is pending or unavailable. Only a matching server preview may contribute price, currency, current inventory, or product media.
+- Cart page and drawer use the reusable resilient image component and a neutral, explicit placeholder when no approved image is available.
+- The cart drawer is implemented as a keyboard-operable modal dialog with labelled heading, initial focus, tab containment, Escape handling, focus restoration and background scroll locking.
+- Decrement and remove remain available on unresolved lines; increase remains disabled until the server preview confirms available quantity.
+- The product-detail sticky mobile action scrolls to actual buying controls only when the product has a verified purchasable option. Otherwise it directs the customer to the existing enquiry route.
+- Draft/inactive variants are excluded from the public available-stock decision.
+
+The exact-head workflow [#381](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41986240749) passed on 5 November 2026: migrations, typecheck, 320 tests, lint, build, 120 Playwright captures at 390/430/768/1280/1440px and Lighthouse. Lighthouse scores were homepage 98/95/96/100 and shop 96/96/96/100 (performance/accessibility/best-practices/SEO); assertions had zero failures. The capture manifest records zero broken images, missing/generic alt text, horizontal overflow, unnamed buttons, HTTP errors or failed requests. Its 15 console 404s are the expected empty-database product/collection and not-found routes, not broken images. Automated screenshots are not full manual sign-off: the CI catalogue is empty, so product detail, variants, populated cart and approved photography remain unverified. Owner-connected staging UAT remains required. No image migration, backend change, payment activation or policy claim is part of this work.

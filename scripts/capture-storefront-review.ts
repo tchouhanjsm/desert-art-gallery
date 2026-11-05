@@ -19,6 +19,8 @@ type CaptureRecord = {
   h1Count: number | null;
   imagesWithoutAlt: number | null;
   brokenImages: number | null;
+  imagesWithGenericAlt: number | null;
+  externalProductImageRequests: string[];
   buttonsWithoutAccessibleName: number | null;
   httpErrors: string[];
   consoleErrors: string[];
@@ -69,6 +71,11 @@ async function main(): Promise<void> {
     const requestOwners = new WeakMap<import("playwright").Request, CaptureRecord>();
     page.on("request", (request) => {
       if (activeRecord) requestOwners.set(request, activeRecord);
+      const requestUrl = request.url();
+      const owner = activeRecord;
+      if (owner && /\/product-media\/|\/media\//i.test(new URL(requestUrl).pathname)) {
+        if (new URL(requestUrl).origin !== baseUrl.origin) owner.externalProductImageRequests.push(requestUrl);
+      }
     });
     page.on("response", (response) => {
       const owner = requestOwners.get(response.request()) ?? activeRecord;
@@ -109,6 +116,8 @@ async function main(): Promise<void> {
           h1Count: null,
           imagesWithoutAlt: null,
           brokenImages: null,
+          imagesWithGenericAlt: null,
+          externalProductImageRequests: [],
           buttonsWithoutAccessibleName: null,
           httpErrors: [],
           consoleErrors: [],
@@ -142,6 +151,10 @@ async function main(): Promise<void> {
               h1Count: document.querySelectorAll("h1").length,
               imagesWithoutAlt: document.querySelectorAll("img:not([alt])").length,
               brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
+              imagesWithGenericAlt: [...document.images].filter((image) => {
+                const alt = (image.getAttribute("alt") || "").trim();
+                return !alt || /^(image|photo|product image|picture|untitled)$/i.test(alt);
+              }).length,
               buttonsWithoutAccessibleName: buttons.filter((button) => {
                 const label = button.getAttribute("aria-label")?.trim();
                 const title = button.getAttribute("title")?.trim();
@@ -156,6 +169,7 @@ async function main(): Promise<void> {
           record.h1Count = metrics.h1Count;
           record.imagesWithoutAlt = metrics.imagesWithoutAlt;
           record.brokenImages = metrics.brokenImages;
+          record.imagesWithGenericAlt = metrics.imagesWithGenericAlt;
           record.buttonsWithoutAccessibleName = metrics.buttonsWithoutAccessibleName;
 
           const screenshotName = `${route.id}--${viewport.id}.png`;
@@ -204,7 +218,8 @@ async function main(): Promise<void> {
     limitations: [
       "This is an unauthenticated route and layout smoke review; it does not exercise signed-in customer or owner workflows.",
       "CI uses a blank test database. Dynamic product and collection routes may correctly return 404 until approved merchant records exist.",
-      "A screenshot is evidence for human review, not automatic visual sign-off or native-speaker/accessibility acceptance.",
+      "A screenshot is evidence for human review, not automatic visual sign-off or accessibility acceptance.",
+      "The default CI database is empty. Product-card, product-detail and collection merchandising must be checked with owner-approved staging data.",
       "No product data, media, rights, prices, policies or customer records are created by this script.",
     ],
     records,
@@ -214,6 +229,14 @@ async function main(): Promise<void> {
   console.log(`Visual review manifest: ${manifestPath}`);
   console.log(`Captured ${records.length} route/viewport combinations; failures: ${failures.length}`);
 
+  const productMediaIntegrityFailures = records.flatMap((record) => {
+    const problems: string[] = [];
+    if ((record.brokenImages ?? 0) > 0) problems.push(`${record.routePath} @ ${record.width}px: ${record.brokenImages} broken images`);
+    if ((record.imagesWithGenericAlt ?? 0) > 0) problems.push(`${record.routePath} @ ${record.width}px: ${record.imagesWithGenericAlt} images with generic/empty alt text`);
+    if (record.externalProductImageRequests.length > 0) problems.push(`${record.routePath} @ ${record.width}px: external product-media requests detected`);
+    return problems;
+  });
+  failures.push(...productMediaIntegrityFailures);
   if (failures.length > 0) process.exitCode = 1;
 }
 

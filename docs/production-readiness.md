@@ -1,6 +1,23 @@
 # Production readiness register
 
-Last reviewed: 2026-11-04 (Asia/Kolkata)
+Last reviewed: 2026-11-05 (Asia/Kolkata)
+
+## Current storefront frontend continuation — 2026-11-05
+
+The English-language storefront redesign continues on [PR #21](https://github.com/tchouhanjsm/desert-art-gallery/pull/21), branch `feat/visual-merchandising-ecommerce-phase6`. PR #20 has merged; PR #21 was synchronized with the resulting `main` head before this increment. This is not a new redesign or a new PR.
+
+The latest frontend work hardens the cart page/drawer and product-detail mobile purchase path. Cart rows remain editable while server preview data is unresolved; only matched server preview data may supply current price, currency, inventory and media. The drawer receives modal keyboard focus management, Escape handling, focus restoration and body scroll locking. Product detail uses active variants for availability, and the mobile sticky CTA leads to real purchase controls or the existing enquiry route as appropriate.
+
+**Validation status:** exact-head CI run [#381](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41986240749) passed on `419d778baae627fd28c22f7c281b306900231ca5`. MySQL migrations, typecheck, all 320 unit/integration tests, lint, production build, 120 Playwright captures at 390/430/768/1280/1440px, Lighthouse assertions, Lighthouse report upload and self-hosted staging archive packaging all passed. Homepage Lighthouse: 98 Performance / 95 Accessibility / 96 Best Practices / 100 SEO. Shop: 96 / 96 / 96 / 100. The archive was not deployed.
+
+**Visual evidence limitation:** CI uses an intentionally blank catalogue. It can verify the empty catalogue and shared layout, but cannot establish correct real product details, variant options, populated cart behaviour or merchant photography. Real-catalogue UAT and visual review remain open.
+
+**Scope:** no photo migration/download/upload, database/schema change, inventory, price, cart API, reservation, checkout, payment, tax/shipping, authentication or media-rights behaviour is included. Customer-facing UI remains English-only. The referenced `docs/AGENT-DESIGN-REVIEW-PROMPT.md` is absent from the repository and has not been reconstructed.
+
+**Browser evidence:** 120 captures across 24 routes at 390, 430, 768, 1280 and 1440px. Manifest reports no horizontal overflow, broken images, absent/generic alt text, unnamed buttons, HTTP errors or failed requests. Fifteen console 404 messages are expected for empty-database dynamic product/collection routes and the deliberate not-found route; no page errors were recorded. The browser run is unauthenticated and cannot verify real products, populated cart or photography.
+
+**Artifacts:** [route review](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13395789564), [Lighthouse reports](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13396750732), [packaged staging archive — not deployed](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13396950369).
+
 
 This register separates code present in the repository from integrations that have been connected and verified in a merchant environment. An implementation checkbox is not a claim that production credentials, customer data, catalogue rights or live payments have been configured.
 

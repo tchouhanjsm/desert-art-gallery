@@ -64,14 +64,17 @@ type CollectionRow = {
   hero_image_path: string | null;
   hero_image_alt: string;
   hero_image_rights_confirmed: boolean;
+  hero_image_rights_evidence: string | null;
 };
 
 export type StorefrontCollection = {
+  id?: string;
   name: string;
   slug: string;
   description: string;
   image: string;
   imageAlt: string;
+  imageApproved: boolean;
 };
 
 function safePriceMinor(value: number | string | null): number | null {
@@ -183,18 +186,34 @@ const getCachedMySqlStorefrontCollections = unstable_cache(
   async (): Promise<StorefrontCollection[]> => {
     const rows = await getPublishedCollections();
     return rows.map((row) => {
-      const approvedImage = row.hero_image_path && row.hero_image_rights_confirmed &&
-        row.hero_image_rights_evidence.trim() && row.hero_image_alt.trim();
+      const hasApprovedMedia = Boolean(
+        row.hero_image_path?.trim() &&
+        row.hero_image_rights_confirmed &&
+        row.hero_image_rights_evidence?.trim() &&
+        row.hero_image_alt?.trim()
+      );
+      let image = "/images/textile-placeholder.svg";
+      let imageApproved = false;
+      if (hasApprovedMedia && row.hero_image_path) {
+        try {
+          image = getEditorialMediaUrl(row.hero_image_path);
+          imageApproved = true;
+        } catch {
+          // Invalid stored paths must never be promoted to public collection imagery.
+        }
+      }
       return {
+        id: row.id,
         name: row.name,
         slug: row.slug,
         description: row.description,
-        image: approvedImage ? getEditorialMediaUrl(row.hero_image_path as string) : "/images/textile-placeholder.svg",
-        imageAlt: row.hero_image_alt.trim() || row.name,
+        image,
+        imageAlt: row.hero_image_alt?.trim() || "",
+        imageApproved,
       };
     });
   },
-  ["storefront-published-collections-v1"],
+  ["storefront-published-collections-v2"],
   { revalidate: 300, tags: ["storefront-collections"] },
 );
 
@@ -207,13 +226,13 @@ export async function getStorefrontCollections(): Promise<StorefrontCollection[]
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return process.env.NODE_ENV === "development"
-      ? previewCollections.map((collection) => ({ ...collection, imageAlt: collection.name }))
+      ? previewCollections.map((collection) => ({ ...collection, imageAlt: collection.name, imageApproved: false }))
       : [];
   }
 
   const { data, error } = await supabase
     .from("collections")
-    .select("id,name,slug,description,hero_image_path,hero_image_alt,hero_image_rights_confirmed")
+    .select("id,name,slug,description,hero_image_path,hero_image_alt,hero_image_rights_confirmed,hero_image_rights_evidence")
     .eq("is_published", true)
     .order("sort_order", { ascending: true })
     .limit(40);
@@ -223,18 +242,30 @@ export async function getStorefrontCollections(): Promise<StorefrontCollection[]
   const rows = (data ?? []) as unknown as CollectionRow[];
   return Promise.all(rows.map(async (row) => {
     let image = "/images/textile-placeholder.svg";
-    if (row.hero_image_path && row.hero_image_rights_confirmed && row.hero_image_alt?.trim()) {
+    let imageApproved = false;
+    const hasApprovedMedia = Boolean(
+      row.hero_image_path?.trim() &&
+      row.hero_image_rights_confirmed &&
+      row.hero_image_rights_evidence?.trim() &&
+      row.hero_image_alt?.trim()
+    );
+    if (hasApprovedMedia && row.hero_image_path) {
       const { data: signed } = await supabase.storage
         .from("product-media")
         .createSignedUrl(row.hero_image_path, 60 * 60);
-      if (signed?.signedUrl) image = signed.signedUrl;
+      if (signed?.signedUrl) {
+        image = signed.signedUrl;
+        imageApproved = true;
+      }
     }
     return {
+      id: row.id,
       name: row.name,
       slug: row.slug,
       description: row.description,
       image,
-      imageAlt: row.hero_image_alt?.trim() || row.name,
+      imageAlt: row.hero_image_alt?.trim() || "",
+      imageApproved,
     };
   }));
 }

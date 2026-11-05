@@ -10,6 +10,7 @@ import { AddToBagButton } from "@/components/AddToBagButton";
 import { ProductGallery } from "@/components/ProductGallery";
 import { getSiteUrl } from "@/lib/site-url";
 import { WishlistToggle } from "@/components/WishlistToggle";
+import { hasPurchasableProductOption } from "@/lib/storefront-presentation";
 
 export function generateStaticParams() {
   return process.env.NODE_ENV === "development" ? products.map((product) => ({ slug: product.slug })) : [];
@@ -35,7 +36,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (!product) notFound();
 
   const variants = product.variants ?? [];
-  const resolvedVariantPrices = variants
+  const activeVariants = variants.filter((variant) => variant.status === "active");
+  const canAddToBag = hasPurchasableProductOption(product);
+  const resolvedVariantPrices = activeVariants
     .map((variant) => variant.priceMinor ?? product.priceMinor)
     .filter((price): price is number => price !== null && price !== undefined);
   const distinctVariantPrices = new Set(resolvedVariantPrices);
@@ -45,7 +48,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       ? formatMoneyFromMinor(resolvedVariantPrices[0] ?? product.priceMinor, product.currency)
       : "Price on request";
   const hasAvailableStock = variants.length > 0
-    ? variants.some((variant) => variant.quantityOnHand > 0)
+    ? activeVariants.some((variant) => variant.quantityOnHand > 0)
     : (product.quantityOnHand ?? 0) > 0;
   const galleryImages: ProductImage[] = product.images?.length
     ? product.images
@@ -120,20 +123,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <p className="product-purchase-guidance">
             Please review the product information before purchasing. Contact us with any questions about materials, dimensions, condition or delivery.
           </p>
-          {product.id && product.priceMinor != null && product.currency && hasAvailableStock && (
-            <AddToBagButton
-              slug={product.slug}
-              quantityOnHand={product.quantityOnHand ?? 0}
-              variants={variants}
-              priceMinor={product.priceMinor}
-              currency={product.currency}
-              isOneOfAKind={product.isOneOfAKind ?? false}
-            />
-          )}
-          <WishlistToggle slug={product.slug} />
-          <Link className="button-outline enquiry-button" href={buildProductEnquiryHref(product.slug)}>
-            Ask about this piece
-          </Link>
+          <div className="atelier-product-actions" id="purchase-options">
+            {canAddToBag && (
+              <AddToBagButton
+                slug={product.slug}
+                quantityOnHand={product.quantityOnHand ?? 0}
+                variants={activeVariants}
+                priceMinor={product.priceMinor ?? null}
+                currency={product.currency ?? ""}
+                isOneOfAKind={product.isOneOfAKind ?? false}
+              />
+            )}
+            <WishlistToggle slug={product.slug} />
+            <Link className="button-outline enquiry-button" href={buildProductEnquiryHref(product.slug)}>
+              Ask about this piece
+            </Link>
+          </div>
           <div className="detail-footnote">
             Desert Art Gallery · Jaisalmer, Rajasthan, India<br />
             Please confirm the final price, availability and delivery costs with the gallery before making any payment.
@@ -178,7 +183,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </section>
       <div className="mobile-buy-bar">
         <div><b>{product.name}</b><span>{priceLabel}</span></div>
-        <Link className="button-primary" href={buildProductEnquiryHref(product.slug)}>Enquire about this piece</Link>
+        {canAddToBag ? (
+          <Link className="button-primary" href="#purchase-options" aria-label={"View buying options for " + product.name}>
+            View buying options
+          </Link>
+        ) : (
+          <Link className="button-primary" href={buildProductEnquiryHref(product.slug)}>
+            Ask about this piece
+          </Link>
+        )}
       </div>
     </div>
   );

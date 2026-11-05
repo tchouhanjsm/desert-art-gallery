@@ -39,11 +39,11 @@ export const storefrontReviewRoutes = [
 ] as const satisfies readonly StorefrontReviewRoute[];
 
 export const storefrontReviewViewports = [
-  { id: "mobile-360", width: 360, height: 800 },
-  { id: "mobile-414", width: 414, height: 896 },
+  { id: "mobile-390", width: 390, height: 844 },
+  { id: "mobile-430", width: 430, height: 932 },
   { id: "tablet-768", width: 768, height: 1024 },
+  { id: "desktop-1280", width: 1280, height: 900 },
   { id: "desktop-1440", width: 1440, height: 1000 },
-  { id: "wide-1600", width: 1600, height: 1100 },
 ] as const;
 
 
