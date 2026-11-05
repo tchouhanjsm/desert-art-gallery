@@ -61,8 +61,16 @@ Never run this migration or bootstrap against production until a separate review
 
 - Finish final PR CI on the exact branch head and resolve every check failure.
 - Complete adapter contracts and a dry-run-first catalogue/inventory importer that preserves variant relationships, media, rights metadata, opening balances and movement history.
-- Add tested backup/restore scripts and an owner acceptance record.
+- [x] Add paired local MySQL/private-media backup and isolated restore tooling (Phase 12); exact-head CI covers disposable database and media fixtures. [ ] Complete an owner-run restore drill on the actual workstation and record acceptance before hosting cutover.
 - Migrate customer identity, addresses, cart, wishlist, orders, payment reconciliation, refunds and fulfilment in separate reviewed slices.
 - Validate Hostinger compatibility and filesystem durability before a production cutover.
 
 No customer or order data is migrated in this phase. No payment provider is activated. No live import, production write or deployment runs automatically.
+
+## Phase 12 — local recovery tooling
+
+The local backup/restore increment is implemented on the current feature branch. It creates a paired SQL + private filesystem-media restore point with a SHA-256 manifest; verifies media inventory stability; and restores only to a different, pre-created, empty loopback MySQL database plus a new media directory. Both commands default to read-only preflight and require explicit commit/confirmation flags.
+
+The implementation does not migrate or touch existing customer data, alter production databases, approve/publish media, or activate payment. It supports file-backed media only and deliberately blocks while the S3 driver is selected. See docs/LOCAL-MYSQL-BACKUP-RESTORE-PHASE-12.md.
+
+CI validates the backup/restore process with ephemeral source and target MySQL databases. This is not a substitute for the owner's actual-device backup/restore drill, tested encrypted backup storage, or hosted media durability acceptance.
