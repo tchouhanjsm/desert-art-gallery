@@ -356,7 +356,7 @@
 /* Catalogue-derived counts make category discovery useful without adding
    hard-coded merchandising labels or unsupported popularity signals. */
 .jp-storefront .jp-home-category-link{gap:8px 14px;}
-.jp-storefront .jp-home-category-name{font-weight:650;} color:var(--atelier-ink);font-size:12px;
+.jp-storefront .jp-home-category-name{font-weight:650;color:var(--atelier-ink);font-size:12px;}
 .jp-storefront .jp-home-category-link small{color:var(--atelier-muted);font-size:10px;white-space:nowrap;}
 .jp-storefront .jp-home-category-arrow{margin-left:auto;}
 .jp-storefront .shop-chip{display:inline-flex;align-items:center;gap:8px;}
