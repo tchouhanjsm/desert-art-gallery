@@ -1,3 +1,5 @@
+import * as React from "react";
+
 type StorefrontMediaPlaceholderProps = {
   variant: "hero" | "product" | "collection";
   label: string;
