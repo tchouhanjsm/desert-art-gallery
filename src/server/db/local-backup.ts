@@ -23,6 +23,7 @@ import {
   assertAbsolutePrivateMediaTarget,
   assertDistinctRestoreTargetDatabase,
   assertNonOverlappingPaths,
+  isRestoreServerVersionCompatible,
   assertSafeLocalDatabaseName,
   isPathInside,
   LOCAL_BACKUP_DATABASE_FILE,
@@ -254,18 +255,13 @@ async function withMysqlDefaults<T>(
 
 function runCommand(command: string, args: string[], inputFile?: string): Promise<void> {
   return new Promise((resolve, reject) => {
+    const environment = { ...process.env };
+    delete environment.MYSQL_PWD;
+    delete environment.MYSQL_TEST_LOGIN_FILE;
     const child = spawn(command, args, {
       windowsHide: true,
-      stdio: inputFile ? ["pipe", "ignore", "pipe"] : ["ignore", "ignore", "pipe"],
-    });
-    const stderrChunks: Buffer[] = [];
-    let stderrBytes = 0;
-    child.stderr?.on("data", (chunk: Buffer) => {
-      if (stderrBytes >= 8_192) return;
-      const remaining = 8_192 - stderrBytes;
-      const bytes = Buffer.from(chunk).subarray(0, remaining);
-      stderrChunks.push(bytes);
-      stderrBytes += bytes.length;
+      env: environment,
+      stdio: inputFile ? ["pipe", "ignore", "ignore"] : ["ignore", "ignore", "ignore"],
     });
 
     let settled = false;
@@ -429,6 +425,9 @@ export async function inspectLocalBackupSource(input: {
     "Backup destination and private media root cannot contain one another. Choose separate directories.",
   );
 
+  if (getMediaStorageDriver() !== "local") {
+    throw new Error("Local backup is unavailable while MEDIA_STORAGE_DRIVER=s3.");
+  }
   const files = await enumerateMediaFiles(mediaRoot);
   return {
     databaseName: snapshot.name,
@@ -488,6 +487,19 @@ export async function createLocalBackupBundle(input: {
     const mediaDestination = path.join(stagingPath, "media");
     const mediaFiles = await copyMediaTree(mediaRoot, mediaDestination);
     const mediaBytes = mediaFiles.reduce((total, file) => total + file.sizeBytes, 0);
+    const sourceMediaFiles = await enumerateMediaFiles(mediaRoot);
+    const sourceInventory = sourceMediaFiles.map((file) => ({ path: file.relativePath, sizeBytes: file.sizeBytes }));
+    const copiedInventory = mediaFiles.map((file) => ({ path: file.path, sizeBytes: file.sizeBytes }));
+    if (JSON.stringify(sourceInventory) !== JSON.stringify(copiedInventory)) {
+      throw new Error("Private media inventory changed during backup. No backup bundle was published; pause media changes and retry.");
+    }
+    for (const sourceFile of sourceMediaFiles) {
+      const sourceDigest = await digestFile(sourceFile.sourcePath);
+      const copiedFile = mediaFiles.find((file) => file.path === sourceFile.relativePath);
+      if (!copiedFile || sourceDigest.sizeBytes !== copiedFile.sizeBytes || sourceDigest.sha256 !== copiedFile.sha256) {
+        throw new Error("A private media file changed after it was copied. No backup bundle was published; pause media changes and retry.");
+      }
+    }
 
     const identity = await inspectDatabase(databaseUrl);
     if (
@@ -665,6 +677,10 @@ export async function inspectLocalRestoreTarget(input: {
 
   const verified = await verifyLocalBackupBundle(input.backupPath);
   const database = await inspectRestoreDatabase(databaseUrl, verified.manifest.database.name);
+  if (!isSupportedMySqlServer(database.serverVersion, "MySQL") ||
+      !isRestoreServerVersionCompatible(verified.manifest.database.serverVersion, database.serverVersion)) {
+    throw new Error("Restore target MySQL version must be the same as or newer than the source backup version.");
+  }
   const targetMediaRoot = assertAbsolutePrivateMediaTarget(input.targetMediaRoot);
   const currentMediaRoot = resolveLocalMediaRoot();
   assertNonOverlappingPaths(
@@ -725,6 +741,7 @@ export async function restoreLocalBackupBundle(input: {
     );
 
     await withMysqlDefaults(targetConfig, async (defaultsFile) => {
+      await inspectRestoreDatabase(input.databaseUrl ?? process.env.DAG_RESTORE_DATABASE_URL!, verified.manifest.database.name);
       await runCommand("mysql", [
         "--defaults-file=" + defaultsFile,
         "--default-character-set=utf8mb4",
@@ -739,7 +756,10 @@ export async function restoreLocalBackupBundle(input: {
       restoredDatabase.snapshot.tableCount !== verified.manifest.database.tableCount
       || restoredDatabase.snapshot.migrationCount !== verified.manifest.database.migrationCount
     ) {
-      throw new Error("Database restore completed but its table or migration counts do not match the backup manifest. Keep this isolated target for investigation; do not use it.");
+      throw new Error(
+        "Database restore completed but its table or migration counts do not match the backup manifest. Keep isolated database "
+        + plan.targetDatabase + " and staged media at " + stagingMediaRoot + " for investigation; do not use them."
+      );
     }
 
     await rename(stagingMediaRoot, plan.targetMediaRoot);
