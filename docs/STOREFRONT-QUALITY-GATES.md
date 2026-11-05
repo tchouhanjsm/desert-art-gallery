@@ -160,3 +160,12 @@ Automated CI is not signed-in customer acceptance. The following remain open: re
 - [ ] No market, currency, address, tax, shipping, duties, returns or legal seller rule changes without explicit owner approval.
 - [ ] Owner confirms India-only, Japan-only with English UI, or multi-market before market-specific checkout and policy changes.
 - [ ] Real product photography migration remains deferred.
+
+## 13. Presentation architecture and route consistency
+
+- [ ] `globals.css` remains a neutral reset/token layer; the customer theme is scoped to `.jp-storefront` in `japan-storefront.css`.
+- [ ] Owner/admin presentation remains in `admin-theme.css` and is not coupled to customer theme selectors.
+- [ ] Global stylesheet imports remain centralised in `src/app/layout.tsx`; page and component files do not add independent global style imports.
+- [ ] Shared page and section heading primitives preserve semantic heading levels, IDs, existing route classes and optional actions.
+- [ ] Category labels and visible counts derive from the same catalogue records used for filtering and result sets. No hard-coded category counts or popularity signals.
+- [ ] Superseded stylesheet overlays are not reintroduced as additional cascade layers.
