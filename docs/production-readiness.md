@@ -337,3 +337,15 @@ Owner market decision remains open because the dated top-of-document clarificati
 The next frontend batch improves published collection discovery, image-ready collection and product surfaces, product-detail recommendations grounded in published category/collection data, and cart/checkout order-summary resilience. It does not create catalogue content or fabricate product attributes.
 
 Checkout now separates reservation idempotency from order-draft idempotency and holds request-defining form fields static after an ambiguous order response so the customer can retry the same request rather than changing details against a potentially already-linked reservation. Attempt keys remain memory-only; refresh/unmount does not provide cross-refresh replay. No backend reservation/order or payment logic changed.
+
+## Current storefront architecture and discovery increment — 2026-11-05
+
+The public presentation now uses shared page/section heading primitives across the homepage, shop, collections, cart, wishlist, customer information, contact, story, makers and journal routes. These primitives preserve the route-specific classes and source-backed content rather than replacing page layout decisions with one generic template.
+
+Category counts shown in homepage discovery and shop filters are calculated from the catalogue records already supplied to each view. The empty catalogue remains empty; no sample categories or product counts are introduced.
+
+The four superseded/unreferenced stylesheet files `src/styles/theme.css`, `phase1.css`, `editorial.css` and `admin.css` were removed after the App Router/component import audit. Active stylesheet ownership remains: neutral tokens/reset in `src/app/globals.css`, public customer presentation in `src/styles/japan-storefront.css`, and owner/operations presentation in `src/styles/admin-theme.css`. A regression test protects the root-layout import boundary and retired-file absence.
+
+**Validation status:** new source and contract tests have been added, but the exact-head CI run for this increment is still required. Existing green CI run #397 validates the earlier PR head only; it does not validate the subsequent commits. No manual visual sign-off, real catalogue UAT, authenticated customer review, staging deployment or production release is claimed by this increment.
+
+**Scope:** presentation, catalogue-derived display counts and documentation/tests only. No database, migration, merchant data, auth, inventory, cart/checkout domain, price calculation, shipping/tax, payment, APIs, media storage/rights, country, currency or legal setting changed. The approximately 3,000-photo library remains deferred.
