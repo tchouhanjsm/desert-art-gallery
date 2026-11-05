@@ -1,4 +1,5 @@
 import * as React from "react";
+import Link from "next/link";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { StorefrontPageHeading } from "./StorefrontPageHeading";
@@ -14,7 +15,7 @@ describe("shared storefront headings", () => {
         id="shop-heading"
         className="atelier-page-heading atelier-page-heading--shop"
       >
-        <a className="text-link" href="/contact">Ask a question</a>
+        <Link className="text-link" href="/contact">Ask a question</Link>
       </StorefrontPageHeading>,
     );
 
@@ -30,7 +31,7 @@ describe("shared storefront headings", () => {
         eyebrow="THE ONLINE COLLECTION"
         title={<>Shop considered pieces</>}
         id="catalogue-heading"
-        action={<a className="text-link" href="/shop">View more products</a>}
+        action={<Link className="text-link" href="/shop">View more products</Link>}
       />,
     );
 
