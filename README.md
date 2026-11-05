@@ -1,10 +1,10 @@
 # Desert Art Gallery
 
-A Japan-first curated lifestyle ecommerce store for textiles and handcrafted objects from Jaisalmer, Rajasthan. The customer storefront is being redesigned around the approved Japanese ecommerce brief; the backend, owner workspace and commerce safeguards remain separate.
+A Japanese-inspired, English-language curated lifestyle ecommerce store for textiles and handcrafted objects from Jaisalmer, Rajasthan. The customer storefront is being redesigned around the approved Japanese-inspired ecommerce brief; the backend, owner workspace and commerce safeguards remain separate.
 
 ## Product, UX and design source of truth
 
-**Read first:** [Japan-First Ecommerce Redesign](docs/JAPAN-ECOMMERCE-REDESIGN.md). This is the controlling brief for the public storefront, Japanese localisation, customer journeys, visual references, route map, acceptance gates and future redesign work. The former Desert Atelier / Desert Modern public themes are superseded. See [Storefront Design System](docs/STOREFRONT-DESIGN-SYSTEM.md), [Quality Gates](docs/STOREFRONT-QUALITY-GATES.md) and [Production Readiness](docs/production-readiness.md) for implementation status.
+**Read first:** [Japan-First Ecommerce Redesign](docs/JAPAN-ECOMMERCE-REDESIGN.md). This is the controlling brief for the public storefront, English-language storefront and source-content preservation, customer journeys, visual references, route map, acceptance gates and future redesign work. Japanese describes layout inspiration only; the public UI language remains English. The former Desert Atelier / Desert Modern public themes are superseded. See [Storefront Design System](docs/STOREFRONT-DESIGN-SYSTEM.md), [Quality Gates](docs/STOREFRONT-QUALITY-GATES.md) and [Production Readiness](docs/production-readiness.md) for implementation status.
 
 Product data and photography must remain evidence-led: the Etsy export contains USD source prices and English text; do not automatically convert currency or machine-translate product claims. Keep products as drafts until identity, content, image rights and merchant policies are reviewed.
 
@@ -78,7 +78,7 @@ Pull-request CI runs against a GitHub-managed MySQL service and validates migrat
 The MySQL customer order lifecycle and merchant shipping/tax configuration are documented in docs/MYSQL-ORDER-CHECKOUT-PHASE-7.md. Keep payment processing disabled until the provider/webhook security phase is reviewed and enabled separately.
 
 
-## Japan-first storefront visual review
+## Japanese-inspired storefront visual review
 
 Start the local app with its intended local MySQL and media configuration, then install the Playwright browser once and capture the full route/viewport matrix:
 
@@ -87,4 +87,4 @@ npx playwright install chromium
 npm run visual:review
 ```
 
-The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIEW_BASE_URL` to review another local/staging URL and `STOREFRONT_REVIEW_OUTPUT_DIR` to choose a separate output folder. Screenshots and the JSON manifest are written under ignored `.local-data/visual-review/`; they are not committed. The capture is an unauthenticated smoke review and does not replace signed-in UAT, native-speaker Japanese review, or visual sign-off.
+The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIEW_BASE_URL` to review another local/staging URL and `STOREFRONT_REVIEW_OUTPUT_DIR` to choose a separate output folder. Screenshots and the JSON manifest are written under ignored `.local-data/visual-review/`; they are not committed. The capture is an unauthenticated smoke review and does not replace signed-in UAT, English copy and visual sign-off, or visual sign-off.

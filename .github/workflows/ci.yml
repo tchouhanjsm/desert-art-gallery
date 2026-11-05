@@ -37,7 +37,7 @@ jobs:
       DATABASE_URL: mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_test
       MEDIA_STORAGE_ROOT: /tmp/desert-gallery-ci-media
       MYSQL_INTEGRATION_TEST: "1"
-      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:4174
+      NEXT_PUBLIC_SITE_URL: http://localhost:4174
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -75,12 +75,12 @@ jobs:
       - name: Capture storefront route and viewport evidence
         shell: bash
         env:
-          STOREFRONT_REVIEW_BASE_URL: http://127.0.0.1:4174
+          STOREFRONT_REVIEW_BASE_URL: http://localhost:4174
           STOREFRONT_REVIEW_OUTPUT_DIR: .local-data/visual-review/ci-${{ github.sha }}
         run: |
           set -euo pipefail
           server_log=/tmp/desert-art-gallery-visual-review-server.log
-          NODE_ENV=production npm run start -- --hostname 127.0.0.1 --port 4174 > "$server_log" 2>&1 &
+          NODE_ENV=production npm run start -- --hostname localhost --port 4174 > "$server_log" 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
 

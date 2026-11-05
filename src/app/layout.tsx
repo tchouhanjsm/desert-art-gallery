@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/playfair-display";
 import "./globals.css";
 import "@/styles/japan-storefront.css";
 import "@/styles/admin-theme.css";
@@ -11,14 +13,14 @@ import { getStorefrontCollections } from "@/lib/catalogue";
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
   title: {
-    default: "Desert Art Gallery｜ラージャスターンのテキスタイルと手仕事",
-    template: "%s｜Desert Art Gallery",
+    default: "Desert Art Gallery | Textiles and Handcrafted Pieces from Rajasthan",
+    template: "%s | Desert Art Gallery",
   },
-  description: "インド・ラージャスターン州ジャイサルメールを拠点に、テキスタイルや手仕事の品をご紹介するオンラインストアです。",
+  description: "Based in Jaisalmer, Rajasthan, India, Desert Art Gallery presents textiles and handcrafted pieces with care for their materials, character and verified details.",
   openGraph: {
     type: "website",
     title: "Desert Art Gallery",
-    description: "ラージャスターンのテキスタイルと手仕事の品を紹介するオンラインストア。",
+    description: "A considered collection of textiles and handcrafted pieces from Rajasthan.",
     siteName: "Desert Art Gallery",
   },
   robots: { index: true, follow: true },
@@ -29,7 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     .then((items) => items.slice(0, 8).map((item) => ({ slug: item.slug, name: item.name })))
     .catch(() => []);
   return (
-    <html lang="ja">
+    <html lang="en">
       <body>
         <CartProvider>
           <WishlistProvider>

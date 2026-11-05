@@ -6,68 +6,68 @@ export type StorefrontInformationPage = {
 };
 
 /**
- * Customer information pages are Japanese-first, but policy details remain
+ * Customer information pages are presented in English. Policy details remain
  * provisional until the merchant supplies and approves the actual terms.
  * Never infer seller identity, delivery promises, legal obligations or fees.
  */
 export const storefrontInformationPages: Record<string, StorefrontInformationPage> = {
   shipping: {
-    title: "配送について",
-    intro: "お届け先と商品に応じて、配送条件をご案内します。",
+    title: "Shipping information",
+    intro: "Shipping details depend on the destination and the item.",
     body: [
-      "配送可能な地域、送料、お届けまでの目安は、お届け先と商品によって異なります。ご購入前に国名と郵便番号をお知らせください。確認のうえ、個別にお見積もりをご案内します。",
-      "輸入関税、税金、通関手数料などが、お届け先の規則に基づいて受取人に請求される場合があります。発送前に、当店で確認できる情報をご案内します。",
-      "商品発送後、配送会社の追跡番号が発行された場合は、追跡情報をお知らせします。",
+      "Available destinations, shipping charges and estimated delivery times vary by item and destination. Before purchasing, please share your country and postal code so the gallery can check the options and provide a quote.",
+      "Import duties, taxes and customs fees may be charged to the recipient under the rules of the destination country. We will share the information available to the gallery before dispatch.",
+      "When the carrier provides a tracking number after dispatch, we will share the tracking details.",
     ],
-    draftNotice: "配送可能地域、送料、お届け時期は確定していません。ご注文前に、商品とお届け先ごとの条件をご確認ください。",
+    draftNotice: "Destinations, shipping charges and delivery timing have not yet been confirmed. Please check the conditions for your item and destination before placing an order.",
   },
   returns: {
-    title: "返品・交換について",
-    intro: "ご注文前に、商品ごとの条件をご確認ください。",
+    title: "Returns & exchanges",
+    intro: "Please review the conditions for each item before ordering.",
     body: [
-      "返品・交換の可否は商品によって異なる場合があります。ヴィンテージ品や一点ごとに表情の異なるテキスタイルについては、商品の状態や個別の条件を購入前に書面でご確認ください。",
-      "商品が到着時に破損していた場合、または事前に合意した説明と大きく異なる場合は、注文番号と状態が分かる写真を添えて、速やかにお問い合わせください。",
-      "返品・交換に関する正式な条件は、事業者による確認・承認後に掲載します。",
+      "Return or exchange eligibility may vary by item. For vintage pieces and textiles with individual variations, please request written confirmation of the item's condition and applicable terms before purchasing.",
+      "If an item arrives damaged or materially differs from the description agreed before purchase, contact the gallery promptly with your order number and photographs showing its condition.",
+      "The official returns and exchanges policy will be published after it has been reviewed and approved by the merchant.",
     ],
-    draftNotice: "このページは準備中の案内です。正式な返品・交換規定ではありません。ご注文前に、商品ごとの条件を必ずお問い合わせください。",
+    draftNotice: "This page is an interim guide, not an official returns or exchanges policy. Please confirm the terms for each item before ordering.",
   },
   faq: {
-    title: "よくあるご質問",
-    intro: "ご購入前によくいただくご質問をご案内します。",
+    title: "Frequently asked questions",
+    intro: "Answers to common questions before you purchase.",
     body: [
-      "Q. 商品の在庫・販売状況はどのように確認できますか？\nA. 商品名を添えてお問い合わせください。お支払いをお受けする前に、現在の状況を確認してご案内します。",
-      "Q. サイズや採寸について質問できますか？\nA. はい。該当商品の実寸やサイズ感について、商品ごとにお問い合わせください。",
-      "Q. 海外への発送はできますか？\nA. お届け先によって対応可否が異なります。国名と郵便番号をお知らせいただければ、配送可能か確認します。",
-      "Q. 写真とまったく同じ商品が届きますか？\nA. ヴィンテージ品や手仕事の品には、個体ごとの違いがある場合があります。ご購入前に、お届けする現物についてご確認ください。",
+      "Q. How can I check whether an item is available?\nA. Contact the gallery with the product name. Availability will be checked before any payment is accepted.",
+      "Q. Can I ask about sizing and measurements?\nA. Yes. Contact the gallery with questions about the actual measurements and fit of a specific item.",
+      "Q. Do you ship internationally?\nA. Availability depends on the destination. Share your country and postal code so the gallery can check whether delivery is possible.",
+      "Q. Will the item look exactly like the photograph?\nA. Vintage and handmade pieces may vary individually. Please confirm the exact item you will receive before purchasing.",
     ],
-    draftNotice: "掲載内容は一般的なご案内です。商品の状態、在庫、配送条件は、ご注文前に個別にご確認ください。",
+    draftNotice: "This is general information only. Please confirm the condition, availability and delivery terms for each item before ordering.",
   },
   tracking: {
-    title: "配送状況の確認",
-    intro: "発送後の追跡情報についてご案内します。",
+    title: "Order tracking",
+    intro: "Information about tracking after dispatch.",
     body: [
-      "配送会社の追跡番号が発行された後、追跡情報をご案内します。配送状況についてお問い合わせの際は、注文番号をお知らせください。",
-      "現在、このページは配送会社の追跡システムと連携していません。",
+      "Once the carrier issues a tracking number, the gallery will share the tracking information. Include your order number when asking about a shipment.",
+      "This page is not currently connected to a carrier tracking service.",
     ],
-    draftNotice: "このページでは追跡番号の自動検索はできません。追跡情報についてはお問い合わせください。",
+    draftNotice: "This page cannot look up tracking numbers automatically. Contact the gallery for tracking information.",
   },
   privacy: {
-    title: "プライバシーポリシー",
-    intro: "お客様の情報の取り扱いについて。",
+    title: "Privacy notice",
+    intro: "How customer information is handled.",
     body: [
-      "この草案は、今後定める個人情報の取り扱い方針のための確認用です。正式公開前に、実際の事業者名、個人情報管理に関するお問い合わせ先、利用するサービス提供者、保存期間、取り扱いの法的根拠および適用されるお客様の権利を確認し、具体的に記載する必要があります。",
-      "メールでクレジットカード番号などの機微な決済情報を送信しないでください。",
+      "This draft is for review while the gallery's privacy practices are being established. Before publication, it must identify the actual merchant, privacy contact, service providers, retention periods, legal bases for processing and customer rights that apply.",
+      "Do not send sensitive payment information, such as card numbers, by email.",
     ],
-    draftNotice: "公開前確認用の草案です。現時点では正式なプライバシーポリシーではありません。事業者情報と実際のデータ取り扱いを確認するまで、法的な案内として利用しないでください。",
+    draftNotice: "This is a pre-publication draft, not an official privacy notice. Do not rely on it as a legal statement until the merchant details and actual data practices have been verified.",
   },
   terms: {
-    title: "利用規約",
-    intro: "ご購入に関する条件について。",
+    title: "Terms of use",
+    intro: "Terms relating to purchases.",
     body: [
-      "正式な利用規約は、事業者による承認と販売対象国に応じた確認が必要です。販売事業者の情報、注文の成立、価格、支払い、配送、関税、返品、保証、紛争対応および準拠法などを明確に定める必要があります。",
-      "現在のこの試作環境では、オンライン決済および法的拘束力のある注文確定は行われません。",
+      "The official terms require merchant approval and review for each intended sales market. They must clearly define the seller, order formation, prices, payment, delivery, duties, returns, warranties, dispute handling and governing law.",
+      "This preview environment does not process online payments or create legally binding confirmed orders.",
     ],
-    draftNotice: "公開前確認用の草案です。正式な利用規約ではありません。実際の販売事業者と販売条件について確認・承認されるまで、購入条件として扱わないでください。",
+    draftNotice: "This is a pre-publication draft, not the official terms of use. Do not treat it as contractual purchase terms until the actual seller and sales conditions have been reviewed and approved.",
   },
 };
 

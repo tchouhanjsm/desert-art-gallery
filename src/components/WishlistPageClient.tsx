@@ -27,18 +27,18 @@ export function WishlistPageClient() {
     void load();
     return () => { cancelled = true; };
   }, [slugs]);
-  if (!slugs.length) return <div className="empty-note">お気に入りはまだ登録されていません。<br/><Link href="/shop" className="empty-link">商品を見る</Link></div>;
+  if (!slugs.length) return <div className="empty-note">Your wishlist is empty.<br/><Link href="/shop" className="empty-link">Continue shopping</Link></div>;
   return <div>
-    {loading && <p className="cart-state">お気に入り商品を更新しています…</p>}
+    {loading && <p className="cart-state">Updating your wishlist…</p>}
     <div className="wishlist-grid">{items.map((item) => <article className="wishlist-card" key={item.slug}>
       <Link href={"/products/" + item.slug}>
         {item.image ? <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={item.image} alt={item.imageAlt} width={500} height={620} /> : <div className="wishlist-placeholder" />}
         <div className="product-category">DESERT ART GALLERY</div><h2>{item.name}</h2>
-        <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "価格はお問い合わせください"}</p>
+        <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price on request"}</p>
       </Link>
-      {!item.available && <small className="cart-error">現在ご購入いただけません</small>}
-      <button className="wishlist-remove" type="button" onClick={() => remove(item.slug)}>お気に入りから削除</button>
+      {!item.available && <small className="cart-error">Currently unavailable</small>}
+      <button className="wishlist-remove" type="button" onClick={() => remove(item.slug)}>Remove from wishlist</button>
     </article>)}</div>
-    <div className="center-action"><Link href="/shop" className="button-outline">商品を探す</Link></div>
+    <div className="center-action"><Link href="/shop" className="button-outline">Explore the collection</Link></div>
   </div>;
 }

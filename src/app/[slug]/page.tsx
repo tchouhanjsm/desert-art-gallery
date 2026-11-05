@@ -18,7 +18,7 @@ export async function generateMetadata({
 
   if (!page) {
     return {
-      title: "ページが見つかりません",
+      title: "Page not found",
       robots: { index: false, follow: false },
     };
   }
@@ -42,7 +42,7 @@ export default async function InfoPage({
   return (
     <section className="page-shell" aria-labelledby="information-page-title">
       <header className="page-heading">
-        <div className="section-kicker">ご利用案内</div>
+        <div className="section-kicker">CUSTOMER INFORMATION</div>
         <h1 id="information-page-title">{page.title}</h1>
         <p>{page.intro}</p>
       </header>

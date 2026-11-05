@@ -5,36 +5,80 @@ function source(path: string): string {
   return readFileSync(new URL(path, import.meta.url), "utf8");
 }
 
-describe("Japanese-first public interface copy", () => {
-  it("does not reintroduce former English homepage and shop labels", () => {
-    const home = source("../app/page.tsx");
-    const shop = source("../app/shop/page.tsx");
-    expect(home).toContain("厳選コレクション");
-    expect(home).toContain("オンラインカタログ");
-    expect(home).not.toContain("CURATED COLLECTIONS");
-    expect(home).not.toContain("THE ONLINE CATALOGUE");
-    expect(home).not.toContain("ONLINE STORE · CATALOGUE IN PREPARATION");
-    expect(shop).toContain("オンラインストア");
-    expect(shop).not.toContain("DESERT ART GALLERY · ONLINE STORE");
+const publicInterfaceFiles = [
+  "../app/layout.tsx",
+  "../app/page.tsx",
+  "../app/shop/page.tsx",
+  "../app/collections/[slug]/page.tsx",
+  "../app/products/[slug]/page.tsx",
+  "../app/story/page.tsx",
+  "../app/artisans/page.tsx",
+  "../app/journal/page.tsx",
+  "../app/journal/[slug]/page.tsx",
+  "../app/contact/page.tsx",
+  "../app/cart/page.tsx",
+  "../app/checkout/page.tsx",
+  "../app/login/page.tsx",
+  "../app/login/customer-login-form.tsx",
+  "../app/login/legacy-login-form.tsx",
+  "../app/register/page.tsx",
+  "../app/register/customer-register-form.tsx",
+  "../app/account/page.tsx",
+  "../app/account/recovery/page.tsx",
+  "../app/account/recovery/legacy-recovery-form.tsx",
+  "../app/account/customer-page.tsx",
+  "../app/account/legacy-page.tsx",
+  "../app/account/orders/[id]/page.tsx",
+  "../app/wishlist/page.tsx",
+  "../app/[slug]/page.tsx",
+  "../app/not-found.tsx",
+  "../components/Header.tsx",
+  "../components/Footer.tsx",
+  "../components/SiteChrome.tsx",
+  "../components/LookbookBand.tsx",
+  "../components/TrustStrip.tsx",
+  "../components/PreviewArtwork.tsx",
+  "../components/AddToBagButton.tsx",
+  "../components/CartProvider.tsx",
+  "../components/CartPageClient.tsx",
+  "../components/CheckoutForm.tsx",
+  "../components/StorefrontProductCard.tsx",
+  "../components/ShopBrowser.tsx",
+  "../components/ProductGallery.tsx",
+  "../components/WishlistPageClient.tsx",
+  "../components/WishlistToggle.tsx",
+  "../lib/navigation.ts",
+  "../lib/storefront-information.ts",
+];
+
+describe("English-language, Japanese-inspired storefront contract", () => {
+  it("sets the public document language to English", () => {
+    expect(source("../app/layout.tsx")).toContain('<html lang="en">');
+    expect(source("../app/layout.tsx")).not.toContain('<html lang="ja">');
+    expect(source("../app/account/customer-page.tsx")).not.toContain("ja-JP");
   });
 
-  it("keeps maker, journal and story interface text in Japanese", () => {
-    const artisans = source("../app/artisans/page.tsx");
-    const journal = source("../app/journal/page.tsx");
-    const story = source("../app/story/page.tsx");
-    expect(artisans).toContain("つくり手の物語");
-    expect(artisans).not.toContain("Maker stories");
-    expect(journal).toContain("読みものとストーリー");
-    expect(journal).not.toContain("Journal & stories");
-    expect(journal).not.toContain("Perspectives on textiles");
-    expect(story).toContain("素材 · 記憶 · 手仕事");
-    expect(story).not.toContain("MATERIAL · MEMORY · MAKING");
+  it("keeps customer-facing source copy in English across the whole shopping journey", () => {
+    const japaneseText = /[\u3000-\u30ff\u3400-\u9fff]/;
+    const offenders = publicInterfaceFiles.filter((path) => japaneseText.test(source(path)));
+    expect(offenders, "Japanese UI copy remains in: " + offenders.join(", ")).toEqual([]);
   });
 
-  it("explains unpaid order drafts in Japanese and does not imply payment collection", () => {
+  it("does not apply Japanese number or date formatting to English UI", () => {
+    const offenders = publicInterfaceFiles.filter((path) => source(path).includes('"ja-JP"'));
+    expect(offenders, "Japanese locale formatting remains in: " + offenders.join(", ")).toEqual([]);
+  });
+
+  it("retains the intended editorial ecommerce direction in English", () => {
+    expect(source("../app/page.tsx")).toContain("CURATED COLLECTIONS");
+    expect(source("../app/shop/page.tsx")).toContain("All products");
+    expect(source("../app/products/[slug]/page.tsx")).toContain("ABOUT THIS PIECE");
+    expect(source("../styles/japan-storefront.css")).toContain("--atelier-ivory");
+  });
+
+  it("clearly labels order drafts as unpaid", () => {
     const order = source("../app/account/orders/[id]/page.tsx");
-    expect(order).toContain("お支払い前の注文案です");
-    expect(order).toContain("お支払いの請求・受領は行われていません");
-    expect(order).not.toContain("This is an unpaid order draft");
+    expect(order).toContain("This is an unpaid order draft");
+    expect(order).toContain("No payment has been taken");
   });
 });

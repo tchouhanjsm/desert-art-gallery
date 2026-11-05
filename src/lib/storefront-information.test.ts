@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getStorefrontInformationPage, storefrontInformationPages } from "./storefront-information";
 
-describe("Japanese customer information pages", () => {
-  it("provides a Japanese title, introduction and draft/status note for every information route", () => {
+describe("English customer information pages", () => {
+  it("provides an English title, introduction and status note for every information route", () => {
     expect(Object.keys(storefrontInformationPages).sort()).toEqual([
       "faq",
       "privacy",
@@ -12,11 +12,13 @@ describe("Japanese customer information pages", () => {
       "tracking",
     ]);
 
+    const japaneseText = /[\u3000-\u30ff\u3400-\u9fff]/;
     for (const page of Object.values(storefrontInformationPages)) {
-      expect(page.title).toMatch(/[ぁ-んァ-ヶ一-龯]/);
-      expect(page.intro).toMatch(/[ぁ-んァ-ヶ一-龯]/);
+      expect(page.title).not.toMatch(japaneseText);
+      expect(page.intro).not.toMatch(japaneseText);
       expect(page.body.length).toBeGreaterThan(0);
-      expect(page.draftNotice).toMatch(/[ぁ-んァ-ヶ一-龯]/);
+      expect(page.draftNotice).toBeTruthy();
+      expect(page.draftNotice).not.toMatch(japaneseText);
     }
   });
 
@@ -24,12 +26,14 @@ describe("Japanese customer information pages", () => {
     for (const slug of ["privacy", "terms", "returns", "shipping"] as const) {
       expect(getStorefrontInformationPage(slug)?.draftNotice).toBeTruthy();
     }
-    expect(getStorefrontInformationPage("privacy")?.draftNotice).toContain("正式なプライバシーポリシーではありません");
-    expect(getStorefrontInformationPage("terms")?.draftNotice).toContain("正式な利用規約ではありません");
+    expect(getStorefrontInformationPage("privacy")?.draftNotice).toContain("not an official privacy notice");
+    expect(getStorefrontInformationPage("terms")?.draftNotice).toContain("not the official terms of use");
   });
 
   it("does not claim live carrier tracking integration", () => {
-    expect(getStorefrontInformationPage("tracking")?.body.join(" ")).toContain("追跡システムと連携していません");
+    expect(getStorefrontInformationPage("tracking")?.body.join(" ")).toContain(
+      "not currently connected to a carrier tracking service",
+    );
   });
 
   it("returns null for unknown slugs instead of inventing a page", () => {

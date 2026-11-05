@@ -7,8 +7,8 @@ import { getPublishedArtisanProfiles, type ArtisanRecord } from "@/server/editor
 import { getEditorialMediaUrl } from "@/server/media/storage";
 
 export const metadata = {
-  title: "つくり手について",
-  description: "掲載するご本人の確認と承諾を得たつくり手の情報をご紹介します。",
+  title: "Meet the makers",
+  description: "We share maker information only after the people featured have reviewed and approved it.",
 };
 
 type ArtisanCard = ArtisanRecord & { portrait: string | null };
@@ -31,14 +31,14 @@ export default async function ArtisansPage() {
       return (
         <div className="page-shell">
           <div className="page-heading">
-            <div className="section-kicker">つくり手とものづくり</div>
-            <h1>つくり手について</h1>
-            <p>ご本人の言葉、またはご本人の承諾を得た内容のみを掲載します。</p>
+            <div className="section-kicker">MAKERS & CRAFT</div>
+            <h1>Meet the makers</h1>
+            <p>We publish only words and details provided or approved by the makers themselves.</p>
           </div>
           <div className="info-copy">
-            <p>このページでは、掲載対象となるご本人が内容を確認し、承諾したプロフィールのみをご紹介します。お名前、写真、経歴、経験に関する情報は、許可なく掲載しません。</p>
-            <p>商品や制作背景についてのご質問は、ギャラリーまでお問い合わせください。</p>
-            <Link className="contact-link" href="/contact">お問い合わせ</Link>
+            <p>Profiles appear here only after the people featured have reviewed and approved them. Names, photographs, biographies and experience details are never published without permission.</p>
+            <p>Contact the gallery with questions about a piece or how it was made.</p>
+            <Link className="contact-link" href="/contact">Contact us</Link>
           </div>
         </div>
       );
@@ -47,7 +47,7 @@ export default async function ArtisansPage() {
     const { data, error } = await supabase.from("artisan_profiles")
       .select("id,full_name,role_title,short_bio,biography,craft_specialties,years_experience,portrait_path,portrait_alt_text,portrait_rights_confirmed,portrait_rights_evidence,sort_order,is_published")
       .eq("is_published", true).order("sort_order", { ascending: true });
-    if (error) throw new Error("つくり手の情報を読み込めませんでした。");
+    if (error) throw new Error("Maker information could not be loaded.");
 
     const rows = (data ?? []) as unknown as ArtisanRecord[];
     cards = await Promise.all(rows.map(async (artisan) => {
@@ -63,9 +63,9 @@ export default async function ArtisansPage() {
   return (
     <div className="page-shell">
       <div className="page-heading">
-        <div className="section-kicker">つくり手とものづくり</div>
-        <h1>つくり手の物語</h1>
-        <p>掲載するご本人が内容と写真を確認し、承諾したプロフィールのみをご紹介します。</p>
+        <div className="section-kicker">MAKERS & CRAFT</div>
+        <h1>Maker stories</h1>
+        <p>We feature only profiles and photographs reviewed and approved by the makers themselves.</p>
       </div>
       {cards.length ? (
         <div className="artisan-grid">
@@ -73,16 +73,16 @@ export default async function ArtisansPage() {
             <article className="artisan-card" key={artisan.id}>
               {artisan.portrait ? (
                 <div className="artisan-photo">
-                  <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || ("つくり手「" + artisan.full_name + "」のポートレート")} fill sizes="(max-width:700px) 88vw, 30vw" />
+                  <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={artisan.portrait} alt={artisan.portrait_alt_text?.trim() || `Portrait of ${artisan.full_name}`} fill sizes="(max-width:700px) 88vw, 30vw" />
                 </div>
               ) : (
-                <div className="artisan-photo artisan-photo-empty" aria-hidden="true">写真は未掲載です</div>
+                <div className="artisan-photo artisan-photo-empty" aria-hidden="true">Portrait not yet published</div>
               )}
               <div className="section-kicker">{artisan.role_title}</div>
               <h2>{artisan.full_name}</h2>
               {artisan.short_bio && <p>{artisan.short_bio}</p>}
               {artisan.biography && <p className="artisan-biography">{artisan.biography}</p>}
-              {artisan.years_experience !== null && <small>{artisan.years_experience}年の経験</small>}
+              {artisan.years_experience !== null && <small>{artisan.years_experience} years of experience</small>}
               {!!artisan.craft_specialties.length && (
                 <div className="artisan-specialties">
                   {artisan.craft_specialties.map((specialty) => <span key={specialty}>{specialty}</span>)}
@@ -92,7 +92,7 @@ export default async function ArtisansPage() {
           ))}
         </div>
       ) : (
-        <div className="empty-note">現在、掲載承諾済みのプロフィールはありません。</div>
+        <div className="empty-note">There are currently no maker profiles approved for publication.</div>
       )}
     </div>
   );
