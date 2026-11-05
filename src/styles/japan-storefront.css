@@ -192,7 +192,7 @@
 .jp-storefront .jp-home-category-discovery .section-title{margin:7px 0 18px;font-size:clamp(23px,2.4vw,32px);}
 .jp-storefront .jp-home-category-links{display:flex;flex-wrap:wrap;gap:9px;}
 .jp-storefront .jp-home-category-link{min-height:44px;padding:9px 14px;display:inline-flex;align-items:center;gap:14px;border:1px solid var(--atelier-line);background:var(--atelier-ivory);font-size:12px;transition:border-color .18s ease,background .18s ease;}
-.jp-storefront .jp-home-category-link span{color:var(--atelier-clay);font-size:14px;}
+.jp-storefront .jp-home-category-link .jp-home-category-arrow{color:var(--atelier-clay);font-size:14px;}
 .jp-storefront .jp-home-category-link:hover{border-color:var(--atelier-clay);background:#f0e9df;}
 .jp-storefront .jp-home-hero-media--empty{height:auto;min-height:360px;max-height:none;aspect-ratio:auto;overflow:visible;}
 .jp-storefront .jp-home-hero-media--empty .jp-home-hero-empty{height:100%;min-height:360px;justify-content:center;}
@@ -356,7 +356,7 @@
 /* Catalogue-derived counts make category discovery useful without adding
    hard-coded merchandising labels or unsupported popularity signals. */
 .jp-storefront .jp-home-category-link{gap:8px 14px;}
-.jp-storefront .jp-home-category-name{font-weight:650;}
+.jp-storefront .jp-home-category-name{font-weight:650;} color:var(--atelier-ink);font-size:12px;
 .jp-storefront .jp-home-category-link small{color:var(--atelier-muted);font-size:10px;white-space:nowrap;}
 .jp-storefront .jp-home-category-arrow{margin-left:auto;}
 .jp-storefront .shop-chip{display:inline-flex;align-items:center;gap:8px;}
