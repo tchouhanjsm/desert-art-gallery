@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { StorefrontImage } from "@/components/StorefrontImage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { galleryBlurDataUrl } from "@/lib/image";
@@ -8,8 +8,8 @@ import type { ProductImage } from "@/lib/products";
 import { resolveProductGallerySwipe } from "@/lib/product-gallery-gesture";
 
 export function ProductGallery({ images, title }: { images: ProductImage[]; title: string }) {
-  const [activeIndex, setActiveIndex] = React.useState(0);
-  const touchStart = React.useRef<{ x: number; y: number } | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
   const active = images[activeIndex] ?? images[0];
 
   if (!active) return null;
@@ -17,7 +17,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
   const showPrevious = () => setActiveIndex((current) => (current - 1 + images.length) % images.length);
   const showNext = () => setActiveIndex((current) => (current + 1) % images.length);
 
-  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (images.length < 2 || event.pointerType !== "touch") return;
     if (event.target instanceof Element && event.target.closest("button")) return;
     touchStart.current = { x: event.clientX, y: event.clientY };
