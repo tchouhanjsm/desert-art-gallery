@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { StorefrontPageHeading } from "@/components/StorefrontPageHeading";
 import { getStorefrontInformationPage, storefrontInformationPages } from "@/lib/storefront-information";
 
 export const dynamicParams = false;
@@ -41,11 +42,13 @@ export default async function InfoPage({
 
   return (
     <section className="page-shell" aria-labelledby="information-page-title">
-      <header className="page-heading">
-        <div className="section-kicker">CUSTOMER INFORMATION</div>
-        <h1 id="information-page-title">{page.title}</h1>
-        <p>{page.intro}</p>
-      </header>
+      <StorefrontPageHeading
+        eyebrow="CUSTOMER INFORMATION"
+        title={page.title}
+        description={page.intro}
+        id="information-page-title"
+        className="page-heading"
+      />
       <div className="info-copy">
         {page.draftNotice && <p className="info-draft-notice" role="note">{page.draftNotice}</p>}
         {page.body.map((paragraph, index) => (
