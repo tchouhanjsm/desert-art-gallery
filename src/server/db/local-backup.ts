@@ -97,8 +97,13 @@ export function resolveLocalBackupRoot(value = process.env.DAG_BACKUP_ROOT): str
   }
   const resolved = path.resolve(configured || DEFAULT_BACKUP_ROOT);
   const publicRoot = path.resolve(process.cwd(), "public");
-  if (isPathInside(publicRoot, resolved)) {
-    throw new Error("Backup destination cannot be inside the public web directory.");
+  assertNonOverlappingPaths(
+    publicRoot,
+    resolved,
+    "Backup destination must be separate from the public web directory and must not contain it.",
+  );
+  if (resolved === path.parse(resolved).root) {
+    throw new Error("DAG_BACKUP_ROOT cannot be a filesystem root.");
   }
   return resolved;
 }
@@ -693,9 +698,9 @@ export async function inspectLocalRestoreTarget(input: {
     "Restore media target must be separate from the current private media directory. The original media directory is never overwritten.",
   );
   assertNonOverlappingPaths(
-    verified.backupPath,
+    path.dirname(verified.backupPath),
     targetMediaRoot,
-    "Restore media target must be outside the source backup directory.",
+    "Restore media target must be outside the backup collection directory.",
   );
   const publicRoot = path.resolve(process.cwd(), "public");
   if (isPathInside(publicRoot, targetMediaRoot)) {
@@ -773,9 +778,11 @@ export async function restoreLocalBackupBundle(input: {
     if (!databaseImported) {
       await rm(stagingMediaRoot, { recursive: true, force: true }).catch(() => undefined);
     } else if (!mediaPromoted) {
+      const cause = error instanceof Error ? error.message : "Unknown restore verification error";
       throw new Error(
-        "The isolated target database was imported, but the media directory could not be promoted. Database target: "
-        + plan.targetDatabase + ". Media recovery files remain at: " + stagingMediaRoot + ". Do not use this target until reconciled.",
+        "The isolated target database was imported but the restore did not finish. Database target: "
+        + plan.targetDatabase + ". Staged media remains at: " + stagingMediaRoot
+        + ". Cause: " + cause + " Do not use this target until reconciled.",
       );
     }
     throw error;
