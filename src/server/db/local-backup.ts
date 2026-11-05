@@ -199,6 +199,10 @@ async function enumerateMediaFiles(root: string): Promise<MediaInventoryItem[]> 
         throw new Error("Private media backup encountered a symbolic link. Remove or reconcile it before backing up.");
       }
       if (entry.isDirectory()) {
+        const directoryStats = await lstat(fullPath);
+        if (!directoryStats.isDirectory() || directoryStats.isSymbolicLink()) {
+          throw new Error("Private media directory changed type during backup inspection.");
+        }
         await visit(fullPath);
         continue;
       }
@@ -368,7 +372,7 @@ async function copyFileWithDigest(sourcePath: string, destinationPath: string): 
 async function assertNoDatabaseSwitchStatements(dumpPath: string): Promise<void> {
   const lines = createInterface({ input: createReadStream(dumpPath, { encoding: "utf8" }), crlfDelay: Infinity });
   for await (const line of lines) {
-    if (/^\\s*(?:USE\\s+|CREATE\\s+(?:DATABASE|SCHEMA)\\b|DROP\\s+(?:DATABASE|SCHEMA)\\b|ALTER\\s+(?:DATABASE|SCHEMA)\\b)/i.test(line)) {
+    if (/^\s*(?:USE\s+|CREATE\s+(?:DATABASE|SCHEMA)\b|DROP\s+(?:DATABASE|SCHEMA)\b|ALTER\s+(?:DATABASE|SCHEMA)\b)/i.test(line)) {
       throw new Error("SQL backup contains a database-switch or database-definition statement; refusing to restore it into a different target.");
     }
   }
@@ -468,6 +472,7 @@ export async function createLocalBackupBundle(input: {
         "--single-transaction",
         "--quick",
         "--skip-lock-tables",
+        "--no-tablespaces",
         "--routines",
         "--triggers",
         "--events",
@@ -480,13 +485,14 @@ export async function createLocalBackupBundle(input: {
       ]);
     });
 
+    await chmod(databaseDumpPath, 0o600);
     await assertNoDatabaseSwitchStatements(databaseDumpPath);
     const databaseDigest = await digestFile(databaseDumpPath);
     const mediaDestination = path.join(stagingPath, "media");
     const mediaFiles = await copyMediaTree(mediaRoot, mediaDestination);
     const mediaBytes = mediaFiles.reduce((total, file) => total + file.sizeBytes, 0);
     const sourceMediaFiles = await enumerateMediaFiles(mediaRoot);
-    const sourceInventory = sourceMediaFiles.map((file) => ({ path: file.relativePath, sizeBytes: file.sizeBytes }));
+    const sourceInventory = sourceMediaFiles.map((file) => ({ path: file.relativePath, sizeBytes: file.sizeBytes })).sort((a, b) => a.path.localeCompare(b.path));
     const copiedInventory = mediaFiles.map((file) => ({ path: file.path, sizeBytes: file.sizeBytes }));
     if (JSON.stringify(sourceInventory) !== JSON.stringify(copiedInventory)) {
       throw new Error("Private media inventory changed during backup. No backup bundle was published; pause media changes and retry.");
