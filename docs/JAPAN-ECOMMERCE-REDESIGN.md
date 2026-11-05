@@ -1135,7 +1135,7 @@ This follow-on remains within the existing visual merchandising PR and is still 
 - All customer-facing UI remains English-only.
 
 ### Validation and remaining acceptance
-- Exact-head typecheck, tests, lint, production build, route/viewport screenshots and Lighthouse validation must pass on the final PR head before this increment can be accepted.
+- Exact-head CI run #381 passed on commit `419d778baae627fd28c22f7c281b306900231ca5`: MySQL migrations, typecheck, 320 unit/integration tests, lint, production build, 120 Playwright captures at 390/430/768/1280/1440px and Lighthouse. Manual visual inspection, authenticated flows and owner-approved catalogue UAT remain outstanding.
 - CI's blank database can validate empty catalogue and common chrome states, but cannot validate a real product, variant, populated cart or product photography. Merchant-connected UAT is still required.
 - The named `docs/AGENT-DESIGN-REVIEW-PROMPT.md` referenced in the handoff prompt is not present in this repository branch; its contents were not inferred or recreated.
 
@@ -1143,3 +1143,16 @@ This follow-on remains within the existing visual merchandising PR and is still 
 ### Exact responsive acceptance matrix — 2026-11-05
 
 The Playwright capture matrix is aligned to the owner-requested viewport widths: **390px, 430px, 768px, 1280px and 1440px**. It retains 24 routes × 5 widths = 120 captures. The previous 360px, 414px and 1600px set is superseded for this PR's acceptance run.
+
+
+### Exact-head CI evidence — 2026-11-05
+
+[Run #381](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41986240749) passed on `419d778baae627fd28c22f7c281b306900231ca5`.
+
+- Migrations, TypeScript typecheck, **320 tests**, lint and production build passed.
+- Playwright captured **120/120 route-width combinations** (24 routes × 390, 430, 768, 1280 and 1440px); zero capture failures.
+- Manifest checks: no horizontal overflow, broken images, missing/generic image alt text, unnamed buttons, HTTP errors or failed requests. The 15 browser-console 404 messages correspond to the documented empty-database product/collection and deliberate not-found routes; no page errors were recorded.
+- Lighthouse reports: homepage performance 98, accessibility 95, best practices 96, SEO 100; shop performance 96, accessibility 96, best practices 96, SEO 100. Assertion results: 0 failures.
+- Self-hosted staging archive, 19.2 MB, was packaged and uploaded but **not deployed**.
+- CI is unauthenticated and uses an empty catalogue. Dynamic product and collection pages return documented 404 states; their real product content, variants, cart population and photography remain unverified.
+- Evidence: [route review](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13395789564), [Lighthouse](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13396750732), [staging archive](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13396950369).
