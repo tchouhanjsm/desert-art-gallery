@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StorefrontPageHeading } from "@/components/StorefrontPageHeading";
 
 export const metadata = {
   title: "Our story",
@@ -8,11 +9,12 @@ export const metadata = {
 export default function StoryPage() {
   return (
     <div className="atelier-story-page">
-      <header className="atelier-story-masthead">
-        <div className="section-kicker">JAISALMER · RAJASTHAN</div>
-        <h1>Textiles and objects,<br /><em>and the stories behind them.</em></h1>
-        <p>From Jaisalmer, Rajasthan, India.</p>
-      </header>
+      <StorefrontPageHeading
+        className="atelier-story-masthead"
+        eyebrow="JAISALMER · RAJASTHAN"
+        title={<>Textiles and objects,<br /><em>and the stories behind them.</em></>}
+        description="From Jaisalmer, Rajasthan, India."
+      />
 
       <figure className="atelier-story-visual">
         <div className="atelier-story-visual-art" role="img" aria-label="A geometric textile-inspired design study. This is not a product photograph.">
