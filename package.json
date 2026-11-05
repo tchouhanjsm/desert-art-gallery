@@ -26,7 +26,8 @@
     "media:audit-recovered": "node --env-file=.env --import=tsx scripts/audit-recovered-product-photos.ts",
     "db:catalogue-preflight": "node --env-file=.env --import=tsx scripts/catalogue-preflight.ts",
     "media:stage-recovered": "node --env-file=.env --import=tsx scripts/stage-recovered-product-photos.ts",
-    "visual:review": "node --import=tsx scripts/capture-storefront-review.ts"
+    "visual:review": "node --import=tsx scripts/capture-storefront-review.ts",
+    "smoke:customer": "node --import=tsx scripts/smoke-customer-interactions.ts"
   },
   "dependencies": {
     "next": "^15.1.6",

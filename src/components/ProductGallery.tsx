@@ -1,23 +1,54 @@
 "use client";
 
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { StorefrontImage } from "@/components/StorefrontImage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
 import { galleryBlurDataUrl } from "@/lib/image";
 import type { ProductImage } from "@/lib/products";
+import { resolveProductGallerySwipe } from "@/lib/product-gallery-gesture";
 
 export function ProductGallery({ images, title }: { images: ProductImage[]; title: string }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
   const active = images[activeIndex] ?? images[0];
 
   if (!active) return null;
 
-  const previous = () => setActiveIndex((current) => (current - 1 + images.length) % images.length);
-  const next = () => setActiveIndex((current) => (current + 1) % images.length);
+  const showPrevious = () => setActiveIndex((current) => (current - 1 + images.length) % images.length);
+  const showNext = () => setActiveIndex((current) => (current + 1) % images.length);
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (images.length < 2 || event.pointerType !== "touch") return;
+    if (event.target instanceof Element && event.target.closest("button")) return;
+    touchStart.current = { x: event.clientX, y: event.clientY };
+  }
+
+  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start || images.length < 2) return;
+
+    const direction = resolveProductGallerySwipe(start, { x: event.clientX, y: event.clientY });
+    if (direction === "next") showNext();
+    if (direction === "previous") showPrevious();
+  }
+
+  function handlePointerCancel() {
+    touchStart.current = null;
+  }
 
   return (
-    <div className="detail-gallery">
-      <div className="product-image-wrap detail-image detail-gallery-main">
+    <div
+      className="detail-gallery"
+      role="group"
+      aria-label={title + " product image gallery"}
+    >
+      <div
+        className="product-image-wrap detail-image detail-gallery-main"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
         <StorefrontImage placeholder="blur" blurDataURL={galleryBlurDataUrl}
           key={active.id}
           src={active.url}
@@ -28,11 +59,11 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
         />
         {images.length > 1 && (
           <div className="product-gallery-navigation" aria-label="Product image navigation">
-            <button type="button" onClick={previous} aria-label="View previous product image">
+            <button type="button" onClick={showPrevious} aria-label="View previous product image">
               <ChevronLeft size={19} aria-hidden="true" />
             </button>
             <span aria-hidden="true">{String(activeIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}</span>
-            <button type="button" onClick={next} aria-label="View next product image">
+            <button type="button" onClick={showNext} aria-label="View next product image">
               <ChevronRight size={19} aria-hidden="true" />
             </button>
           </div>

@@ -1223,3 +1223,20 @@ Approximately 3,000 product photographs for around 300 products remain deferred.
 - No database, catalogue, import, auth, inventory, cart/checkout domain, API, shipping/tax, payment, media rights, currency, commercial market or legal behaviour was changed.
 - Product photography migration remains deferred. No photo archive was uploaded, downloaded, transformed, committed or published.
 - This phase does not claim manual visual sign-off, authenticated UAT, owner-connected staging verification or production deployment.
+
+
+## Phase 11 — mobile product-gallery interaction — 2026-11-05
+
+The product-detail brief calls for mobile swipe behaviour in addition to visible gallery navigation. The existing gallery already supported previous/next buttons and selectable thumbnails; this increment adds touch navigation without replacing those controls.
+
+- Horizontal touch swipes on the primary product image move to the next/previous approved image.
+- The gesture requires a clear horizontal movement of at least 48 CSS pixels and ignores vertical or strongly diagonal movement so normal page scrolling is not intercepted.
+- Gestures beginning on the previous/next controls are ignored; pointer cancellation clears the pending gesture.
+- Existing thumbnail controls, visible image position, descriptive image alternative text and polite live announcement remain in place.
+- The main image uses `touch-action: pan-y` so the browser retains native vertical scrolling while the component handles horizontal swipes.
+- No gallery image source, media permission, storage path, product record, price, stock, variant or purchase behaviour is changed.
+
+### Validation boundary
+
+- Unit tests cover swipe direction, distance threshold and vertical/diagonal-scroll rejection; component rendering tests cover the labelled gallery and accessible button states.
+- The CI catalogue is intentionally empty, so CI cannot exercise a real published product gallery or merchant imagery. Manual mobile verification with owner-approved product images remains required.

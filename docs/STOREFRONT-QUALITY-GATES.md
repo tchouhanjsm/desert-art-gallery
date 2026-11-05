@@ -169,3 +169,26 @@ Automated CI is not signed-in customer acceptance. The following remain open: re
 - [ ] Shared page and section heading primitives preserve semantic heading levels, IDs, existing route classes and optional actions.
 - [ ] Category labels and visible counts derive from the same catalogue records used for filtering and result sets. No hard-coded category counts or popularity signals.
 - [ ] Superseded stylesheet overlays are not reintroduced as additional cascade layers.
+
+
+## 14. Deterministic customer interaction smoke checks
+
+The CI production server is exercised after the route/viewport capture, using the existing Playwright installation and the intentionally empty MySQL test catalogue.
+
+Required checks:
+- [ ] Header search submits a term to `/shop?q=...` and the shop restores the query into its search field.
+- [ ] Mobile navigation opens with `aria-expanded=true`, closes with Escape and restores focus to its trigger.
+- [ ] The empty shopping bag opens as a labelled modal dialog, displays the empty state, closes with Escape and restores focus to its trigger.
+
+These checks do not create products, alter customer data, authenticate users, create order drafts, reserve inventory or attempt payments. They complement route/viewport screenshots; they do not replace signed-in UAT, full keyboard/screen-reader review or human visual sign-off.
+
+
+## 15. Product gallery touch interaction
+
+- [ ] On a product with at least two approved images, a clear left/right touch swipe changes the active image.
+- [ ] Short, vertical and strongly diagonal gestures do not change the active image or interrupt vertical page scrolling.
+- [ ] Touch gestures beginning on the arrow controls do not trigger a second navigation action.
+- [ ] Previous/next buttons and thumbnail buttons remain labelled and keyboard-operable; the selected thumbnail exposes its pressed state.
+- [ ] The active image retains descriptive, source-approved alternative text and the current image position is announced politely.
+- [ ] A single-image gallery has no non-functional navigation controls; no-image state remains handled by the product page's existing placeholder.
+- [ ] Empty-catalogue CI cannot validate a published product gallery. Complete manual mobile review using an owner-approved product and its authorised image set before release.
