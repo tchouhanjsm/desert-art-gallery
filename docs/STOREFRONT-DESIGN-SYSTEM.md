@@ -95,3 +95,16 @@ The root `SiteChrome` hides public header/footer on admin/owner routes. Keep own
 ## Acceptance status
 
 English-language UI, source-language preservation, local typography, responsive shopping discovery, accessible control names and route-level visual QA are enforced through tests and CI. Human visual inspection, authenticated customer journeys, keyboard/screen-reader testing, contrast certification, rights-approved product photography and merchant/legal launch inputs remain separate acceptance gates.
+
+## Presentation ownership and reusable composition — 2026-11-05
+
+The global CSS boundary is intentionally small:
+
+- `src/app/globals.css` contains neutral reset rules and shared base font tokens.
+- `src/styles/japan-storefront.css` is the one active public customer stylesheet.
+- `src/styles/admin-theme.css` is the separate active owner/operations stylesheet.
+- `src/app/layout.tsx` is the only global stylesheet import point.
+
+The superseded Desert Atelier `theme.css`, `phase1.css`, `editorial.css` and inactive `admin.css` were removed after the route/component import audit. Do not reintroduce layered legacy themes or move owner selectors into the public stylesheet.
+
+`StorefrontPageHeading` and `StorefrontSectionHeading` provide consistent semantic mastheads and merchandising headings while preserving each route's existing classes and composition. Category result counts are derived from the records already supplied by the catalogue service; no category labels or counts are seeded.
