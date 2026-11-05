@@ -141,13 +141,13 @@ export function ShopBrowser({ products }: { products: Product[] }) {
       ) : (
         <div className="atelier-empty-catalogue">
           <span className="atelier-empty-mark" aria-hidden="true">✳</span>
-          <h2>{products.length ? "No products matched your search" : "Catalogue in preparation"}</h2>
+          <h2>{products.length ? "No products matched your search" : "The collection is being prepared with care"}</h2>
           <p>{products.length
             ? "Try another search term or clear your filters and try again."
-            : "Products will be published as their details and media are approved. Contact us with questions about current availability."}</p>
+            : "We are reviewing original product photography, product details and permissions before listings go live. Explore the shop again as the collection grows."}</p>
           {hasActiveFilters
             ? <button className="button-outline" type="button" onClick={clearFilters}>Clear all filters</button>
-            : <Link className="button-outline" href="/contact">Contact us</Link>}
+            : <Link className="button-outline" href="/shop">Explore the shop</Link>}
         </div>
       )}
     </div>

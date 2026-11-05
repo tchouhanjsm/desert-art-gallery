@@ -171,3 +171,13 @@
   .jp-storefront .jp-home-hero h1{font-size:clamp(31px,8.4vw,38px);}
   .jp-storefront .atelier-product-facts{gap:4px;}
 }
+
+
+/* Visual review refinements: keep editorial typography contained and empty states intentional. */
+.jp-storefront .jp-home-editorial .jp-home-editorial-note{min-width:0;overflow:hidden;box-sizing:border-box;}
+.jp-storefront .jp-home-editorial-note strong{max-width:100%;font-size:clamp(20px,2.2vw,30px);line-height:1.18;overflow-wrap:anywhere;}
+.jp-storefront .jp-home-editorial-note .section-kicker{max-width:100%;font-size:clamp(8px,.8vw,10px);letter-spacing:.12em;white-space:normal;}
+.jp-storefront .atelier-empty-catalogue{min-height:190px;padding:clamp(22px,3vw,34px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.jp-storefront .atelier-empty-catalogue .atelier-empty-mark{margin:0 0 2px;}
+.jp-storefront .atelier-empty-catalogue h2{font-size:clamp(19px,2vw,25px);}
+.jp-storefront .atelier-empty-catalogue p{max-width:620px;margin:0 auto 7px;line-height:1.8;}
