@@ -71,6 +71,11 @@ async function main(): Promise<void> {
     const requestOwners = new WeakMap<import("playwright").Request, CaptureRecord>();
     page.on("request", (request) => {
       if (activeRecord) requestOwners.set(request, activeRecord);
+      const requestUrl = request.url();
+      const owner = activeRecord;
+      if (owner && /\/product-media\/|\/media\//i.test(new URL(requestUrl).pathname)) {
+        if (new URL(requestUrl).origin !== baseUrl.origin) owner.externalProductImageRequests.push(requestUrl);
+      }
     });
     page.on("response", (response) => {
       const owner = requestOwners.get(response.request()) ?? activeRecord;
@@ -90,12 +95,7 @@ async function main(): Promise<void> {
       const failure = request.failure()?.errorText ?? "request failed";
       if (isExpectedNavigationAbort(failure)) return;
       const owner = requestOwners.get(request) ?? activeRecord;
-      const requestUrl = request.url();
-      owner?.failedRequests.push(`${request.method()} ${requestUrl} — ${failure}`);
-      if (owner && /product-media|\/api\/media\/|\/api\/admin\/media\//i.test(requestUrl)) {
-        const requestOrigin = new URL(requestUrl).origin;
-        if (requestOrigin !== baseUrl.origin) owner.externalProductImageRequests.push(requestUrl);
-      }
+      owner?.failedRequests.push(`${request.method()} ${request.url()} — ${failure}`);
     });
 
     for (const route of storefrontReviewRoutes) {
@@ -229,6 +229,14 @@ async function main(): Promise<void> {
   console.log(`Visual review manifest: ${manifestPath}`);
   console.log(`Captured ${records.length} route/viewport combinations; failures: ${failures.length}`);
 
+  const productMediaIntegrityFailures = records.flatMap((record) => {
+    const problems: string[] = [];
+    if ((record.brokenImages ?? 0) > 0) problems.push(`${record.routePath} @ ${record.width}px: ${record.brokenImages} broken images`);
+    if ((record.imagesWithGenericAlt ?? 0) > 0) problems.push(`${record.routePath} @ ${record.width}px: ${record.imagesWithGenericAlt} images with generic/empty alt text`);
+    if (record.externalProductImageRequests.length > 0) problems.push(`${record.routePath} @ ${record.width}px: external product-media requests detected`);
+    return problems;
+  });
+  failures.push(...productMediaIntegrityFailures);
   if (failures.length > 0) process.exitCode = 1;
 }
 
