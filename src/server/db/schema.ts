@@ -486,6 +486,252 @@ export const orders = mysqlTable("orders", {
   check("orders_delivery_days_check", sql.raw("(shipping_delivery_min_days IS NULL AND shipping_delivery_max_days IS NULL) OR (shipping_delivery_min_days IS NOT NULL AND shipping_delivery_max_days IS NOT NULL AND shipping_delivery_min_days <= shipping_delivery_max_days AND shipping_delivery_max_days <= 365)")),
 ]);
 
+export type MySqlPaymentAttemptStatus = "creating" | "creation_unknown" | "created" | "authorized" | "captured" | "failed" | "captured_after_expiry";
+export type MySqlPaymentRefundStatus = "requested" | "pending" | "processed" | "failed" | "unknown";
+
+export const paymentAttempts = mysqlTable("payment_attempts", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "restrict" }),
+  provider: varchar("provider", { length: 24 }).notNull().default("razorpay"),
+  idempotencyKey: char("idempotency_key", { length: 36 }).notNull(),
+  requestHash: char("request_hash", { length: 64 }).notNull(),
+  providerReceipt: varchar("provider_receipt", { length: 40 }).notNull(),
+  providerOrderId: varchar("provider_order_id", { length: 64 }),
+  providerPaymentId: varchar("provider_payment_id", { length: 64 }),
+  status: varchar("status", { length: 32 }).$type<MySqlPaymentAttemptStatus>().notNull().default("creating"),
+  amountMinor: bigint("amount_minor", { mode: "number", unsigned: true }).notNull(),
+  currency: char("currency", { length: 3 }).notNull(),
+  failureCode: varchar("failure_code", { length: 80 }),
+  authorizedAt: datetime("authorized_at", { mode: "date", fsp: 3 }),
+  capturedAt: datetime("captured_at", { mode: "date", fsp: 3 }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("payment_attempts_order_key_uq").on(table.orderId, table.idempotencyKey),
+  uniqueIndex("payment_attempts_provider_receipt_uq").on(table.provider, table.providerReceipt),
+  uniqueIndex("payment_attempts_provider_order_uq").on(table.provider, table.providerOrderId),
+  uniqueIndex("payment_attempts_provider_payment_uq").on(table.provider, table.providerPaymentId),
+  index("payment_attempts_order_status_idx").on(table.orderId, table.status, table.createdAt),
+  check("payment_attempts_provider_check", sql.raw("provider = 'razorpay'")),
+  check("payment_attempts_status_check", sql.raw("status IN ('creating','creation_unknown','created','authorized','captured','failed','captured_after_expiry')")),
+  check("payment_attempts_amount_check", sql.raw("amount_minor > 0")),
+  check("payment_attempts_currency_check", sql.raw("currency REGEXP '^[A-Z]{3}
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  productIdSnapshot: char("product_id_snapshot", { length: 36 }).notNull(),
+  variantIdSnapshot: char("variant_id_snapshot", { length: 36 }).notNull(),
+  productTitle: varchar("product_title", { length: 240 }).notNull(),
+  productSku: varchar("product_sku", { length: 100 }),
+  variantLabel: varchar("variant_label", { length: 180 }).notNull(),
+  quantity: int("quantity", { unsigned: true }).notNull(),
+  unitPriceMinor: bigint("unit_price_minor", { mode: "number", unsigned: true }).notNull(),
+  lineTotalMinor: bigint("line_total_minor", { mode: "number", unsigned: true }).notNull(),
+  selectedOptions: json("selected_options").$type<Record<string, string>>().notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_items_order_idx").on(table.orderId, table.createdAt),
+  check("order_items_quantity_check", sql.raw("quantity BETWEEN 1 AND 100")),
+  check("order_items_total_check", sql.raw("line_total_minor = quantity * unit_price_minor")),
+]);
+
+export const orderEvents = mysqlTable("order_events", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  actorType: varchar("actor_type", { length: 16 }).$type<"customer" | "admin" | "system">().notNull(),
+  actorId: char("actor_id", { length: 36 }),
+  eventType: varchar("event_type", { length: 40 }).notNull(),
+  fromStatus: varchar("from_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  toStatus: varchar("to_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  note: varchar("note", { length: 1000 }),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_events_order_created_idx").on(table.orderId, table.createdAt),
+  check("order_events_actor_type_check", sql.raw("actor_type IN ('customer','admin','system')")),
+]);
+")),
+  check("payment_attempts_hash_check", sql.raw("request_hash REGEXP '^[a-f0-9]{64}
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  productIdSnapshot: char("product_id_snapshot", { length: 36 }).notNull(),
+  variantIdSnapshot: char("variant_id_snapshot", { length: 36 }).notNull(),
+  productTitle: varchar("product_title", { length: 240 }).notNull(),
+  productSku: varchar("product_sku", { length: 100 }),
+  variantLabel: varchar("variant_label", { length: 180 }).notNull(),
+  quantity: int("quantity", { unsigned: true }).notNull(),
+  unitPriceMinor: bigint("unit_price_minor", { mode: "number", unsigned: true }).notNull(),
+  lineTotalMinor: bigint("line_total_minor", { mode: "number", unsigned: true }).notNull(),
+  selectedOptions: json("selected_options").$type<Record<string, string>>().notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_items_order_idx").on(table.orderId, table.createdAt),
+  check("order_items_quantity_check", sql.raw("quantity BETWEEN 1 AND 100")),
+  check("order_items_total_check", sql.raw("line_total_minor = quantity * unit_price_minor")),
+]);
+
+export const orderEvents = mysqlTable("order_events", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  actorType: varchar("actor_type", { length: 16 }).$type<"customer" | "admin" | "system">().notNull(),
+  actorId: char("actor_id", { length: 36 }),
+  eventType: varchar("event_type", { length: 40 }).notNull(),
+  fromStatus: varchar("from_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  toStatus: varchar("to_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  note: varchar("note", { length: 1000 }),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_events_order_created_idx").on(table.orderId, table.createdAt),
+  check("order_events_actor_type_check", sql.raw("actor_type IN ('customer','admin','system')")),
+]);
+")),
+]);
+
+export const paymentWebhookEvents = mysqlTable("payment_webhook_events", {
+  id: char("id", { length: 36 }).primaryKey(),
+  provider: varchar("provider", { length: 24 }).notNull().default("razorpay"),
+  providerEventId: varchar("provider_event_id", { length: 128 }).notNull(),
+  eventType: varchar("event_type", { length: 80 }).notNull(),
+  payloadSha256: char("payload_sha256", { length: 64 }).notNull(),
+  paymentAttemptId: char("payment_attempt_id", { length: 36 }).references(() => paymentAttempts.id, { onDelete: "set null" }),
+  processingResult: varchar("processing_result", { length: 24 }).$type<"processed" | "ignored">().notNull().default("processed"),
+  receivedAt: createdAt(),
+  processedAt: datetime("processed_at", { mode: "date", fsp: 3 }).notNull().default(sql.raw("CURRENT_TIMESTAMP(3)")),
+}, (table) => [
+  uniqueIndex("payment_webhook_provider_event_uq").on(table.provider, table.providerEventId),
+  index("payment_webhook_attempt_received_idx").on(table.paymentAttemptId, table.receivedAt),
+  check("payment_webhook_provider_check", sql.raw("provider = 'razorpay'")),
+  check("payment_webhook_result_check", sql.raw("processing_result IN ('processed','ignored')")),
+  check("payment_webhook_hash_check", sql.raw("payload_sha256 REGEXP '^[a-f0-9]{64}
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  productIdSnapshot: char("product_id_snapshot", { length: 36 }).notNull(),
+  variantIdSnapshot: char("variant_id_snapshot", { length: 36 }).notNull(),
+  productTitle: varchar("product_title", { length: 240 }).notNull(),
+  productSku: varchar("product_sku", { length: 100 }),
+  variantLabel: varchar("variant_label", { length: 180 }).notNull(),
+  quantity: int("quantity", { unsigned: true }).notNull(),
+  unitPriceMinor: bigint("unit_price_minor", { mode: "number", unsigned: true }).notNull(),
+  lineTotalMinor: bigint("line_total_minor", { mode: "number", unsigned: true }).notNull(),
+  selectedOptions: json("selected_options").$type<Record<string, string>>().notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_items_order_idx").on(table.orderId, table.createdAt),
+  check("order_items_quantity_check", sql.raw("quantity BETWEEN 1 AND 100")),
+  check("order_items_total_check", sql.raw("line_total_minor = quantity * unit_price_minor")),
+]);
+
+export const orderEvents = mysqlTable("order_events", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  actorType: varchar("actor_type", { length: 16 }).$type<"customer" | "admin" | "system">().notNull(),
+  actorId: char("actor_id", { length: 36 }),
+  eventType: varchar("event_type", { length: 40 }).notNull(),
+  fromStatus: varchar("from_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  toStatus: varchar("to_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  note: varchar("note", { length: 1000 }),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_events_order_created_idx").on(table.orderId, table.createdAt),
+  check("order_events_actor_type_check", sql.raw("actor_type IN ('customer','admin','system')")),
+]);
+")),
+]);
+
+export const paymentRefunds = mysqlTable("payment_refunds", {
+  id: char("id", { length: 36 }).primaryKey(),
+  paymentAttemptId: char("payment_attempt_id", { length: 36 }).notNull().references(() => paymentAttempts.id, { onDelete: "restrict" }),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "restrict" }),
+  provider: varchar("provider", { length: 24 }).notNull().default("razorpay"),
+  idempotencyKey: varchar("idempotency_key", { length: 40 }).notNull(),
+  requestHash: char("request_hash", { length: 64 }).notNull(),
+  providerRefundId: varchar("provider_refund_id", { length: 64 }),
+  amountMinor: bigint("amount_minor", { mode: "number", unsigned: true }).notNull(),
+  currency: char("currency", { length: 3 }).notNull(),
+  status: varchar("status", { length: 24 }).$type<MySqlPaymentRefundStatus>().notNull().default("requested"),
+  reason: varchar("reason", { length: 500 }).notNull(),
+  requestedBy: char("requested_by", { length: 36 }).notNull(),
+  failureCode: varchar("failure_code", { length: 80 }),
+  processedAt: datetime("processed_at", { mode: "date", fsp: 3 }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (table) => [
+  uniqueIndex("payment_refunds_provider_key_uq").on(table.provider, table.idempotencyKey),
+  uniqueIndex("payment_refunds_provider_id_uq").on(table.provider, table.providerRefundId),
+  index("payment_refunds_order_status_idx").on(table.orderId, table.status, table.createdAt),
+  index("payment_refunds_attempt_status_idx").on(table.paymentAttemptId, table.status),
+  check("payment_refunds_provider_check", sql.raw("provider = 'razorpay'")),
+  check("payment_refunds_status_check", sql.raw("status IN ('requested','pending','processed','failed','unknown')")),
+  check("payment_refunds_amount_check", sql.raw("amount_minor > 0")),
+  check("payment_refunds_currency_check", sql.raw("currency REGEXP '^[A-Z]{3}
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  productIdSnapshot: char("product_id_snapshot", { length: 36 }).notNull(),
+  variantIdSnapshot: char("variant_id_snapshot", { length: 36 }).notNull(),
+  productTitle: varchar("product_title", { length: 240 }).notNull(),
+  productSku: varchar("product_sku", { length: 100 }),
+  variantLabel: varchar("variant_label", { length: 180 }).notNull(),
+  quantity: int("quantity", { unsigned: true }).notNull(),
+  unitPriceMinor: bigint("unit_price_minor", { mode: "number", unsigned: true }).notNull(),
+  lineTotalMinor: bigint("line_total_minor", { mode: "number", unsigned: true }).notNull(),
+  selectedOptions: json("selected_options").$type<Record<string, string>>().notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_items_order_idx").on(table.orderId, table.createdAt),
+  check("order_items_quantity_check", sql.raw("quantity BETWEEN 1 AND 100")),
+  check("order_items_total_check", sql.raw("line_total_minor = quantity * unit_price_minor")),
+]);
+
+export const orderEvents = mysqlTable("order_events", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  actorType: varchar("actor_type", { length: 16 }).$type<"customer" | "admin" | "system">().notNull(),
+  actorId: char("actor_id", { length: 36 }),
+  eventType: varchar("event_type", { length: 40 }).notNull(),
+  fromStatus: varchar("from_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  toStatus: varchar("to_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  note: varchar("note", { length: 1000 }),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_events_order_created_idx").on(table.orderId, table.createdAt),
+  check("order_events_actor_type_check", sql.raw("actor_type IN ('customer','admin','system')")),
+]);
+")),
+  check("payment_refunds_hash_check", sql.raw("request_hash REGEXP '^[a-f0-9]{64}
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  productIdSnapshot: char("product_id_snapshot", { length: 36 }).notNull(),
+  variantIdSnapshot: char("variant_id_snapshot", { length: 36 }).notNull(),
+  productTitle: varchar("product_title", { length: 240 }).notNull(),
+  productSku: varchar("product_sku", { length: 100 }),
+  variantLabel: varchar("variant_label", { length: 180 }).notNull(),
+  quantity: int("quantity", { unsigned: true }).notNull(),
+  unitPriceMinor: bigint("unit_price_minor", { mode: "number", unsigned: true }).notNull(),
+  lineTotalMinor: bigint("line_total_minor", { mode: "number", unsigned: true }).notNull(),
+  selectedOptions: json("selected_options").$type<Record<string, string>>().notNull(),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_items_order_idx").on(table.orderId, table.createdAt),
+  check("order_items_quantity_check", sql.raw("quantity BETWEEN 1 AND 100")),
+  check("order_items_total_check", sql.raw("line_total_minor = quantity * unit_price_minor")),
+]);
+
+export const orderEvents = mysqlTable("order_events", {
+  id: char("id", { length: 36 }).primaryKey(),
+  orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),
+  actorType: varchar("actor_type", { length: 16 }).$type<"customer" | "admin" | "system">().notNull(),
+  actorId: char("actor_id", { length: 36 }),
+  eventType: varchar("event_type", { length: 40 }).notNull(),
+  fromStatus: varchar("from_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  toStatus: varchar("to_status", { length: 24 }).$type<MySqlOrderStatus>(),
+  note: varchar("note", { length: 1000 }),
+  createdAt: createdAt(),
+}, (table) => [
+  index("order_events_order_created_idx").on(table.orderId, table.createdAt),
+  check("order_events_actor_type_check", sql.raw("actor_type IN ('customer','admin','system')")),
+]);
+")),
+  check("payment_refunds_reason_check", sql.raw("CHAR_LENGTH(TRIM(reason)) BETWEEN 1 AND 500")),
+]);
+
 export const orderItems = mysqlTable("order_items", {
   id: char("id", { length: 36 }).primaryKey(),
   orderId: char("order_id", { length: 36 }).notNull().references(() => orders.id, { onDelete: "cascade" }),

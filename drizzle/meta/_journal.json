@@ -2,40 +2,11 @@
   "version": "7",
   "dialect": "mysql",
   "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1793600000000,
-      "tag": "0000_mysql_editorial_cms",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1793603600000,
-      "tag": "0001_mysql_catalogue_inventory",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1793607200000,
-      "tag": "0002_etsy_listing_source",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1793700000000,
-      "tag": "0003_mysql_customer_identity",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1793706000000,
-      "tag": "0004_mysql_order_checkout",
-      "breakpoints": true
-    }
+    { "idx": 0, "version": "7", "when": 1793600000000, "tag": "0000_mysql_editorial_cms", "breakpoints": true },
+    { "idx": 1, "version": "7", "when": 1793603600000, "tag": "0001_mysql_catalogue_inventory", "breakpoints": true },
+    { "idx": 2, "version": "7", "when": 1793607200000, "tag": "0002_etsy_listing_source", "breakpoints": true },
+    { "idx": 3, "version": "7", "when": 1793700000000, "tag": "0003_mysql_customer_identity", "breakpoints": true },
+    { "idx": 4, "version": "7", "when": 1793706000000, "tag": "0004_mysql_order_checkout", "breakpoints": true },
+    { "idx": 5, "version": "7", "when": 1793880000000, "tag": "0005_mysql_payment_security", "breakpoints": true }
   ]
 }
