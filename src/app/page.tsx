@@ -2,6 +2,7 @@ import Link from "next/link";
 import { StorefrontImage } from "@/components/StorefrontImage";
 import { StorefrontMediaPlaceholder } from "@/components/StorefrontMediaPlaceholder";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
+import { StorefrontSectionHeading } from "@/components/StorefrontSectionHeading";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 import { ALL_SHOP_CATEGORY, getShopCategories } from "@/lib/shop-query";
 import { isPublishedCollectionImage, isPublishedProductRecord, selectStorefrontHeroProduct } from "@/lib/storefront-presentation";
@@ -91,13 +92,12 @@ export default async function HomePage() {
       {collections.length > 0 && (
         <section className="jp-home-section jp-home-section--muted" aria-labelledby="collections-heading">
           <div className="jp-home-section-inner">
-            <div className="jp-home-section-heading">
-              <div>
-                <div className="section-kicker">CURATED COLLECTIONS</div>
-                <h2 id="collections-heading" className="section-title">Explore by collection</h2>
-              </div>
-              <Link href="/shop" className="text-link">View all products</Link>
-            </div>
+            <StorefrontSectionHeading
+              eyebrow="CURATED COLLECTIONS"
+              title="Explore by collection"
+              id="collections-heading"
+              action={<Link href="/shop" className="text-link">View all products</Link>}
+            />
             <div className="jp-home-collection-grid">
               {collections.slice(0, 4).map((collection) => (
                 <Link className="jp-home-collection-card" href={"/collections/" + collection.slug} key={collection.slug}>
@@ -119,13 +119,12 @@ export default async function HomePage() {
 
       <section className="jp-home-section" aria-labelledby="catalogue-heading">
         <div className="jp-home-section-inner">
-          <div className="jp-home-section-heading">
-            <div>
-              <div className="section-kicker">THE ONLINE COLLECTION</div>
-              <h2 id="catalogue-heading" className="section-title">Shop considered pieces</h2>
-            </div>
-            {products.length > 0 && <Link href="/shop" className="text-link">View more products</Link>}
-          </div>
+          <StorefrontSectionHeading
+            eyebrow="THE ONLINE COLLECTION"
+            title="Shop considered pieces"
+            id="catalogue-heading"
+            action={products.length > 0 ? <Link href="/shop" className="text-link">View more products</Link> : undefined}
+          />
           {products.length > 0 ? (
             <div className="jp-home-products">
               {products.slice(0, 8).map((product) => (
