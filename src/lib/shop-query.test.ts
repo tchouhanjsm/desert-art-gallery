@@ -4,6 +4,7 @@ import {
   ALL_SHOP_CATEGORY,
   filterAndSortProducts,
   getShopCategories,
+  getShopCategorySummary,
   normalizeShopSearchText,
   parseShopQuery,
   sanitizeShopQuery,
@@ -114,6 +115,20 @@ describe("shop query state", () => {
     );
 
     expect(result).toBe("utm_source=gallery&q=++woven++");
+  });
+
+  it("returns category counts in the same stable order as the filter options", () => {
+    expect(getShopCategorySummary(catalogue)).toEqual([
+      { category: ALL_SHOP_CATEGORY, count: 3 },
+      { category: "Objects", count: 1 },
+      { category: "Textiles", count: 2 },
+    ]);
+  });
+
+  it("counts an empty catalogue without inventing category options", () => {
+    expect(getShopCategorySummary([])).toEqual([
+      { category: ALL_SHOP_CATEGORY, count: 0 },
+    ]);
   });
 
   it("derives only categories present in the supplied published catalogue", () => {

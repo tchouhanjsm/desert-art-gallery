@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StorefrontPageHeading } from "@/components/StorefrontPageHeading";
 import { getStorefrontProduct } from "@/lib/catalogue";
 import { parseProductEnquirySlug } from "@/lib/product-enquiry";
 
@@ -18,11 +19,12 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
 
   return (
     <div className="page-shell atelier-contact-page">
-      <header className="atelier-page-heading atelier-contact-heading">
-        <div className="section-kicker">CONTACT · JAISALMER</div>
-        <h1><em>Questions about a piece?</em> Get in touch.</h1>
-        <p>For questions about a listing, its materials or delivery to your destination, please review the information below. The gallery’s official contact details will be published once verified. Please do not send product or order enquiries until those details are available.</p>
-      </header>
+      <StorefrontPageHeading
+        className="atelier-page-heading atelier-contact-heading"
+        eyebrow="CONTACT · JAISALMER"
+        title={<><em>Questions about a piece?</em> Get in touch.</>}
+        description="For questions about a listing, its materials or delivery to your destination, please review the information below. The gallery’s official contact details will be published once verified. Please do not send product or order enquiries until those details are available."
+      />
 
       {requestedProduct && (
         <section className="atelier-enquiry-context" id="product-enquiry" aria-labelledby="enquiry-context-heading">

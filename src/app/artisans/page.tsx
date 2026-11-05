@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
+import { StorefrontPageHeading } from "@/components/StorefrontPageHeading";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasMySqlDatabase } from "@/server/db";
 import { getPublishedArtisanProfiles, type ArtisanRecord } from "@/server/editorial/repository";
@@ -30,11 +31,12 @@ export default async function ArtisansPage() {
     if (!supabase) {
       return (
         <div className="page-shell">
-          <div className="page-heading">
-            <div className="section-kicker">MAKERS & CRAFT</div>
-            <h1>Meet the makers</h1>
-            <p>We publish only words and details provided or approved by the makers themselves.</p>
-          </div>
+          <StorefrontPageHeading
+            eyebrow="MAKERS & CRAFT"
+            title="Meet the makers"
+            description="We publish only words and details provided or approved by the makers themselves."
+            className="page-heading"
+          />
           <div className="info-copy">
             <p>Profiles appear here only after the people featured have reviewed and approved them. Names, photographs, biographies and experience details are never published without permission.</p>
             <p>Contact the gallery with questions about a piece or how it was made.</p>
@@ -62,11 +64,12 @@ export default async function ArtisansPage() {
 
   return (
     <div className="page-shell">
-      <div className="page-heading">
-        <div className="section-kicker">MAKERS & CRAFT</div>
-        <h1>Maker stories</h1>
-        <p>We feature only profiles and photographs reviewed and approved by the makers themselves.</p>
-      </div>
+      <StorefrontPageHeading
+        eyebrow="MAKERS & CRAFT"
+        title="Maker stories"
+        description="We feature only profiles and photographs reviewed and approved by the makers themselves."
+        className="page-heading"
+      />
       {cards.length ? (
         <div className="artisan-grid">
           {cards.map((artisan) => (

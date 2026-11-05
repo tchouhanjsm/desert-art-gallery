@@ -43,6 +43,26 @@ export function getShopCategories(products: readonly Product[]): string[] {
   ];
 }
 
+export type ShopCategorySummary = {
+  category: string;
+  count: number;
+};
+
+export function getShopCategorySummary(products: readonly Product[]): ShopCategorySummary[] {
+  const counts = new Map<string, number>();
+
+  for (const product of products) {
+    const category = product.category.trim();
+    if (!category || category === ALL_SHOP_CATEGORY) continue;
+    counts.set(category, (counts.get(category) ?? 0) + 1);
+  }
+
+  return getShopCategories(products).map((category) => ({
+    category,
+    count: category === ALL_SHOP_CATEGORY ? products.length : (counts.get(category) ?? 0),
+  }));
+}
+
 export function isShopSort(value: unknown): value is ShopSort {
   return typeof value === "string" && SHOP_SORTS.some((sort) => sort === value);
 }

@@ -1213,3 +1213,13 @@ Approximately 3,000 product photographs for around 300 products remain deferred.
 - Product detail pages link the category breadcrumb to filtered shop results and show up to four genuine related published products based on shared category/collection data. Development previews are excluded.
 - Cart and checkout order summaries retain every local cart line while withholding price/media/availability unless the exact server preview is present.
 - After an ambiguous order POST response, checkout locks request-defining fields and offers a same-request retry. This preserves the reservation/order idempotency pair on the mounted page; a reload still loses in-memory attempt keys and is documented as a limitation.
+
+## Phase 10 — shared retail composition and presentation ownership — 2026-11-05
+
+- Added reusable `StorefrontPageHeading` and `StorefrontSectionHeading` primitives. Applied them to homepage merchandising sections, shop, collection, cart, wishlist, customer-information, contact, story, makers and journal routes. Existing route-specific classes, title copy, links, data and publication states remain authoritative.
+- Added `getShopCategorySummary`, which derives per-category result counts from the product records passed to the shop. Homepage category links and shop select/chips display those actual counts. Empty catalogues produce only the existing zero-count all-products option; no category is seeded.
+- Removed unreferenced legacy stylesheet layers `src/styles/theme.css`, `phase1.css`, `editorial.css` and `admin.css`. The inspected App Router/component tree imports global styles only from `src/app/layout.tsx`. Active ownership remains `globals.css` for neutral reset/tokens, `japan-storefront.css` for the public storefront and `admin-theme.css` for owner/operations.
+- Added tests for shared heading semantics, category count ordering/empty-state behaviour and stylesheet ownership. Exact-head CI must verify this increment before it is treated as complete.
+- No database, catalogue, import, auth, inventory, cart/checkout domain, API, shipping/tax, payment, media rights, currency, commercial market or legal behaviour was changed.
+- Product photography migration remains deferred. No photo archive was uploaded, downloaded, transformed, committed or published.
+- This phase does not claim manual visual sign-off, authenticated UAT, owner-connected staging verification or production deployment.

@@ -8,7 +8,7 @@ import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import {
   ALL_SHOP_CATEGORY,
   filterAndSortProducts,
-  getShopCategories,
+  getShopCategorySummary,
   parseShopQuery,
   serializeShopQuery,
   type ShopQueryState,
@@ -20,7 +20,12 @@ export function ShopBrowser({ products }: { products: Product[] }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchParamsString = searchParams.toString();
-  const categories = useMemo(() => getShopCategories(products), [products]);
+  const categorySummary = useMemo(() => getShopCategorySummary(products), [products]);
+  const categories = useMemo(() => categorySummary.map((item) => item.category), [categorySummary]);
+  const categoryCounts = useMemo(
+    () => new Map(categorySummary.map((item) => [item.category, item.count])),
+    [categorySummary],
+  );
   const urlState = useMemo(
     () => parseShopQuery(new URLSearchParams(searchParamsString), categories),
     [categories, searchParamsString],
@@ -91,7 +96,9 @@ export function ShopBrowser({ products }: { products: Product[] }) {
             }}
           >
             {categories.map((item) => (
-              <option key={item} value={item}>{item === ALL_SHOP_CATEGORY ? "All products" : item}</option>
+              <option key={item} value={item}>
+                {item === ALL_SHOP_CATEGORY ? "All products" : item} ({categoryCounts.get(item) ?? 0})
+              </option>
             ))}
           </select>
           <label className="visually-hidden" htmlFor="shop-sort">Sort by</label>
@@ -128,7 +135,8 @@ export function ShopBrowser({ products }: { products: Product[] }) {
                 updateUrl({ q: query, category: item, sort }, "push");
               }}
             >
-              {item === ALL_SHOP_CATEGORY ? "All products" : item}
+              <span>{item === ALL_SHOP_CATEGORY ? "All products" : item}</span>
+              <small className="shop-chip-count">{categoryCounts.get(item) ?? 0}</small>
             </button>
           ))}
         </div>

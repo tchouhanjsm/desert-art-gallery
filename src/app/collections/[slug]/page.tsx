@@ -4,6 +4,7 @@ import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
+import { StorefrontPageHeading } from "@/components/StorefrontPageHeading";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 import { collections } from "@/lib/products";
 import { isPublishedCollectionImage } from "@/lib/storefront-presentation";
@@ -40,12 +41,14 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="page-shell atelier-page-shell">
-      <header className="atelier-page-heading atelier-collection-heading">
-        <div className="section-kicker">COLLECTION</div>
-        <h1>{collection.name}<em>.</em></h1>
-        <p>{collection.description}</p>
+      <StorefrontPageHeading
+        className="atelier-page-heading atelier-collection-heading"
+        eyebrow="COLLECTION"
+        title={<>{collection.name}<em>.</em></>}
+        description={collection.description}
+      >
         <Link className="text-link" href="/shop">View all products</Link>
-      </header>
+      </StorefrontPageHeading>
       <div className="atelier-collection-hero">
         {isPublishedCollectionImage(collection) ? (
           <StorefrontImage placeholder="blur" blurDataURL={galleryBlurDataUrl} src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="100vw" />
