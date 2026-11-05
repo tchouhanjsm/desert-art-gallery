@@ -27,9 +27,8 @@ export default async function HomePage() {
           </p>
           <div className="jp-home-hero-actions">
             <Link className="button-primary" href="/shop">Shop all products</Link>
-            <Link className="text-link" href="/story">Browse categories</Link>
+            <Link className="text-link" href="/shop">Browse categories</Link>
           </div>
-          
         </div>
         <div className="jp-home-hero-media">
           {heroProduct ? (

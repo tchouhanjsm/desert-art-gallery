@@ -42,8 +42,8 @@ export function hasPurchasableProductOption(product: Product): boolean {
   if (!isPublishedProductRecord(product)) return false;
   if (product.variants?.length) {
     return product.variants.some((variant) =>
-      variant.status === "active" && variant.priceMinor !== null && variant.quantityOnHand > 0
+      variant.status === "active" && typeof variant.priceMinor === "number" && variant.quantityOnHand > 0
     );
   }
-  return product.priceMinor !== null && Boolean(product.currency) && (product.quantityOnHand ?? 0) > 0;
+  return typeof product.priceMinor === "number" && Boolean(product.currency) && (product.quantityOnHand ?? 0) > 0;
 }
