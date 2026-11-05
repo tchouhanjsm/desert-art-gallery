@@ -362,3 +362,7 @@
 .jp-storefront .shop-chip{display:inline-flex;align-items:center;gap:8px;}
 .jp-storefront .shop-chip-count{color:var(--atelier-muted);font-size:10px;font-variant-numeric:tabular-nums;}
 .jp-storefront .shop-chip[aria-pressed="true"] .shop-chip-count{color:rgba(255,255,255,.78);}
+
+
+/* Preserve vertical scrolling while product-image touch swipes control the gallery. */
+.jp-storefront .detail-gallery-main{touch-action:pan-y;}
