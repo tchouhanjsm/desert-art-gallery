@@ -3,17 +3,10 @@ import { StorefrontImage } from "@/components/StorefrontImage";
 import { galleryBlurDataUrl } from "@/lib/image";
 import { formatMoneyFromMinor } from "@/lib/money";
 import type { Product } from "@/lib/products";
-import { PreviewArtwork } from "@/components/PreviewArtwork";
+import { StorefrontMediaPlaceholder } from "@/components/StorefrontMediaPlaceholder";
 import { WishlistToggle } from "@/components/WishlistToggle";
 import { getProductCardFacts, hasPurchasableProductOption, isPublishedProductRecord } from "@/lib/storefront-presentation";
 
-function previewVariant(category: string): "textile" | "embroidered" | "object" | "heritage" {
-  const value = category.toLowerCase();
-  if (value.includes("banjara") || value.includes("tribal")) return "embroidered";
-  if (value.includes("mukka") || value.includes("zari")) return "object";
-  if (value.includes("vintage") || value.includes("nomadic")) return "heritage";
-  return "textile";
-}
 
 export function StorefrontProductCard({ product }: { product: Product }) {
   const isPreview = !isPublishedProductRecord(product);

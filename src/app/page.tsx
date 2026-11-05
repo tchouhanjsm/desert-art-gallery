@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { StorefrontImage } from "@/components/StorefrontImage";
+import { StorefrontMediaPlaceholder } from "@/components/StorefrontMediaPlaceholder";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 import { ALL_SHOP_CATEGORY, getShopCategories } from "@/lib/shop-query";
@@ -52,11 +53,13 @@ export default async function HomePage() {
             </Link>
           ) : (
             <div className="jp-home-hero-empty">
-              <span>ONLINE STORE · CATALOGUE IN PREPARATION</span>
-              <span className="jp-hero-placeholder-index">01 / THE COLLECTION</span>
-              <strong>Objects with character. Details worth discovering.</strong>
-              <small>Product listings appear only after details, photography and usage rights are approved.</small>
-              <div className="jp-hero-placeholder-swatches" aria-hidden="true"><i /><i /><i /></div>
+              <StorefrontMediaPlaceholder variant="hero" label="Abstract image placeholder; approved product photography is pending" caption="PHOTOGRAPHY PENDING" />
+              <div className="jp-home-hero-empty-copy">
+                <span>ONLINE STORE · CATALOGUE IN PREPARATION</span>
+                <span className="jp-hero-placeholder-index">01 / THE COLLECTION</span>
+                <strong>Objects with character. Details worth discovering.</strong>
+                <small>Product listings appear only after details, photography and usage rights are approved.</small>
+              </div>
             </div>
           )}
         </div>
@@ -85,7 +88,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      {collections.filter(isPublishedCollectionImage).length > 0 && (
+      {collections.length > 0 && (
         <section className="jp-home-section jp-home-section--muted" aria-labelledby="collections-heading">
           <div className="jp-home-section-inner">
             <div className="jp-home-section-heading">
@@ -96,15 +99,14 @@ export default async function HomePage() {
               <Link href="/shop" className="text-link">View all products</Link>
             </div>
             <div className="jp-home-collection-grid">
-              {collections.filter(isPublishedCollectionImage).slice(0, 4).map((collection) => (
+              {collections.slice(0, 4).map((collection) => (
                 <Link className="jp-home-collection-card" href={"/collections/" + collection.slug} key={collection.slug}>
                   <div className="jp-home-collection-media">
-                    <StorefrontImage
-                      src={collection.image}
-                      alt={collection.imageAlt || collection.name}
-                      fill
-                      sizes="(max-width: 760px) 46vw, 24vw"
-                    />
+                    {isPublishedCollectionImage(collection) ? (
+                      <StorefrontImage src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="(max-width: 760px) 46vw, 24vw" />
+                    ) : (
+                      <StorefrontMediaPlaceholder variant="collection" label={"Collection photography pending for " + collection.name} caption="COLLECTION PHOTO PENDING" />
+                    )}
                   </div>
                   <h3>{collection.name}</h3>
                   <p>{collection.description}</p>
