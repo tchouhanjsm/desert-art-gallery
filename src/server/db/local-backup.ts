@@ -193,7 +193,9 @@ async function enumerateMediaFiles(root: string): Promise<MediaInventoryItem[]> 
   try {
     rootStats = await lstat(root);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      throw new Error("Private media root does not exist. Run npm run local:prepare or verify MEDIA_STORAGE_ROOT before creating a backup.");
+    }
     throw error;
   }
   if (rootStats.isSymbolicLink() || !rootStats.isDirectory()) {
@@ -779,12 +781,18 @@ export async function restoreLocalBackupBundle(input: {
     databaseImported = true;
 
     const restoredDatabase = await inspectDatabase(input.databaseUrl ?? process.env.DAG_RESTORE_DATABASE_URL!);
+    const restoredMediaPaths = new Set(verified.manifest.media.files.map((file) => file.path));
+    const missingRestoredProductMedia = restoredDatabase.snapshot.productMediaKeys.filter((key) =>
+      !restoredMediaPaths.has(validateMediaBackupPath(key))
+    );
     if (
       restoredDatabase.snapshot.tableCount !== verified.manifest.database.tableCount
       || restoredDatabase.snapshot.migrationCount !== verified.manifest.database.migrationCount
+      || missingRestoredProductMedia.length > 0
     ) {
       throw new Error(
-        "Database restore completed but its table or migration counts do not match the backup manifest. Keep isolated database "
+        "Database restore verification failed: schema/migration counts differ or " + missingRestoredProductMedia.length
+        + " product media reference(s) are missing from the restored media bundle. Keep isolated database "
         + plan.targetDatabase + " and staged media at " + stagingMediaRoot + " for investigation; do not use them."
       );
     }
