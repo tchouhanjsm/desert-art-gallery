@@ -2,6 +2,18 @@
 
 Last reviewed: 2026-11-05 (Asia/Kolkata)
 
+## Phase 12 — paired local MySQL and private-media recovery tooling
+
+The repository now includes explicit local backup and isolated restore commands:
+
+- npm run db:backup validates the local Oracle MySQL source, migration journal, private media inventory and destination. The write path requires --commit --confirm-local-backup.
+- Each restore point contains a logical SQL dump, a copy of local private product/editorial media and a SHA-256 manifest.
+- npm run db:restore validates the complete bundle and an independently configured, empty local restore database plus a new media directory. The write path requires --commit --confirm-local-restore.
+- The original database and current media root are never restore targets; no automatic drop, overwrite or .env edit occurs.
+- The tool blocks remote/MariaDB/production-looking targets, S3 media mode, public paths, symlinks and checksum mismatches.
+
+Validation boundary: exact-head CI will exercise a disposable MySQL source/restore pair and temporary media. It does not create a real owner-device backup, test external encrypted storage, or prove a hosted backup/restore. The generated bundle is currently uncompressed and unencrypted; it must be stored on encrypted, access-controlled media. Run and record an actual local restore drill before hosting cutover. Do not describe this tooling alone as production backup acceptance.
+
 ## Current checkout resilience increment — 2026-11-05
 
 Checkout now retains a matching idempotency key pair across retries of the same normalized order request, including retries after ambiguous network failures. The fingerprint normalizes address/note data and cart-line ordering. Editing any delivery-address field clears the saved-address selection to show that the order will use a custom one-time address; the saved record itself is not modified. The checkout order summary displays configured shipping when selected and explicitly leaves tax/final-total computation to the server.
