@@ -331,3 +331,9 @@ A focused storefront pass refines the homepage first viewport and replaces categ
 The checkout key audit found reservation idempotency was coupled to address, shipping and note fields even though the reservation endpoint receives cart lines only. The frontend now retains the same reservation key while normalized cart lines remain unchanged, while creating a new order-draft key when order-defining details change. This avoids unnecessary duplicate stock holds. The 15-minute expiry and server release/expiry behaviour are unchanged. Keys remain in component memory; refresh/unmount persistence is not claimed.
 
 Owner market decision remains open because the dated top-of-document clarification says India is the commercial market while subsequent historical sections describe Japanese customers and Japanese checkout patterns. No market-specific checkout, pricing, currency, tax or shipping change was made. Approximately 3,000 product photographs for around 300 products remain deferred; no photo files were transferred or transformed.
+
+## Storefront experience continuation — 2026-11-05
+
+The next frontend batch improves published collection discovery, image-ready collection and product surfaces, product-detail recommendations grounded in published category/collection data, and cart/checkout order-summary resilience. It does not create catalogue content or fabricate product attributes.
+
+Checkout now separates reservation idempotency from order-draft idempotency and holds request-defining form fields static after an ambiguous order response so the customer can retry the same request rather than changing details against a potentially already-linked reservation. Attempt keys remain memory-only; refresh/unmount does not provide cross-refresh replay. No backend reservation/order or payment logic changed.

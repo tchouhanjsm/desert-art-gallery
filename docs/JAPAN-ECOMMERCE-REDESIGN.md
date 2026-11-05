@@ -1205,3 +1205,11 @@ The dated owner clarification at the top of this brief says India is the market 
 
 ### Photography boundary
 Approximately 3,000 product photographs for around 300 products remain deferred. This phase does not migrate, upload, download, optimise, hotlink or commit those files. Placeholders reserve layout proportions for a later approved media-mapping and rights-review phase.
+
+## Phase 9 frontend continuation — 2026-11-05
+
+- A shared media-placeholder component is now used by product cards, homepage hero and collection imagery when a rights-approved photograph is unavailable. Published collection discovery is no longer suppressed merely because its image has not been approved; the collection itself must still be returned by the published-collection service.
+- Collection pages retain a stable image area, show the published product count and link back to the shop.
+- Product detail pages link the category breadcrumb to filtered shop results and show up to four genuine related published products based on shared category/collection data. Development previews are excluded.
+- Cart and checkout order summaries retain every local cart line while withholding price/media/availability unless the exact server preview is present.
+- After an ambiguous order POST response, checkout locks request-defining fields and offers a same-request retry. This preserves the reservation/order idempotency pair on the mounted page; a reload still loses in-memory attempt keys and is documented as a limitation.

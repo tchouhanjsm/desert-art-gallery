@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getStorefrontProduct } from "@/lib/catalogue";
+import { getStorefrontProduct, getStorefrontProducts } from "@/lib/catalogue";
 import { products, type ProductImage } from "@/lib/products";
 import { amountInMajorUnits, formatMoneyFromMinor } from "@/lib/money";
 import { formatProductMeasurements } from "@/lib/product-details";
@@ -10,7 +10,8 @@ import { AddToBagButton } from "@/components/AddToBagButton";
 import { ProductGallery } from "@/components/ProductGallery";
 import { getSiteUrl } from "@/lib/site-url";
 import { WishlistToggle } from "@/components/WishlistToggle";
-import { hasPurchasableProductOption } from "@/lib/storefront-presentation";
+import { hasPurchasableProductOption, isPublishedProductRecord } from "@/lib/storefront-presentation";
+import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 
 export function generateStaticParams() {
   return process.env.NODE_ENV === "development" ? products.map((product) => ({ slug: product.slug })) : [];
@@ -32,9 +33,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = await getStorefrontProduct(slug);
+  const [product, catalogueProducts] = await Promise.all([getStorefrontProduct(slug), getStorefrontProducts()]);
   if (!product) notFound();
 
+  const relatedProducts = catalogueProducts.filter((candidate) =>
+    candidate.slug !== product.slug
+    && isPublishedProductRecord(candidate)
+    && (
+      (Boolean(product.collectionSlugs?.length)
+        && Boolean(candidate.collectionSlugs?.some((collectionSlug) => product.collectionSlugs?.includes(collectionSlug))))
+      || (Boolean(product.category) && candidate.category === product.category)
+    ),
+  ).slice(0, 4);
   const variants = product.variants ?? [];
   const activeVariants = variants.filter((variant) => variant.status === "active");
   const canAddToBag = hasPurchasableProductOption(product);
@@ -92,7 +102,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <nav className="breadcrumb atelier-breadcrumb" aria-label="Breadcrumb navigation">
         <Link href="/shop">All products</Link>
-        {product.category ? <><span aria-hidden="true">/</span><span>{product.category}</span></> : null}
+        {product.category ? <><span aria-hidden="true">/</span><Link href={"/shop?category=" + encodeURIComponent(product.category)}>{product.category}</Link></> : null}
         <span aria-hidden="true">/</span>
         <span aria-current="page">{product.name}</span>
       </nav>
@@ -181,6 +191,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         )}
       </section>
+      {relatedProducts.length > 0 && (
+        <section className="atelier-related-products" aria-labelledby="related-products-heading">
+          <div className="atelier-related-heading">
+            <div>
+              <div className="section-kicker">MORE TO EXPLORE</div>
+              <h2 id="related-products-heading" className="section-title">More pieces from this collection</h2>
+            </div>
+            <Link href={product.category ? "/shop?category=" + encodeURIComponent(product.category) : "/shop"} className="text-link">Browse related pieces</Link>
+          </div>
+          <div className="atelier-product-grid">
+            {relatedProducts.map((related) => <StorefrontProductCard key={related.slug} product={related} />)}
+          </div>
+        </section>
+      )}
       <div className="mobile-buy-bar">
         <div><b>{product.name}</b><span>{priceLabel}</span></div>
         {canAddToBag ? (
