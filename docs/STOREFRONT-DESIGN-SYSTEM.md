@@ -36,10 +36,13 @@ The active public layer is `src/styles/japan-storefront.css`, imported by `src/a
 | Ink | `#25231F` | Text, header structure and dark surfaces |
 | Terracotta | `#A54E34` | Selected actions and restrained emphasis |
 | Muted sand | `#A79B7D` | Fine accent and secondary detail |
+| Slate indigo | `#3C5058` | Editorial depth for selected dark sections |
+| Desert olive | `#77785E` | Restrained secondary accent for supporting details |
+| Muted ochre | `#C0A16C` | Small warm highlight; never a substitute for accessible text contrast |
 | Warm grey | `#716A61` | Secondary information |
 | Border | `#DED7CC` | Dividers and control boundaries |
 
-Validate contrast for actual foreground/background states. These tokens are not, by themselves, proof of WCAG AA compliance.
+The slate, olive and ochre values extend the approved warm-ivory, ink, terracotta and sand foundation; they are supporting accents, not a competing theme. Use indigo selectively for editorial depth and reserve olive/ochre for limited secondary detail. Validate contrast for actual foreground/background states. These tokens are not, by themselves, proof of WCAG AA compliance.
 
 ## Typography and language
 
