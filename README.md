@@ -10,11 +10,23 @@ Product data and photography must remain evidence-led: the Etsy export contains 
 
 ## Local development
 
+**Runtime standard:** Node.js 22.x (see `.nvmrc` and the `engines` field in `package.json`). Use the npm version bundled with that Node.js release; do not install npm globally as a separate setup step.
+
+For a fresh checkout, or after an intentional dependency-manifest/lockfile change, install the exact committed dependency tree once:
+
 ~~~bash
-npm install
+nvm use
+npm ci
 npm run local:prepare
+~~~
+
+For normal development and branch switches, do not reinstall dependencies. Start the app directly:
+
+~~~bash
 npm run dev
 ~~~
+
+Run `npm ci` again only when the committed `package.json` or `package-lock.json` changed and the local dependency tree needs to be synchronized. CI uses the same Node 22 standard and `npm ci`, so an uncommitted or stale dependency resolution cannot silently pass as the canonical build.
 
 Do not publish guessed prices, measurements, stock, artisan biographies, shipping promises, reviews or policy terms. Seed product records are inquiry-only examples; replace them with verified merchant data before sale. Obtain and store authorized original product images instead of hotlinking assets.
 
