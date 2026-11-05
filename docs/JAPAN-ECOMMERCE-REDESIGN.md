@@ -741,11 +741,9 @@ Follow `docs/PRODUCT-IMAGE-INTAKE.md` and the existing private media flow. Every
 
 At minimum test:
 
-- Small mobile: 360px viewport.
-- Common mobile: 390–430px viewport.
-- Tablet: approximately 768px.
-- Laptop: 1280–1440px.
-- Wide desktop: 1600px and above.
+- Mobile: 390px and 430px.
+- Tablet: 768px.
+- Desktop: 1280px and 1440px.
 
 Test realistic long English copy and long merchant-supplied product names; do not rely on short placeholders.
 
@@ -1111,7 +1109,7 @@ These are source-export observations only. They do not mean the CSV was imported
 
 ### Phase 5 — route and viewport QA automation
 
-- Add a Playwright-backed capture matrix for 24 customer/operations entry routes across 360, 414, 768, 1440 and 1600 px. Each capture records status, final URL, document language, horizontal overflow, heading/image/button checks, browser console errors and failed requests, alongside the screenshot.
+- Add a Playwright-backed capture matrix for 24 customer/operations entry routes across 390, 430, 768, 1280 and 1440 px. Each capture records status, final URL, document language, horizontal overflow, heading/image/button checks, browser console errors and failed requests, alongside the screenshot.
 - Run the capture against a healthy local/CI application and publish the CI evidence as a short-lived workflow artifact. Local captures remain under ignored `.local-data/visual-review/`.
 - Empty CI databases may correctly return 404 for dynamic product and collection routes. The manifest must record those outcomes; it must not convert them into fake sample catalogue records or imply product visual acceptance.
 - Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, English UI copy and visual review, screen-reader/keyboard review, performance testing with the intended audience and legal/merchant approvals remain separate acceptance gates.
@@ -1140,3 +1138,8 @@ This follow-on remains within the existing visual merchandising PR and is still 
 - Exact-head typecheck, tests, lint, production build, route/viewport screenshots and Lighthouse validation must pass on the final PR head before this increment can be accepted.
 - CI's blank database can validate empty catalogue and common chrome states, but cannot validate a real product, variant, populated cart or product photography. Merchant-connected UAT is still required.
 - The named `docs/AGENT-DESIGN-REVIEW-PROMPT.md` referenced in the handoff prompt is not present in this repository branch; its contents were not inferred or recreated.
+
+
+### Exact responsive acceptance matrix — 2026-11-05
+
+The Playwright capture matrix is aligned to the owner-requested viewport widths: **390px, 430px, 768px, 1280px and 1440px**. It retains 24 routes × 5 widths = 120 captures. The previous 360px, 414px and 1600px set is superseded for this PR's acceptance run.

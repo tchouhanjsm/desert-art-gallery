@@ -26,11 +26,11 @@ The `/admin` and `/owner` workspaces are separately tested as operations interfa
 
 At minimum test:
 
-- 360 px small mobile
-- 390–430 px common mobile
+- 390 px mobile
+- 430 px mobile
 - 768 px tablet
-- 1280–1440 px laptop/desktop
-- 1600 px and wider desktop
+- 1280 px desktop
+- 1440 px desktop
 
 Use realistic English production-length strings, long merchant-supplied product names, mixed-language source product details, numerals, prices and long material descriptions. Verify readable line wrapping at every required viewport. Do not use short placeholders as the only content test.
 
@@ -104,7 +104,7 @@ A redesign is not production-ready until owner inputs, image rights, approved En
 
 ## 9. Automated route and viewport capture
 
-The repository's Playwright visual-review command captures the 24-route matrix in `src/lib/storefront-review.ts` at 360, 414, 768, 1440 and 1600 px (120 route/viewport combinations). The manifest records the main-document status, final URL, title/document language, horizontal overflow, H1 count, images without an `alt` attribute, buttons without a detectable accessible name, browser console errors, page errors and failed requests.
+The repository's Playwright visual-review command captures the 24-route matrix in `src/lib/storefront-review.ts` at 390, 430, 768, 1280 and 1440 px (120 route/viewport combinations). The manifest records the main-document status, final URL, title/document language, horizontal overflow, H1 count, images without an `alt` attribute, buttons without a detectable accessible name, browser console errors, page errors and failed requests.
 
 Local run:
 

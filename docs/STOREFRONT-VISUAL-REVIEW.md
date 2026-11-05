@@ -12,7 +12,7 @@ The product-led information architecture includes a compact announcement row, vi
 
 ## Route coverage
 
-The Phase 5 review script captures the public shopping and operations route matrix across five viewport sizes. Key customer routes include:
+The Phase 5 review script captures the public shopping and operations route matrix at 390px, 430px, 768px, 1280px and 1440px. Key customer routes include:
 
 | Route | Primary review focus |
 |---|---|
