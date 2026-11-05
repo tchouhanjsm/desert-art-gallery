@@ -2,6 +2,19 @@
 
 Last reviewed: 2026-11-05 (Asia/Kolkata)
 
+## Current checkout resilience increment — 2026-11-05
+
+Checkout now retains a matching idempotency key pair across retries of the same normalized order request, including retries after ambiguous network failures. The fingerprint normalizes address/note data and cart-line ordering. Editing any delivery-address field clears the saved-address selection to show that the order will use a custom one-time address; the saved record itself is not modified. The checkout order summary displays configured shipping when selected and explicitly leaves tax/final-total computation to the server.
+
+**Scope:** frontend only. No reservation/order APIs, MySQL schema, pricing/tax calculation, inventory, expiry, payment provider or webhook behaviour changed. Payment remains disabled.
+
+**Validation:** exact-head [CI run #384](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41989843935) passed on `e71ae85bdf2975e50cfdede960076e5ebcef55a8`: MySQL setup/migrations, typecheck, 320 tests, lint, production build, 120 Playwright captures and Lighthouse. Home Lighthouse 92/95/96/100; shop 90/96/96/100. Zero Lighthouse assertion failures. The route manifest recorded zero capture failures, overflow, broken images, missing/generic alt text, unnamed buttons, HTTP errors, failed requests or page errors. The 15 console 404 messages were limited to empty-database product/collection and intentional not-found routes.
+
+**Evidence:** [route review](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397956203), [Lighthouse reports](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397562703), [staging archive — packaged, not deployed](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397876821).
+
+Merchant-configured destination/shipping/tax rules and authenticated customer UAT remain necessary. The blank CI database does not verify a real checkout or populated order. Payment remains disabled.
+
+
 ## Current storefront frontend continuation — 2026-11-05
 
 The English-language storefront redesign continues on [PR #21](https://github.com/tchouhanjsm/desert-art-gallery/pull/21), branch `feat/visual-merchandising-ecommerce-phase6`. PR #20 has merged; PR #21 was synchronized with the resulting `main` head before this increment. This is not a new redesign or a new PR.

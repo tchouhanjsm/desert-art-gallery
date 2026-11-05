@@ -130,3 +130,21 @@ Review every artifact manually. Automated captures do not provide pixel-diff bas
 - [ ] The product-detail mobile sticky action navigates to real purchase controls for buyable products and to enquiry for products without a verified purchasable option.
 - [ ] Only active variants can contribute to product availability and add-to-bag options.
 - [ ] No client-provided price, availability or media value is promoted to server authority.
+
+
+## 11. Checkout retry and delivery-address UX
+
+- [ ] Repeating the same checkout payload reuses both the reservation and order-draft idempotency keys.
+- [ ] Changing cart lines, destination/address, selected shipping rate or delivery note creates a new checkout attempt key pair.
+- [ ] Address whitespace and cart-line ordering alone do not create a new request fingerprint when the server normalizes them to the same request.
+- [ ] Editing any field after selecting a saved delivery address switches the selector to the custom-address option; it never implies the account's saved address was modified.
+- [ ] The order summary shows the actual configured shipping amount only after an applicable rate is selected.
+- [ ] Tax and grand total remain server-calculated; the browser does not estimate, override or invent them.
+- [ ] Order drafts remain explicitly unpaid. No provider logos, card fields, payment capture or paid-state transition are introduced.
+
+
+### Phase 8 automated evidence — 2026-11-05
+
+[Run #384](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41989843935) passed for the checkout-resilience PR head: migrations, typecheck, 320 tests, lint, build, 120 route/viewport captures and Lighthouse. Home Lighthouse: 92/95/96/100; shop: 90/96/96/100; zero assertion failures. The capture manifest reports zero capture failures, horizontal overflow, broken images, missing/generic alt labels, unnamed buttons, HTTP errors, failed requests or page errors. Fifteen console 404 messages are limited to the intentionally empty database's product/collection routes and deliberate not-found route.
+
+Automated CI is not signed-in customer acceptance. The following remain open: retry after a real ambiguous network response, saved address editing under an authenticated customer, order creation with merchant-configured shipping and tax, review of a real server-calculated order total, and cancellation/expiry UAT. No payment flow is available or implied.

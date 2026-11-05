@@ -60,3 +60,27 @@ The configured rates are independent additive components calculated on the item 
 The storefront branch translates customer-facing checkout labels and places postal code near the start of the address form. It does not add furigana fields, Japanese postcode lookup, prefecture-specific validation or address-model columns. The current backend contract remains generic (`recipient_name`, `address_line_1/2`, `city`, `region`, `postal_code`, `country_code`, `phone`). Any Japan-specific fields require a separately reviewed backwards-compatible persistence/API plan and tests.
 
 The UI must continue to fail closed when no merchant-approved shipping zone/rate or country/currency tax disclosure exists. No JPY conversion, tax-inclusion label, shipping price/timeline or payment method is inferred by localisation.
+
+
+## Checkout UX resilience follow-up — 2026-11-05
+
+This frontend-only follow-up preserves the Phase 7 server contracts and makes two customer-journey corrections:
+
+- Reservation and order-draft idempotency keys are generated as a pair and retained for the same normalized checkout request. A retry after an ambiguous network response reuses both keys; an edited order request receives a new pair. Cart-line order and harmless address/note whitespace differences do not create a different fingerprint.
+- Choosing a saved address is now explicit state. Editing any address field switches the selector to the custom-address option and explains that the saved address itself is not modified.
+- The order summary exposes the configured shipping charge once a rate is selected. It does not invent a tax amount or final total: configured tax and the final total remain server-computed and are shown in the resulting order review.
+
+No schema, API route, inventory behaviour, shipping/tax calculation, order lifecycle, payment or seller-policy behaviour changes. Live payment remains disabled.
+
+
+## Checkout UX resilience — exact-head validation (2026-11-05)
+
+The frontend retry/address/order-summary increment was validated by [PR #22 CI run #384](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41989843935) on `e71ae85bdf2975e50cfdede960076e5ebcef55a8`.
+
+Passed: MySQL setup/migrations, TypeScript typecheck, **320 unit/integration tests**, lint, production build, 120 Playwright route/viewport captures, Lighthouse budget/assertions and self-hosted staging archive packaging.
+
+Lighthouse results (Performance / Accessibility / Best Practices / SEO): homepage **92 / 95 / 96 / 100**; shop **90 / 96 / 96 / 100**. Lighthouse assertions: zero failures. The route manifest had zero capture failures, horizontal overflow, broken images, missing/generic alt labels, unnamed buttons, HTTP errors, failed requests or page errors. Its 15 console 404 messages were limited to empty-database product/collection routes and the intentional not-found route.
+
+Artifacts: [route review](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397956203), [Lighthouse](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397562703), [staging package — not deployed](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397876821).
+
+These automated results do not prove an authenticated checkout with live merchant shipping/tax configuration. Owner-approved staging UAT and customer-account checks remain required. No provider, payment webhook, payment capture or paid-state transition was enabled.

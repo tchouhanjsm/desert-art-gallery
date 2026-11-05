@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartProvider";
 import { formatMoneyFromMinor } from "@/lib/money";
 import type { CheckoutAddress } from "@/lib/checkout";
+import {
+  buildCheckoutAttemptFingerprint,
+  getCheckoutAttemptKeys,
+  type CheckoutAttemptKeys,
+} from "@/lib/checkout-attempt";
 
 type SavedAddress = CheckoutAddress & { id: string; is_default_shipping: boolean };
 type ShippingZone = { id: string; name: string; country_codes: string[] };
@@ -30,12 +35,13 @@ export function CheckoutForm({
   const router = useRouter();
   const { lines, preview, isLoading, error: cartError } = useCart();
   const [address, setAddress] = useState<CheckoutAddress>(addresses[0] ?? emptyAddress);
+  const [selectedAddressId, setSelectedAddressId] = useState(addresses[0]?.id ?? "");
   const [customerNote, setCustomerNote] = useState("");
   const [shippingRateId, setShippingRateId] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [holdExpiry, setHoldExpiry] = useState("");
-  const reservationKey = useRef<{ fingerprint: string; key: string } | null>(null);
+  const checkoutAttempt = useRef<CheckoutAttemptKeys | null>(null);
 
   const currencies = [...new Set(preview.map((item) => item.currency).filter((value): value is string => Boolean(value)))];
   const currency = currencies.length === 1 ? currencies[0] : null;
@@ -57,10 +63,14 @@ export function CheckoutForm({
     && Boolean(selectedRate) && matchingTaxRules.length > 0;
 
   function updateAddress(field: keyof CheckoutAddress, value: string) {
+    setSelectedAddressId("");
+    setMessage("");
     setAddress((current) => ({ ...current, [field]: field === "country_code" ? value.toUpperCase().slice(0, 2) : value }));
   }
 
   function selectSavedAddress(id: string) {
+    setSelectedAddressId(id);
+    setMessage("");
     if (!id) { setAddress(emptyAddress); return; }
     const saved = addresses.find((item) => item.id === id);
     if (saved) setAddress({
@@ -82,19 +92,27 @@ export function CheckoutForm({
     setMessage("");
     setHoldExpiry("");
     try {
-      const fingerprint = JSON.stringify({ lines, address, shippingRateId: selectedRate.id, customerNote });
-      if (!reservationKey.current || reservationKey.current.fingerprint !== fingerprint) {
-        reservationKey.current = { fingerprint, key: crypto.randomUUID() };
-      }
+      const fingerprint = buildCheckoutAttemptFingerprint({
+        lines,
+        address,
+        shippingRateId: selectedRate.id,
+        customerNote,
+      });
+      const attempt = getCheckoutAttemptKeys(
+        fingerprint,
+        checkoutAttempt.current,
+        () => crypto.randomUUID(),
+      );
+      checkoutAttempt.current = attempt;
       const reserveResponse = await fetch("/api/cart/reserve", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Idempotency-Key": reservationKey.current.key },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": attempt.reservationKey },
         body: JSON.stringify({ lines }),
         cache: "no-store",
       });
       const reservation = await reserveResponse.json();
       if (!reserveResponse.ok || typeof reservation.reservation_id !== "string") {
-        if (reserveResponse.status === 409) reservationKey.current = null;
+        if (reserveResponse.status === 409) checkoutAttempt.current = null;
         throw new Error(reservation.error || "Could not reserve the requested stock. Update your bag and try again.");
       }
       if (typeof reservation.expires_at === "string") setHoldExpiry(reservation.expires_at);
@@ -105,7 +123,7 @@ export function CheckoutForm({
         body: JSON.stringify({
           reservationId: reservation.reservation_id,
           shippingRateId: selectedRate.id,
-          idempotencyKey: crypto.randomUUID(),
+          idempotencyKey: attempt.orderDraftKey,
           shippingAddress: address,
           customerNote,
         }),
@@ -115,6 +133,7 @@ export function CheckoutForm({
       if (!response.ok || typeof result.order_id !== "string") {
         throw new Error(result.error || "Could not create an order draft.");
       }
+      checkoutAttempt.current = null;
       router.push("/account/orders/" + result.order_id);
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : "Could not create an order draft.");
@@ -128,10 +147,11 @@ export function CheckoutForm({
   return <div className="checkout-layout">
     <form className="checkout-form" onSubmit={handleSubmit}>
       {addresses.length > 0 && <label className="checkout-saved-address">Use a saved delivery address
-        <select defaultValue={addresses[0]?.id ?? ""} onChange={(event) => selectSavedAddress(event.target.value)}>
+        <select value={selectedAddressId} onChange={(event) => selectSavedAddress(event.target.value)}>
           {addresses.map((saved) => <option key={saved.id} value={saved.id}>{saved.recipient_name} — {saved.city}, {saved.country_code}</option>)}
           <option value="">Enter a different address</option>
         </select>
+        <small>Editing any field switches to a one-time delivery address. Your saved address is not changed.</small>
       </label>}
       <section className="checkout-section">
         <div className="section-kicker">01 / DELIVERY ADDRESS</div>
@@ -188,12 +208,31 @@ export function CheckoutForm({
       <div className="checkout-notice" role="note">This action creates an unpaid order draft only; no payment is taken. The draft and temporary stock reservation expire. Payments will be enabled only after the payment provider and webhook have been verified.</div>
       <button className="button-primary dark-button" type="submit" disabled={!canPrepare || busy}>{busy ? "Creating order draft…" : "Create unpaid order draft"}</button>
     </form>
-    <aside className="cart-summary checkout-summary">
-      <div className="section-kicker">ITEMS IN YOUR BAG</div><h2>ORDER SUMMARY</h2>
-      {preview.map((item) => <div className="cart-summary-row" key={item.slug + "::" + (item.variantId ?? "")}><span>{item.name}{item.variantLabel ? " · " + item.variantLabel : ""} × {item.quantityRequested}</span><strong>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor * item.quantityRequested, item.currency) : "Unavailable"}</strong></div>)}
-      <p>Product prices are checked against the current catalogue. Shipping and configured taxes are recalculated on the server before the order draft is created.</p>
-      {currency && <p>Currency:  <strong>{currency}</strong></p>}
-      {isLoading && <p className="cart-state">Checking availability…</p>}
+    <aside className="cart-summary checkout-summary" aria-labelledby="checkout-summary-heading">
+      <div className="section-kicker">ITEMS IN YOUR BAG</div>
+      <h2 id="checkout-summary-heading">ORDER SUMMARY</h2>
+      <div aria-live="polite">
+        {preview.map((item) => <div className="cart-summary-row" key={item.slug + "::" + (item.variantId ?? "")}>
+          <span>{item.name}{item.variantLabel ? " · " + item.variantLabel : ""} × {item.quantityRequested}</span>
+          <strong>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor * item.quantityRequested, item.currency) : "Unavailable"}</strong>
+        </div>)}
+        {currency && selectedRate && (
+          <div className="cart-summary-row">
+            <span>Configured shipping</span>
+            <strong>{formatMoneyFromMinor(selectedRate.amount_minor, selectedRate.currency)}</strong>
+          </div>
+        )}
+        {currency && matchingTaxRules.length > 0 && (
+          <div className="cart-summary-row">
+            <span>Destination taxes</span>
+            <strong>Calculated by server</strong>
+          </div>
+        )}
+      </div>
+      <p>Catalogue prices and configured shipping are shown above. The server calculates the final tax and order total from the current reservation and destination rules.</p>
+      <p className="checkout-total-pending">Your confirmed total will appear in the order review after the unpaid draft is prepared. This step does not take payment.</p>
+      {currency && <p>Currency: <strong>{currency}</strong></p>}
+      {isLoading && <p className="cart-state" role="status">Checking availability…</p>}
     </aside>
   </div>;
 }
