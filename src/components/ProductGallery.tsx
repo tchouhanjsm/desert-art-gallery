@@ -23,7 +23,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
     touchStart.current = { x: event.clientX, y: event.clientY };
   }
 
-  function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
+  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
     const start = touchStart.current;
     touchStart.current = null;
     if (!start || images.length < 2) return;
