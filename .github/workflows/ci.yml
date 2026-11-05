@@ -103,6 +103,11 @@ jobs:
           fi
 
           npm run visual:review
+      - name: Verify deterministic customer interactions
+        env:
+          STOREFRONT_INTERACTION_BASE_URL: http://localhost:4174
+          STOREFRONT_INTERACTION_OUTPUT_DIR: .local-data/interaction-review
+        run: npm run smoke:customer
       - name: Upload storefront visual review
         if: always() && hashFiles('.local-data/visual-review/ci-*/manifest.json') != ''
         uses: actions/upload-artifact@v4
