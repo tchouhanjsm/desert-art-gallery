@@ -51,7 +51,7 @@ const publicInterfaceFiles = [
   "../lib/storefront-information.ts",
 ];
 
-describe("English-language, Japanese-inspired storefront contract", () => {
+describe("English-language, Japan-informed storefront contract", () => {
   it("sets the public document language to English", () => {
     expect(source("../app/layout.tsx")).toContain('<html lang="en">');
     expect(source("../app/layout.tsx")).not.toContain('<html lang="ja">');
