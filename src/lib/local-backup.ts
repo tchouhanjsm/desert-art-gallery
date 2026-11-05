@@ -46,16 +46,31 @@ function asString(value: unknown, label: string): string {
 }
 
 function asNonNegativeInteger(value: unknown, label: string): number {
-  if (!Number.isSafeInteger(value) || Number(value) < 0) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
     throw new Error(label + " must be a non-negative safe integer.");
   }
-  return Number(value);
+  return value;
 }
 
 function asPositiveInteger(value: unknown, label: string): number {
   const parsed = asNonNegativeInteger(value, label);
   if (parsed < 1) throw new Error(label + " must be greater than zero.");
   return parsed;
+}
+
+function versionParts(value: string): [number, number, number] | null {
+  const match = value.match(/(?:^|[^0-9])(\\d+)\\.(\\d+)\\.(\\d+)/);
+  if (!match) return null;
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+
+export function isRestoreServerVersionCompatible(sourceVersion: string, targetVersion: string): boolean {
+  const source = versionParts(sourceVersion);
+  const target = versionParts(targetVersion);
+  if (!source || !target) return false;
+  if (target[0] !== source[0]) return target[0] > source[0];
+  if (target[1] !== source[1]) return target[1] > source[1];
+  return target[2] >= source[2];
 }
 
 export function assertSafeLocalDatabaseName(value: string): string {
@@ -148,6 +163,9 @@ export function parseLocalBackupManifest(value: unknown): LocalBackupManifest {
   const database = asRecord(root.database, "Backup database metadata");
   const databaseName = assertSafeLocalDatabaseName(asString(database.name, "Database name"));
   const serverVersion = asString(database.serverVersion, "MySQL server version");
+  if (!versionParts(serverVersion) || /mariadb/i.test(serverVersion)) {
+    throw new Error("Backup manifest MySQL server version is invalid or unsupported.");
+  }
   if (database.file !== LOCAL_BACKUP_DATABASE_FILE) {
     throw new Error("Backup database filename is invalid.");
   }
