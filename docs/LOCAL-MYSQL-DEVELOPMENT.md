@@ -165,6 +165,72 @@ npm run db:import-products -- ./.local-data/imports/etsy/EtsyListingsDownload.cs
 
 This is a read-only preview. Review row counts, warnings, source SKU collisions, draft counts and photo references before any explicit local import. The importer requires both --commit and --confirm-local-import to write, and blocks remote/production-looking targets, an existing product catalogue and repeated source hashes. Do not add those flags until the preview is reviewed and the destination is confirmed disposable.
 
+## 9. Paired MySQL and private-media backup
+
+The local backup command creates one restore-point folder containing a MySQL SQL dump, a copy of the private filesystem media tree and a SHA-256 manifest. It is deliberately separate from application startup and never runs automatically.
+
+Before backing up, stop the local application or otherwise ensure owner/customer writes and media changes are paused. MySQL uses a consistent single-transaction dump for transactional tables, and the tool verifies that private-media files did not change during copying; it does not place the whole application into maintenance mode.
+
+Check the native command-line client tools:
+
+```bash
+command -v mysqldump
+command -v mysql
+```
+
+The workflow requires local Oracle MySQL 8.0.16+ and local filesystem media. It refuses remote/MariaDB/production-looking databases, S3 media mode, public-folder paths, symbolic links, unsupported filesystem objects and a database without an applied Drizzle migration journal.
+
+Run the read-only preflight first:
+
+```bash
+npm run db:backup
+```
+
+The default destination is .local-data/backups/restore-points/. An optional DAG_BACKUP_ROOT can point to a separate absolute directory, such as an encrypted external disk. Review the database identity, migration count, media file count and expected destination. A dry run writes no SQL dump or media files.
+
+After confirming free space and the backup destination, create the paired backup explicitly:
+
+```bash
+npm run db:backup -- --commit --confirm-local-backup
+```
+
+Each backup folder contains:
+- database.sql — MySQL dump without CREATE DATABASE, DROP DATABASE or USE statements.
+- media/ — private products/ and editorial/ files, preserving their storage keys.
+- manifest.json — source database/server identity, schema/migration counts, file sizes and SHA-256 checksums.
+
+The bundle is uncompressed and not encrypted. Keep it on an encrypted, access-controlled disk and maintain a separate copy away from the development device. Do not email it or store it in Git, a public folder or a public object bucket. Ensure the target has sufficient free space for another full copy of the database and media library.
+
+## 10. Isolated restore drill
+
+A restore never targets DATABASE_URL. First create a new, empty, local MySQL database using an administrator-approved MySQL session, then grant the intended restore application user access to it. Do not use an existing application, production or customer database. Configure its loopback connection in the private .env as DAG_RESTORE_DATABASE_URL; also choose a brand-new absolute media directory that does not exist.
+
+Example configuration (use a unique local password):
+
+```dotenv
+DAG_RESTORE_DATABASE_URL=mysql://dag_restore:YOUR_LOCAL_SECRET@127.0.0.1:3306/desert_gallery_restore
+```
+
+Run a read-only restore preflight:
+
+```bash
+npm run db:restore -- --backup ".local-data/backups/restore-points/<backup-id>" --target-media "/absolute/path/desert-gallery-restore-media"
+```
+
+The preflight verifies the complete backup manifest and every SQL/media checksum, ensures the target database is different and empty, checks compatible Oracle MySQL version and validates the new media target. It does not create tables, import SQL or write media.
+
+After reviewing the target database and path, explicitly restore:
+
+```bash
+npm run db:restore -- --backup ".local-data/backups/restore-points/<backup-id>" --target-media "/absolute/path/desert-gallery-restore-media" --commit --confirm-local-restore
+```
+
+The restore copies media to a private staging directory and imports SQL only into the separately configured empty database. It never drops a database, alters the source database, overwrites the current media root or edits .env. Verify the restored database and media together before changing local application settings.
+
+If the MySQL import fails after it begins, the isolated target database may be partially populated. The tool does not drop it. Inspect the named target and only then manually drop/recreate that specific disposable restore database before retrying. If the database import succeeds but media promotion fails, the output identifies the isolated database and retained staging media path; do not use that pair until reconciled.
+
+Limitations: this workflow backs up file-backed MEDIA_STORAGE_DRIVER=local media only. It stops when MEDIA_STORAGE_DRIVER=s3; remote object storage needs a separately designed and tested backup/versioning policy. It is a logical SQL + file backup, not a physical backup of the native MySQL server data directory. CI exercises the commands against disposable MySQL databases and temporary files; it does not prove a backup/restore on the owner's workstation or selected hosting plan. Complete a real local restore drill and record the result before any hosting cutover.
+
 ## Storage map
 
 | Path | Purpose | Git |
