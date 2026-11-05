@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ShopBrowser } from "@/components/ShopBrowser";
+import { StorefrontPageHeading } from "@/components/StorefrontPageHeading";
 import { getStorefrontProducts } from "@/lib/catalogue";
 
 export const metadata = {
@@ -19,11 +20,12 @@ export default async function ShopPage() {
   const products = await getStorefrontProducts();
   return (
     <div className="page-shell atelier-page-shell">
-      <header className="atelier-page-heading">
-        <div className="section-kicker">DESERT ART GALLERY · ONLINE STORE</div>
-        <h1>All products</h1>
-        <p>Explore the pieces currently available in our online catalogue. Contact us with any questions about a listing, materials or specifications.</p>
-      </header>
+      <StorefrontPageHeading
+        className="atelier-page-heading"
+        eyebrow="DESERT ART GALLERY · ONLINE STORE"
+        title="All products"
+        description="Explore the pieces currently available in our online catalogue. Contact us with any questions about a listing, materials or specifications."
+      />
       <Suspense fallback={<ShopBrowserFallback />}>
         <ShopBrowser products={products} />
       </Suspense>
