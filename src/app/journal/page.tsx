@@ -8,7 +8,7 @@ import { getEditorialMediaUrl } from "@/server/media/storage";
 
 export const metadata = {
   title: "Journal",
-  description: "Stories and notes on textiles, handmade work and the culture of Rajasthan.",
+  description: "Stories and perspectives on textiles, craft and the culture of Rajasthan.",
 };
 
 type JournalCard = JournalRecord & { cover: string | null };
@@ -28,7 +28,7 @@ export default async function JournalPage() {
   } else {
     const supabase = await createSupabaseServerClient();
     if (!supabase) return <div className="page-shell">
-      <div className="page-heading"><div className="section-kicker">GALLERY JOURNAL</div><h1>Journal</h1><p>Stories on textiles, handmade work and the cultures behind them.</p></div>
+      <div className="page-heading"><div className="section-kicker">THE GALLERY JOURNAL</div><h1>Journal</h1><p>Explore textiles, handmade work and the cultures behind them.</p></div>
       <div className="empty-note">Articles will appear here once the publishing workflow is connected and each story is approved.</div>
     </div>;
 
@@ -36,7 +36,7 @@ export default async function JournalPage() {
       .select("id,title,slug,excerpt,content_markdown,category,cover_image_path,cover_image_alt,cover_image_rights_confirmed,cover_image_rights_evidence,status,author_id,published_at")
       .eq("status", "published").not("published_at", "is", null)
       .order("published_at", { ascending: false });
-    if (error) throw new Error("Unable to load articles.");
+    if (error) throw new Error("Journal articles could not be loaded.");
 
     const rows = (data ?? []) as unknown as JournalRecord[];
     cards = await Promise.all(rows.map(async (post) => {
@@ -51,12 +51,12 @@ export default async function JournalPage() {
   }
 
   return <div className="page-shell">
-    <div className="page-heading"><div className="section-kicker">NOTES FROM RAJASTHAN</div><h1>Stories and perspectives</h1><p>Thoughtful stories on textiles, craft and the cultures in which they live.</p></div>
+    <div className="page-heading"><div className="section-kicker">NOTES FROM THE DESERT</div><h1>Journal & stories</h1><p>Stories about textiles, craft and the cultures that keep these traditions alive.</p></div>
     {cards.length ? <div className="journal-grid">{cards.map((post) => <article className="journal-card" key={post.id}>
       <Link href={"/journal/" + post.slug}>
         {post.cover ? <div className="journal-photo"><Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={post.cover} alt={post.cover_image_alt?.trim() || post.title} fill sizes="(max-width:700px) 88vw, 30vw" /></div> : <div className="journal-photo journal-photo-empty" aria-hidden="true">DESERT ART GALLERY</div>}
         <div className="section-kicker">{post.category}</div><h2>{post.title}</h2><p>{post.excerpt}</p><span className="text-link">Read story</span>
       </Link>
-    </article>)}</div> : <div className="empty-note">There are no published stories yet.</div>}
+    </article>)}</div> : <div className="empty-note">There are no published articles yet.</div>}
   </div>;
 }

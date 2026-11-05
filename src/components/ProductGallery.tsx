@@ -27,7 +27,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
           sizes="(max-width:700px) 90vw, 55vw"
         />
         {images.length > 1 && (
-          <div className="product-gallery-navigation" aria-label="Product image controls">
+          <div className="product-gallery-navigation" aria-label="Product image navigation">
             <button type="button" onClick={previous} aria-label="View previous product image">
               <ChevronLeft size={19} aria-hidden="true" />
             </button>
@@ -45,7 +45,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
               className="product-gallery-thumb"
               type="button"
               key={image.id}
-              aria-label={"Product image " + (index + 1) + " of " + images.length}
+              aria-label={"Product image " + (index + 1) + " / " + images.length}
               aria-pressed={activeIndex === index}
               onClick={() => setActiveIndex(index)}
             >
@@ -61,7 +61,7 @@ export function ProductGallery({ images, title }: { images: ProductImage[]; titl
         </div>
       )}
       <span className="visually-hidden" aria-live="polite">
-        {activeIndex + 1} of {images.length}: {active.altText || title}
+        {activeIndex + 1} of {images.length} images: {active.altText || title}
       </span>
     </div>
   );

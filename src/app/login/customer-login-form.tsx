@@ -26,7 +26,7 @@ export function CustomerLoginForm() {
         {state.error && <p className="form-message" role="alert">{state.error}</p>}
         <button className="button-primary dark-button" type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in"}</button>
       </form>
-      <div className="auth-links"><Link href="/register">Create an account</Link><Link href="/contact">Need help? Contact the gallery</Link></div>
+      <div className="auth-links"><Link href="/register">Create an account</Link><Link href="/contact">Need help? Contact us</Link></div>
       <p className="form-message">Password recovery by email is not enabled yet. Contact the gallery for assistance.</p>
     </section>
   );

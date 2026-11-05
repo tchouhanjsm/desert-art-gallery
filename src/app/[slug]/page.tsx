@@ -42,7 +42,7 @@ export default async function InfoPage({
   return (
     <section className="page-shell" aria-labelledby="information-page-title">
       <header className="page-heading">
-        <div className="section-kicker">SHOPPING INFORMATION</div>
+        <div className="section-kicker">CUSTOMER INFORMATION</div>
         <h1 id="information-page-title">{page.title}</h1>
         <p>{page.intro}</p>
       </header>

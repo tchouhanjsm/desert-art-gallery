@@ -1,75 +1,50 @@
-# Japan-informed, English-language storefront visual review
+# Japanese-Inspired English-Language Storefront Visual Review
 
-**Source of truth:** [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md)  
-**Review state:** The original storefront implementation merged via PR #17, but it incorrectly shipped Japanese-language UI copy. A corrective English-copy phase is being developed separately. Lighthouse lab reports exist for home and shop only; full route-by-route screenshot and human visual acceptance are still pending.  
-**Supersedes:** The November 2 Desert Atelier screenshot assessment as the active target. That report remains historical evidence only.
+**Review state:** The Phase 5 route/viewport capture harness is merged. The English-language correction is being implemented on a follow-up branch; new screenshots must be captured from that exact branch head before sign-off.  
+**Scope:** Public customer storefront only. Owner/admin interfaces remain separate.  
+**Primary implementation:** `src/styles/japan-storefront.css`, imported by `src/app/layout.tsx`.
 
-## Baseline and implementation reviewed
+## Design intent
 
-The current `main` baseline uses `src/styles/japan-storefront.css` for the Japan-informed visual system but sets the document locale to Japanese and hard-codes Japanese customer-facing labels. This is a language-contract defect being corrected: the intended storefront is English-language, with Japanese retail conventions informing layout and shopping behaviour.
+The storefront borrows selected Japanese ecommerce conventions—clear hierarchy, compact but legible navigation, persistent search, category discovery, useful product information, editorial merchandising and purchase reassurance. It remains an **English-language store based in Jaisalmer, Rajasthan, India**. The visual inspiration does not imply Japanese-language copy, JPY pricing, Japanese address validation or a Japan-market launch.
 
-The intended information architecture is shopping-first: compact multi-zone header, visible search, clear primary navigation, product-led homepage, early collection/product discovery, useful filters and sort controls, purchase information beside the product gallery, cart, checkout and an operational footer. All UI labels and customer messages must be in English.
+The product-led information architecture includes a compact announcement row, visible search, shopping navigation, curated collections, editorial product storytelling, product specifications, bag, checkout and a structured footer. The existing warm-ivory, ink, terracotta and sand palette is retained. Inter and Playfair Display are used for English typography.
 
-## Route map
+## Route coverage
 
-| Route | Template / primary components | Main implementation state |
-|---|---|---|
-| `/` | `src/app/page.tsx` | Japan-informed, English-language shoppable homepage |
-| `/shop` | `src/app/shop/page.tsx`, `ShopBrowser` | English search/filter/sort labels; functional logic retained |
-| `/collections/[slug]` | Collection route | English UI labels; owner collection names/descriptions preserved |
-| `/products/[slug]` | Product detail, `ProductGallery`, `AddToBagButton` | English purchase-decision UI; source product facts preserved |
-| `/cart` | Cart page, `CartPageClient`, `CartProvider` | English labels; cart contracts retained |
-| `/checkout` | Checkout page and `CheckoutForm` | English labels and deliberate checkout sequence; generic backend address schema retained |
-| `/login`, `/register`, `/account`, `/wishlist` | Customer UI routes | English labels in the customer-facing branch components |
-| `/story`, `/artisans`, `/journal`, `/contact` | Editorial/support routes | English page UI labels; merchant-entered editorial data preserved |
-| `/admin/*`, `/owner/*` | Owner operations workspace | Separate styling and authentication boundary retained |
+The Phase 5 review script captures the public shopping and operations route matrix across five viewport sizes. Key customer routes include:
 
-## Current limitations to verify
+| Route | Primary review focus |
+|---|---|
+| `/` | Product-led English homepage, hero and collection discovery |
+| `/shop` | English search, filters, sort controls and item counts |
+| `/collections/[slug]` | Collection presentation and empty states |
+| `/products/[slug]` | Product facts, image gallery, price, availability and enquiry |
+| `/cart` | Shopping bag, quantity changes and totals |
+| `/checkout` | English delivery form and unpaid order draft safeguards |
+| `/login`, `/register`, `/account`, `/wishlist` | Customer account and saved-item journeys |
+| `/story`, `/artisans`, `/journal`, `/contact` | English editorial and customer-support presentation |
+| `/shipping`, `/returns`, `/faq`, `/tracking`, `/privacy`, `/terms` | English customer information and clearly marked provisional policies |
 
-- English interface-copy review and all-route untranslated-string audit remain to be completed.
-- The English UI does not automatically translate merchant-managed product titles/descriptions. The CSV contains English source text; preserve it and obtain owner review before publication.
-- The CSV source currency is USD. The storefront displays the source record currency; it does not convert prices to JPY or assert tax inclusion.
-- The generic address schema has no furigana/name-reading field or Japanese postcode lookup integration. Those require a backwards-compatible data/API plan.
-- Merchant-approved shipping, duties, tax, seller/legal identity, returns, payment and customer-support content is not supplied in the CSV.
-- English font rendering, contrast and text wrapping remain to be checked in real browsers.
-- CI run #348 produced Lighthouse HTML/JSON reports for `/` and `/shop`; no all-route screenshots, authenticated E2E review, field Core Web Vitals or human visual sign-off is claimed.
+## Data and trust boundaries
 
-## Review checklist
+- Merchant-owned product titles, descriptions, materials, dimensions, variants, collection names, artisan names and editorial content are not machine-translated or silently rewritten.
+- Catalogue currency remains the currency recorded in the catalogue or order. No currency conversion or currency substitution is made.
+- The generic delivery-address contract remains generic. No Japan-only address, furigana or postcode lookup feature is introduced.
+- Shipping, tax, returns, payment, seller identity and legal terms remain provisional until merchant-approved configuration and legal review are supplied.
+- Product images may be published only when the product is published and the relevant usage rights are confirmed.
 
-- [ ] Home first-screen and first-scroll shopping discovery
-- [ ] Header desktop and mobile search/navigation
-- [ ] Shop search/category/sort and no-results
-- [ ] Collection listing and empty state
-- [ ] Product detail gallery, variant selection, price/availability and enquiry
-- [ ] Cart page and drawer
-- [ ] Checkout field errors and fail-closed configuration blockers
-- [ ] Account/login/register/wishlist
-- [ ] Story/artisans/journal/contact
-- [ ] Footer links, legal-content absence and contact disclosure
-- [ ] Owner/admin visual isolation
-- [ ] 360 / 390–430 / 768 / 1280–1440 / 1600+ widths
-- [ ] English copy, typography and line-wrap review
-- [ ] Accessibility and keyboard review
-- [ ] Lighthouse and Core Web Vitals review
+## Visual QA limitations
 
-Do not mark any checklist item complete until screenshot or test evidence is linked with the branch commit SHA.
+Automated capture validates route loading, viewport rendering and measurable UI properties. It does not replace human visual inspection, authenticated customer journeys, keyboard/screen-reader testing, contrast review, product-photo rights verification or owner/merchant UAT. A successful screenshot run is not a production launch approval.
 
+## Sign-off checklist
 
-## CI Lighthouse evidence — PR #17, run #348
-
-The final PR head completed the CI validation job successfully, including Lighthouse. Single-run reports were collected only for the homepage and shop:
-
-| Route | Performance | Accessibility | Best Practices | SEO | LCP | TBT | CLS |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| `/` | 0.93 | 0.95 | 0.96 | 1.00 | 1.67 s | 309 ms | 0.000 |
-| `/shop` | 0.97 | 0.96 | 0.96 | 1.00 | 1.90 s | 75 ms | 0.099 |
-
-These are CI lab measurements on the blank test database, not field Core Web Vitals. The home TBT and shop CLS are optimisation candidates. Two Lighthouse URLs do not cover the complete route matrix.
-
-## Phase 5 route and viewport evidence
-
-The Playwright capture matrix in `src/lib/storefront-review.ts` now defines 24 customer/operations routes across 360, 414, 768, 1440 and 1600 px. The runner writes full-page screenshots and a JSON manifest to ignored `.local-data/visual-review/`. CI uploads its result as a short-lived artifact. The harness is under review in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); do not claim its capture artifact exists until that exact-head workflow completes.
-
-The CI test database contains no merchant catalogue. Dynamic product and collection routes may correctly resolve to not-found; screenshots of those empty states are not product-image or catalogue acceptance. `/admin` is unauthenticated and may redirect to `/owner/login`; signed-in owner/dashboard views still require staging UAT.
-
-Human visual inspection, authenticated customer journeys, keyboard/screen-reader testing, English copy quality, glyph coverage, real rights-approved images and Japan-based performance validation remain outstanding.
+- [ ] Root document language and customer UI are English.
+- [ ] No untranslated Japanese static UI copy remains in customer routes or shared components.
+- [ ] Merchant-provided product and editorial data remain unchanged.
+- [ ] Header, navigation, search, product discovery and checkout remain usable at mobile and desktop widths.
+- [ ] No horizontal overflow, clipped content, missing accessible names, broken images or unexpected HTTP errors.
+- [ ] Payment, shipping, tax and legal states are truthful and do not imply unsupported capabilities.
+- [ ] All route/viewport artifacts have been manually inspected.
+- [ ] Authenticated customer and owner workflows have been tested separately.

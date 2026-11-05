@@ -27,18 +27,18 @@ export function WishlistPageClient() {
     void load();
     return () => { cancelled = true; };
   }, [slugs]);
-  if (!slugs.length) return <div className="empty-note">Your wishlist is empty.<br/><Link href="/shop" className="empty-link">Explore the shop</Link></div>;
+  if (!slugs.length) return <div className="empty-note">Your wishlist is empty.<br/><Link href="/shop" className="empty-link">Continue shopping</Link></div>;
   return <div>
     {loading && <p className="cart-state">Updating your wishlist…</p>}
     <div className="wishlist-grid">{items.map((item) => <article className="wishlist-card" key={item.slug}>
       <Link href={"/products/" + item.slug}>
         {item.image ? <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={item.image} alt={item.imageAlt} width={500} height={620} /> : <div className="wishlist-placeholder" />}
         <div className="product-category">DESERT ART GALLERY</div><h2>{item.name}</h2>
-        <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Contact us for pricing"}</p>
+        <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price on request"}</p>
       </Link>
       {!item.available && <small className="cart-error">Currently unavailable</small>}
       <button className="wishlist-remove" type="button" onClick={() => remove(item.slug)}>Remove from wishlist</button>
     </article>)}</div>
-    <div className="center-action"><Link href="/shop" className="button-outline">Discover more</Link></div>
+    <div className="center-action"><Link href="/shop" className="button-outline">Explore the collection</Link></div>
   </div>;
 }

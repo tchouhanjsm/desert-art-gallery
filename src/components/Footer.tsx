@@ -13,8 +13,8 @@ export function Footer() {
       <div className="jp-footer-main">
         <div className="jp-footer-brand">
           <Link href="/" className="footer-mark">DESERT ART GALLERY</Link>
-          <p>Textiles and handcrafted objects, selected in Jaisalmer, Rajasthan, India.</p>
-          <span>Jaisalmer · Rajasthan · India</span>
+          <p>Textiles and handmade pieces, shared from Jaisalmer, Rajasthan, India.</p>
+          <span>JAISALMER · RAJASTHAN · INDIA</span>
         </div>
         {footerNavigation.map((section) => (
           <nav aria-label={section.title} key={section.title}>
@@ -25,8 +25,8 @@ export function Footer() {
       </div>
       <div className="jp-footer-bottom">
         <span>© {new Date().getFullYear()} DESERT ART GALLERY</span>
-        <span>For questions about products, shipping or orders, please visit our contact page.</span>
-        <Link href="/contact">Contact the gallery</Link>
+        <span>For questions about products, delivery or orders, please use our contact page.</span>
+        <Link href="/contact">Contact us</Link>
       </div>
     </footer>
   );

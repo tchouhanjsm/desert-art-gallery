@@ -7,7 +7,7 @@ import { getMySqlCustomerOrder } from "@/server/checkout/mysql-orders";
 
 function formatOrderStatus(status: string) {
   const labels: Record<string, string> = {
-    draft: "Order draft",
+    draft: "Draft",
     pending_payment: "Awaiting payment",
     paid: "Paid",
     processing: "Processing",
@@ -56,14 +56,14 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
     return <div className="page-shell">
       <div className="breadcrumb"><Link href="/account">My account</Link> / ORDER {order.orderNumber}</div>
       <div className="page-heading"><div className="section-kicker">ORDER DETAILS</div><h1>{order.orderNumber}</h1><p>Order date: {new Date(order.createdAt).toLocaleDateString("en-IN")}</p><span className={"admin-status status-" + order.status}>{formatOrderStatus(order.status)}</span></div>
-      {order.status === "draft" && <div className="checkout-notice" role="status">This is an unpaid order draft. No payment has been collected. The draft and temporary stock reservation expire at {new Date(order.expiresAt).toLocaleString("en-IN")}..</div>}
-      {order.status === "expired" && <div className="checkout-notice" role="status">This order draft has expired and its temporary stock reservation has ended. If the item is still available, start a new order.</div>}
+      {order.status === "draft" && <div className="checkout-notice" role="status">This is an unpaid order draft. No payment has been taken. The order draft and temporary stock reservation expire at {new Date(order.expiresAt).toLocaleString("en-IN")}.</div>}
+      {order.status === "expired" && <div className="checkout-notice" role="status">This order draft has expired and its temporary stock reservation has ended. If the item is still available, start a new checkout.</div>}
       <div className="order-detail-layout">
         <section className="order-item-list">
-          <h2>ORDER ITEMS</h2>
+          <h2>ITEMS IN YOUR ORDER</h2>
           {items.map((item) => <article className="order-item" key={item.id}><div><strong>{item.productTitle}</strong><small>{item.variantLabel}</small>{item.productSku && <small>SKU {item.productSku}</small>}<p>Quantity: {item.quantity}</p></div><strong>{formatMoneyFromMinor(item.lineTotalMinor, order.currency)}</strong></article>)}
-          <section className="account-section"><div className="section-kicker">DELIVERY TO</div><h2>Delivery address</h2><p>{typeof address.recipient_name === "string" ? address.recipient_name : order.email}<br/>{addressLine}</p></section>
-          <section className="account-section"><div className="section-kicker">SHIPPING & TAX DETAILS</div><h2>{order.shippingRateName}</h2><p>Shipping zone: {order.shippingZoneName}</p>
+          <section className="account-section"><div className="section-kicker">DELIVERY ADDRESS</div><h2>Delivery address</h2><p>{typeof address.recipient_name === "string" ? address.recipient_name : order.email}<br/>{addressLine}</p></section>
+          <section className="account-section"><div className="section-kicker">SHIPPING & TAX INFORMATION</div><h2>{order.shippingRateName}</h2><p>Shipping zone: {order.shippingZoneName}</p>
             {order.shippingDeliveryMinDays !== null && order.shippingDeliveryMaxDays !== null
               ? <p>Configured delivery estimate: {order.shippingDeliveryMinDays}–{order.shippingDeliveryMaxDays} days</p>
               : <p>No delivery estimate is configured for this shipping method.</p>}
@@ -80,7 +80,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
           <div className="cart-summary-row"><span>Total</span><strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong></div>
           {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">Track shipment</a></p>}
           {order.trackingNumber && <p>Tracking number: {order.trackingNumber}</p>}
-          {order.status === "draft" && <p>No payment method is connected to this order draft. Do not pay through a method that has not been approved by the gallery.</p>}
+          {order.status === "draft" && <p>No payment method is connected to this order draft. Do not pay through any method that has not been approved by the gallery.</p>}
         </aside>
       </div>
     </div>;
@@ -96,7 +96,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
   if (error || !order) notFound();
   const { data: itemData, error: itemError } = await supabase.from("order_items")
     .select("id,product_title,product_sku,variant_label,quantity,unit_price_minor,line_total_minor").eq("order_id", id);
-  if (itemError) throw new Error("Unable to load order items.");
+  if (itemError) throw new Error("Could not load order items.");
   const items = (itemData ?? []) as LegacyItem[];
   const row = order as unknown as LegacyOrder;
   const taxComponents = Array.isArray(row.tax_breakdown) ? row.tax_breakdown : [];
@@ -108,10 +108,10 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
   return <div className="page-shell">
     <div className="breadcrumb"><Link href="/account">My account</Link> / ORDER {row.order_number}</div>
     <div className="page-heading"><div className="section-kicker">ORDER DETAILS</div><h1>{row.order_number}</h1><p>Order date: {new Date(row.created_at).toLocaleDateString("en-IN")}</p><span className={"admin-status status-" + row.status}>{formatOrderStatus(row.status)}</span></div>
-    {row.status === "draft" && <div className="checkout-notice" role="status">This is an unpaid order draft. No payment has been requested or received. The order draft and temporary stock reservation expire at {row.expires_at ? new Date(row.expires_at).toLocaleString("en-IN") : "the stock reservation expiry time"}.</div>}
-    {row.status === "expired" && <div className="checkout-notice" role="status">This order draft has expired and its temporary stock reservation has ended. If the item is still available, start a new order from your cart.</div>}
+    {row.status === "draft" && <div className="checkout-notice" role="status">This is an unpaid order draft. No payment has been charged or received. The draft and temporary stock reservation expire at {row.expires_at ? new Date(row.expires_at).toLocaleString("en-IN") : "the stock reservation expiry"}.</div>}
+    {row.status === "expired" && <div className="checkout-notice" role="status">This order draft has expired and its temporary stock reservation has ended. If the item is still available, start a new checkout from your bag.</div>}
     <div className="order-detail-layout">
-      <section className="order-item-list"><h2>ORDER ITEMS</h2>
+      <section className="order-item-list"><h2>ITEMS IN YOUR ORDER</h2>
         {items.map((item) => <article className="order-item" key={item.id}><div><strong>{item.product_title}</strong>{item.variant_label && <small>{item.variant_label}</small>}{item.product_sku && <small>SKU {item.product_sku}</small>}<p>Quantity: {item.quantity}</p></div><strong>{formatMoneyFromMinor(item.line_total_minor, row.currency)}</strong></article>)}
         <section className="account-section"><div className="section-kicker">SHIPPING & TAX INFORMATION</div><h2>{row.shipping_rate_name ?? "Shipping information"}</h2>
           {row.shipping_zone_name && <p>Shipping zone: {row.shipping_zone_name}</p>}
@@ -126,7 +126,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
         <div className="cart-summary-row"><span>Discount</span><strong>−{formatMoneyFromMinor(row.discount_minor,row.currency)}</strong></div>
         <div className="cart-summary-row"><span>Total</span><strong>{formatMoneyFromMinor(row.total_minor,row.currency)}</strong></div>
         {trackingUrl && <p><a href={trackingUrl} target="_blank" rel="noreferrer">Track shipment</a></p>}{row.tracking_number && <p>Tracking number: {row.tracking_number}</p>}
-        {row.status === "draft" && <p>No payment method is connected to this order draft. Do not pay through a method that has not been approved by the gallery.</p>}
+        {row.status === "draft" && <p>No payment method is connected to this order draft. Do not pay through any method that has not been approved by the gallery.</p>}
       </aside>
     </div>
   </div>;

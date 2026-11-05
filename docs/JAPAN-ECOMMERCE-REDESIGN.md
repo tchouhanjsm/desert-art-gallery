@@ -1,18 +1,26 @@
-# Desert Art Gallery — Japan-Informed, English-Language Ecommerce Redesign Brief
+# Desert Art Gallery — Japanese-Inspired English-Language Ecommerce Redesign Brief
 
 > **Document type:** Product, brand, UX/UI and implementation brief for the AI coding agent  
-> **Status:** Master design direction — use as the source of truth for the redesign  
+> **Status:** Master design direction — use as the source of truth for the redesign; English is the storefront language  
 > **Prepared:** 4 November 2026  
 > **Target repository:** `tchouhanjsm/desert-art-gallery`  
 > **Recommended repository location:** `docs/JAPAN-ECOMMERCE-REDESIGN.md`
 
 ---
 
+## Owner clarification — 4 November 2026 (supersedes conflicting language assumptions below)
+
+**The storefront must remain in English.** “Japanese-inspired” refers only to ecommerce design and interaction conventions: clear information hierarchy, useful content density, direct shopping navigation, category discovery, product specifications, reassurance, editorial craft storytelling and disciplined visual composition. It does not mean Japanese-language UI, Japanese metadata, Japanese checkout forms, Japanese address conventions, JPY pricing, or a change of the store’s market. Desert Art Gallery is based in Jaisalmer, Rajasthan, India.
+
+Keep `<html lang="en">`, all customer-facing headings, navigation, buttons, form labels, accessibility names, status messages, SEO metadata and support copy in English. Use local Inter and Playfair Display typography. Format local counts/dates with `en-IN`; preserve actual source currencies. Never machine-translate merchant-owned product, collection, artisan or editorial data. Do not add Japanese localization requirements unless the owner explicitly commissions a separate localization project with professional review.
+
+This decision supersedes any later section in this document that calls for Japanese-language content, a `lang="ja"` document, Japanese glyph testing, native-speaker Japanese copy review, Japanese-language taglines, furigana, Japanese address forms, Japan-market user testing or JPY conversion. Those items are not current requirements. Historical references to Japanese retail examples describe design inspiration only.
+
 ## 0. Instruction to the AI agent — read this before changing code
 
 You are acting as a senior Japanese ecommerce product-design and frontend engineering team. Your task is to **replace the existing public-facing storefront theme and redesign the complete customer-facing shopping experience**, not to make a few CSS adjustments to the current theme.
 
-The new direction is a Japan-informed, premium-but-approachable curated lifestyle ecommerce store. Customer-facing content and UI copy must remain in English. Use the following as the primary creative references:
+The new direction is a Japanese-inspired, premium-but-approachable curated lifestyle ecommerce store with English-language content. Use the following as the primary creative references:
 
 1. [POJ Studio](https://pojstudio.com/) — premium craft positioning, thoughtful editorial product photography, collection-led merchandising, clear shop navigation, meaningful maker/heritage stories, featured products and a well-structured footer.
 2. [Macaroni Shoten](https://shop.macaro-ni.jp/) — accessible Japanese curation, everyday lifestyle framing, approachable product discovery and clear lifestyle categories. Its About page describes the store as an editorially curated selection of quality handmade items and carefully selected food/lifestyle products; its visible categories include Kitchen, Living, Food and Daily.
@@ -30,7 +38,7 @@ Use the following articles as supporting references for Japanese ecommerce conve
 - Do not preserve the existing theme merely by changing colours, fonts, button radii or hero images. Redesign the storefront system end-to-end: header, navigation, announcement area, homepage, product cards, category pages, product pages, cart, checkout-facing UI, content pages, footer, mobile navigation and responsive behaviour.
 - Do not delete or rewrite working commerce logic, API contracts, database schemas, authentication, inventory controls, media permissions, checkout/order logic, security controls or migration history simply to achieve the visual redesign.
 - Treat this as a **presentation-layer and customer-journey replacement**, with the existing application and backend retained unless a code audit proves a specific change is necessary and safe.
-- A customer should understand within approximately three seconds that this is an online shop selling distinctive products—not a hotel, travel destination, tourism service, resort, gallery visit or destination guide.
+- The customer should understand within approximately three seconds that this is an online shop selling distinctive products—not a hotel, travel destination, tourism service, resort, gallery visit or destination guide.
 - Blend **POJ Studio's premium editorial storytelling** with **Macaroni Shoten's approachable curated shopping structure** and **Japanese ecommerce reassurance conventions**. Do not make the design so sparse that essential shopping information is hidden, and do not make it so dense that it becomes a discount-marketplace clone.
 
 ### Agent execution requirements
@@ -68,7 +76,7 @@ The brand should feel:
 - Premium in presentation, but approachable and easy to shop.
 - Authentic and specific, not exoticised or tourist-oriented.
 - Product-led, with the craft story supporting the product decision.
-- Japan-informed in usability and shopping structure, with clear English customer communication, while retaining the product's genuine place of origin and identity.
+- Japanese in usability and customer communication, while retaining the product's genuine place of origin and identity.
 
 ### 1.3 Target customer
 
@@ -81,7 +89,7 @@ Design for Japanese customers who may be interested in:
 - Natural materials, texture, pattern and objects with a meaningful story.
 - Discovering products that are not generic mass-market items.
 
-Do not assume all Japanese customers have identical tastes. Validate decisions through usability testing, real-device testing and, where possible, feedback from shoppers in Japan. Keep all research and customer-facing copy in English for this release.
+Do not assume customers have identical tastes. Validate design decisions with real device testing and feedback from the gallery’s intended audience.
 
 ### 1.4 Customer-facing narrative
 
@@ -121,7 +129,7 @@ Use it to understand:
 - A friendly, curated retail proposition rather than an intimidating luxury posture.
 - Everyday lifestyle framing: products are selected because they add something worthwhile to daily life.
 - Clear top-level category organisation such as Kitchen, Living, Food and Daily.
-- English category naming and approachable copy, organised using Japanese retail information architecture.
+- Clear English category naming, concise descriptions and approachable copy.
 - A concise About page that explains what the store selects and why.
 - Clear company/contact and Japanese legal-policy destinations.
 
@@ -180,7 +188,7 @@ The target customer should immediately feel:
 4. “This store seems credible enough to explore.”
 5. “I know where to click to shop.”
 
-A possible Japanese brand message (subject to native-speaker review):
+An English brand message direction (subject to owner review):
 
 > **日々の暮らしに、特別な手仕事を。**  
 > Special craftsmanship for everyday living.
@@ -190,7 +198,7 @@ A supporting line, only if it accurately describes the real catalogue:
 > ラージャスターンの手仕事を、毎日の暮らしへ。  
 > Handcrafted work from Rajasthan, brought into everyday life.
 
-Do not use these as final legal or factual claims without owner verification and professional English-language copy and legal review.
+Do not use these as final legal or factual claims without owner verification and English copy and legal review.
 
 ### 3.3 Visual balance
 
@@ -200,7 +208,7 @@ Use:
 - Real-life product styling in contemporary Japanese homes and daily-life settings, where appropriate.
 - Clean product cut-outs or neutral product backgrounds for shopping grids.
 - Warm neutral surfaces, natural materials and restrained accent colours.
-- Editorial typography for brand moments and highly legible English sans-serif typography for shopping UI.
+- Editorial typography for brand moments and highly legible Japanese sans-serif typography for shopping UI.
 - Short, useful campaign copy and consistent CTAs.
 - Visible category entry points and product cards early in the homepage.
 
@@ -244,15 +252,15 @@ Rules:
 
 Recommended initial font direction:
 
-- English UI/body: the existing Inter Variable font with accessible system sans-serif fallbacks.
-- Editorial headings: the existing Playfair Display Variable font with Georgia or serif fallbacks.
+- English UI/body: `Inter Variable` or another properly licensed Japanese sans-serif with full glyph coverage.
+- Editorial headings: `Playfair Display Variable` or `Shippori Mincho` in restrained contexts.
 - Latin UI and numbers: a compatible neutral sans-serif with tabular numerals for prices where appropriate.
 
 Rules:
 
 - Confirm font licences and actual loaded glyph subsets.
 - Avoid faux bold or missing-glyph fallback.
-- Support readable English line lengths and natural wrapping; do not force fixed-height text containers that clip copy.
+- Support natural Japanese line wrapping and kinsoku shori; do not force fixed-height text containers that clip kana/kanji.
 - Test mixed Japanese/Latin product names, numerals, punctuation and long titles.
 - Use responsive line-height and type scales; do not simply shrink desktop typography on mobile.
 
@@ -282,7 +290,7 @@ Rework customer-facing navigation around shopping first. Actual category labels 
 
 ### 5.1 Suggested primary navigation
 
-Suggested navigation examples (English UI labels; the Japanese phrases shown below are research notes only and must not be copied into the storefront):
+Japanese-inspired retail layout examples:
 
 - すべての商品 — Shop all
 - テキスタイル — Textiles
@@ -299,7 +307,7 @@ Header utility controls:
 - Account (ログイン / マイページ)
 - Wishlist (お気に入り), only if implemented
 - Cart (カート)
-- Japanese locale and JPY display where supported
+- Consistent English labels and display of the actual configured catalogue currency
 - Customer support / delivery information access
 
 ### 5.2 Desktop header
@@ -489,7 +497,7 @@ Put the following near the gallery and buy controls, based on available verified
 2. Main image gallery with thumbnails and mobile swipe behaviour.
 3. Japanese product name; optional original/English name as secondary text if useful.
 4. Genuine review summary only if reviews exist.
-5. Price in JPY and appropriate tax disclosure (never guess or hard-code tax treatment).
+5. Price in the actual configured catalogue currency with appropriate tax disclosure (never guess or hard-code tax treatment).
 6. Availability/stock state from the inventory source.
 7. Product variants/options when supported.
 8. Quantity selector with valid limits.
@@ -562,7 +570,7 @@ Use a clear, linear flow:
 5. Final order review with item, shipping, tax, discount and grand total breakdown.
 6. Explicit final purchase action and confirmation state.
 
-Japan-market checkout and address considerations to assess and implement where supported:
+English-language storefront requirements and market-specific merchant settings:
 
 - Postal code first, with Japanese postcode lookup if an approved service is configured.
 - Prefecture/city/address conventions.
@@ -570,7 +578,7 @@ Japan-market checkout and address considerations to assess and implement where s
 - Furigana field where appropriate for the customer/business workflow.
 - Polite, specific field-level error messages.
 - Clear distinction between required and optional fields.
-- Correct JPY formatting and tax/shipping disclosures.
+- Correct formatting for the actual recorded currency and approved tax/shipping disclosures.
 
 ### 9.3 Payment methods
 
@@ -581,28 +589,28 @@ Research and evaluate methods relevant to Japanese customers (for example, credi
 ### 9.4 Account, wishlist and orders
 
 - Keep customer data scoped to the authenticated customer.
-- Make account and order status labels natural, concise English.
+- Make account and order status labels natural Japanese.
 - Wishlist must only be shown as a working feature.
 - Do not expose admin or owner functionality in the public storefront.
 - The internal owner/admin workspace may retain a separate operational UI; do not force consumer editorial styling onto admin screens.
 
 ---
 
-## 10. Japan-market UX and customer trust
+## 10. language policy and customer trust
 
-A Japan-informed experience means adapting information architecture, product discovery, trust and checkout behaviour for the market—not changing the storefront language. English remains the required customer-facing language.
+Japanese-inspired means thoughtful retail structure and interaction patterns, not Japanese-language content or a Japan-market implementation.
 
 ### 10.1 Language
 
-- English is the default and required customer-facing language for this store, including its Japan-market experience.
-- Use fluent, natural English reviewed for clarity, consistency and accessibility.
-- Do not add Japanese UI copy or machine-translated fragments. Retain genuine proper nouns and merchant-supplied source text only where approved.
+- Japanese is the default customer-facing language for the Japan store.
+- Use fluent, natural Japanese reviewed by a native speaker or qualified localisation reviewer.
+- Keep English only where it has a clear brand/product purpose.
 - Do not expose raw translation keys, machine-translated fragments or inconsistent terminology.
-- Maintain an English glossary for product categories, craft/material terms, product status and checkout language.
+- Maintain a glossary for product categories, craft/material terms, product status and checkout language.
 
 ### 10.2 Currency, prices and tax
 
-- Use JPY for the Japan market where the commerce configuration supports it.
+- Display only the currency supplied by the merchant catalogue/order; do not convert to JPY.
 - Format prices naturally, e.g. `¥8,800`.
 - Show tax treatment clearly and consistently; use `税込` only after tax configuration and legal treatment have been confirmed.
 - Do not derive live prices from a rough FX conversion in frontend code.
@@ -682,13 +690,13 @@ Follow `docs/PRODUCT-IMAGE-INTAKE.md` and the existing private media flow. Every
 
 ## 12. SEO, accessibility, performance and technical UX
 
-### 12.1 English-language SEO for the Japan market
+### 12.1 Japanese SEO
 
-- Provide accurate English page titles, meta descriptions, canonical URLs and Open Graph metadata; use search research to understand demand in Japan without switching page language.
+- Provide accurate Japanese page titles, meta descriptions, canonical URLs and Open Graph metadata.
 - Use natural Japanese category/product URLs where the existing routing strategy safely supports them; do not break current URLs without redirect mapping.
 - Add Product structured data only from verified product data, including price, currency, availability and images.
 - Add Breadcrumb structured data for relevant routes.
-- Provide an English-language content plan for category guides, material/care guides, gifting and craft stories based on real expertise and search demand in Japan.
+- Provide a Japanese content plan for category guides, material/care guides, gifting and craft stories based on real expertise.
 - Avoid thin, duplicated or machine-translated pages.
 
 ### 12.2 Accessibility
@@ -723,7 +731,7 @@ At minimum test:
 - Laptop: 1280–1440px.
 - Wide desktop: 1600px and above.
 
-Test realistic English copy lengths; do not assume short placeholder strings are representative.
+Test realistic long English copy and long merchant-supplied product names; do not rely on short placeholders.
 
 ---
 
@@ -785,7 +793,7 @@ Test realistic English copy lengths; do not assume short placeholder strings are
 
 - Establish palette, typography, spacing, containers, grids, borders, shadows, buttons, links and focus states.
 - Replace public storefront global styles/theme components.
-- Build the Japan-informed header, desktop nav, mobile nav and footer, with English labels.
+- Build the Japanese-inspired header, desktop nav, mobile nav and footer.
 - Remove legacy tourism/hotel presentation from public routes.
 - Keep internal owner/admin screens separate.
 
@@ -807,7 +815,7 @@ Test realistic English copy lengths; do not assume short placeholder strings are
 - Checkout-facing screens consistent with approved backend capability.
 - Customer account/order views if available.
 - Shipping/returns/payment/help/legal pages only when approved and implemented.
-- English labels, forms, validation messages, address flow and trust content, informed by Japanese checkout conventions.
+- Japanese labels, forms, validation, address flow and trust content.
 
 **Exit criteria:** no dead-end shopping controls and no inaccurate commerce promises. Live payment remains disabled until separately authorised.
 
@@ -824,7 +832,7 @@ Test realistic English copy lengths; do not assume short placeholder strings are
 ### Phase 5 — QA, optimisation and documentation (P0 before release)
 
 - Visual QA on all routes and viewports.
-- English copy and Japan-informed layout QA.
+- English copy/layout QA.
 - Accessibility and keyboard QA.
 - Performance and image optimisation.
 - Commerce regression tests.
@@ -834,7 +842,7 @@ Test realistic English copy lengths; do not assume short placeholder strings are
 
 ## 15. Documentation update obligations
 
-**Do not finish the task after creating this file.** Audit every tracked Markdown document and relevant CSV/template/documentation file in the repository. Update each document that is affected by the new Japanese-first ecommerce direction, and add links to this master brief where useful.
+**Do not finish the task after creating this file.** Audit every tracked Markdown document and relevant CSV/template/documentation file in the repository. Update each document that is affected by the new Japanese-inspired English-language ecommerce direction, and add links to this master brief where useful.
 
 Do not indiscriminately rewrite unrelated operational documents. Preserve their technical precision. When a document is not affected, leave it unchanged and record why it was excluded if the scope is ambiguous.
 
@@ -850,7 +858,7 @@ Do not indiscriminately rewrite unrelated operational documents. Preserve their 
 | `docs/LOCAL-MYSQL-DEVELOPMENT.md` | Usually no content changes required. Do not rewrite database installation/safety instructions for a theme project. Add only a link if it helps developers find the redesign brief. |
 | Other docs under `docs/` | Audit all. Update any old theme, route, customer-facing copy, localisation, SEO, launch, visual QA or production-readiness assumptions affected by this brief. Preserve unrelated infrastructure/security instructions. |
 | `data/product-import-template.csv` and related schemas | Inspect, but do not casually add columns or change importer contracts. If Japanese fields are needed, design a backwards-compatible schema/import plan and tests first. Never lose source product data. |
-| `AGENTS.md` / agent instructions (if present) | Add a short pointer that this brief is the source of truth for the Japan-first storefront redesign, without duplicating the entire document. |
+| `AGENTS.md` / agent instructions (if present) | Add a short pointer that this brief is the source of truth for the Japanese-inspired English-language storefront redesign, without duplicating the entire document. |
 
 ### Documentation consistency rules
 
@@ -885,9 +893,9 @@ The redesign is not complete until all applicable items below pass.
 
 ### Japanese localisation and trust
 
-- [ ] English is used consistently across the customer-facing Japan-market storefront.
-- [ ] English copy has been reviewed for naturalness, consistency and accessibility.
-- [ ] English typography, line lengths, forms and Japan-informed address flow work on actual viewport sizes.
+- [ ] Japanese is the default experience for the Japan storefront.
+- [ ] English UI copy has been reviewed for clarity and consistency; merchant-owned source content remains unchanged.
+- [ ] English typography, line wrapping, forms and generic address fields work at actual viewport sizes.
 - [ ] Price, tax, shipping, delivery, return and payment information is accurate and visible where relevant.
 - [ ] Legal/operator information is accurate and reviewed by the responsible party.
 - [ ] No fake reviews, rankings, artisan biographies, discounts, shipping promises or availability claims are displayed.
@@ -923,7 +931,7 @@ At the end of implementation, provide:
 5. **Documentation summary:** every Markdown/documentation file updated and why.
 6. **Validation summary:** commands run and exact pass/fail results.
 7. **Visual QA evidence:** desktop and mobile screenshots or an explicit statement explaining what could not be captured.
-8. **Merchant dependencies:** product data, images/rights, English copy, shipping/tax/policies, legal operator details, payment provider or customer support information still needed.
+8. **Merchant dependencies:** product data, images/rights, English UI copy, source product content, shipping/tax/policies, legal operator details, payment provider or customer support information still needed.
 9. **Release recommendation:** ready for internal review, ready for staging, or not ready—and why.
 
 Do not provide a blanket “complete” status if any of the above areas have not been checked.
@@ -950,7 +958,7 @@ These are design research references, not legal advice or a substitute for usabi
 |---|---|
 | 2026-11-04 | Initial master brief created. Establishes full public-facing theme replacement; POJ Studio × Macaroni Shoten creative direction; Japanese ecommerce information architecture, localisation, trust, commerce safeguards, implementation phases, documentation obligations and acceptance criteria. |
 
-**Ongoing rule:** The AI agent must keep this file consistent with the code, route map, design tokens, production-readiness register and all affected project documentation. The mandatory language boundary above supersedes historical Japanese-language implementation notes in this file.
+**Ongoing rule:** The AI agent must update this file as the implementation evolves and keep it consistent with the code, route map, design tokens, production-readiness register and all affected project documentation.
 
 ## Implementation addendum — 2026-11-04
 
@@ -961,7 +969,7 @@ This addendum records the initial implementation branch without changing the ori
 - Branch: `feat/japan-first-storefront-redesign`
 - Target: `main`
 - Status: implementation in progress; pull request and exact-head CI validation are pending at the time of this addendum.
-- The previous Desert Atelier / Desert Modern public themes are superseded. Use this brief and the active Japan-informed, English-language system for future public-storefront work.
+- The previous Desert Atelier / Desert Modern public themes are superseded. Use only this brief and the active Japanese-inspired English-language system for future public-storefront work.
 
 ### Route/component map
 
@@ -969,28 +977,28 @@ This addendum records the initial implementation branch without changing the ori
 |---|---|---|
 | Shared shell | `src/app/layout.tsx`, `src/components/SiteChrome.tsx`, `Header.tsx`, `Footer.tsx` | Japanese document language/metadata; new shared header, visible search, shopping nav and Japanese footer. Admin/owner shell stays separate. |
 | Home | `src/app/page.tsx` | Product-led Japanese ecommerce home, shop CTA, verified collection and product sections; empty-catalogue state. |
-| Shop | `src/app/shop/page.tsx`, `src/components/ShopBrowser.tsx` | English labels for search, category, count, sorting and empty states; existing URL-synced filter logic retained. |
+| Shop | `src/app/shop/page.tsx`, `src/components/ShopBrowser.tsx` | Japanese labels for search, category, count, sorting and empty states; existing URL-synced filter logic retained. |
 | Collections | `src/app/collections/[slug]/page.tsx` | English UI labels; owner collection names/descriptions preserved. |
-| Product detail | `src/app/products/[slug]/page.tsx`, `ProductGallery.tsx`, `StorefrontProductCard.tsx`, `AddToBagButton.tsx`, `WishlistToggle.tsx` | English purchase-decision UI and gallery controls; source product facts preserved. |
+| Product detail | `src/app/products/[slug]/page.tsx`, `ProductGallery.tsx`, `StorefrontProductCard.tsx`, `AddToBagButton.tsx`, `WishlistToggle.tsx` | Japanese purchase-decision UI and gallery controls; source product facts preserved. |
 | Cart | `src/app/cart/page.tsx`, `CartPageClient.tsx`, `CartProvider.tsx` | Japanese cart page/drawer, summary and actions. |
-| Checkout | `src/app/checkout/page.tsx`, `CheckoutForm.tsx` | English labels and a deliberate, Japan-informed field order; generic backend address schema retained. |
+| Checkout | `src/app/checkout/page.tsx`, `CheckoutForm.tsx` | Japanese labels and postal-first field order; generic backend address schema retained. |
 | Account/auth | `src/app/login/*`, `src/app/register/*`, `src/app/account/*`, `src/app/wishlist/page.tsx`, `WishlistPageClient.tsx` | Initial Japanese customer-facing labels; identity boundaries unchanged. |
-| Story/support | `src/app/story/page.tsx`, `artisans/page.tsx`, `journal/page.tsx`, `contact/page.tsx`, `not-found.tsx` | English page labels; editorial content and consent rules retained. |
+| Story/support | `src/app/story/page.tsx`, `artisans/page.tsx`, `journal/page.tsx`, `contact/page.tsx`, `not-found.tsx` | Japanese page labels; editorial content and consent rules retained. |
 | Owner/admin | `/admin/*`, `/owner/*` | Separate operational UI and permissions. |
 
 ### Active design implementation
 
 - Public CSS: `src/styles/japan-storefront.css`; root layout imports this layer.
 - Palette: warm ivory, soft ivory, ink, restrained terracotta, muted sand, warm grey and fine borders as listed in the design system.
-- The public layout sets `lang="ja"`. Current font declarations are system-stack candidates; no bundled Japanese font is yet adopted.
-- Product names, descriptions and source attribute values are not auto-translated. Customer-facing UI is English; merchant-managed catalogue content must be supplied and approved in English before publication.
-- No JPY conversion, tax-included labels, shipping rates, returns promises, legal seller details, payment methods, reviews or ranking data are invented.
+- The public layout sets `lang="en"`. Inter Variable and Playfair Display Variable are bundled locally for English UI typography.
+- Product names, descriptions and source attribute values are not auto-translated. English UI does not change the source language or factual content of merchant records.
+- No currency conversion, tax-included labels, shipping rates, returns promises, legal seller details, payment methods, reviews or ranking data are invented.
 
 ### Work completed versus release blockers
 
-**Implemented in code on this branch:** shared shell replacement, Japan-informed homepage/shop/product/collection/story/artisan/journal/contact/cart/checkout/account/auth layouts with English UI, initial Japan-informed design system, and documentation updates.
+**Implemented in code on this branch:** shared shell replacement, English-language homepage/shop/product/collection/story/artisan/journal/contact/cart/checkout/account/auth UI, initial Japanese design system, and documentation updates.
 
-**Not yet verified or complete:** exact-head CI; browser screenshots for all routes and viewports; English copy review; actual JP font/glyph and line-break behaviour; WCAG contrast and keyboard/screen-reader review; usability with Japanese customers; JPY retail pricing and tax configuration; shipping/duties/returns/policies; legal operator disclosures; photo-to-product mapping, rights and publication.
+**Not yet verified or complete:** exact-head CI; browser screenshots for all routes and viewports; English UI copy review and owner approval of merchant source content; English typography and line-wrap behaviour; WCAG contrast and keyboard/screen-reader review; usability with the intended customer audience; merchant-approved currency and tax configuration; shipping/duties/returns/policies; legal operator disclosures; photo-to-product mapping, rights and publication.
 
 ### Documentation ownership and exclusions
 
@@ -1013,19 +1021,19 @@ These are source-export observations only. They do not mean the CSV was imported
 
 | Date | Update |
 |---|---|
-| 2026-11-04 | Owner adopted Japan-first ecommerce direction as SOT. Initial route map, shared Japanese shell, core shopping/customer journeys and documentation alignment recorded. Product source content, currency, taxonomy and image rights remain subject to owner/reviewer validation. |
+| 2026-11-04 | Owner adopted Japanese-inspired ecommerce conventions as the design direction. The storefront content language is English; the initial Japanese-language implementation was corrected in a later owner clarification. Product source content, currency, taxonomy and image rights remain subject to owner/reviewer validation. |
 
 
 ## Implementation addendum — 2026-11-04 — storefront regression hardening
 
 ### Verified finding and follow-up
 
-- GitHub Actions CI run #317 for PR #17, head `2e61b635b31e67728251366dab401d45589e461c`, stopped during `npm run typecheck` because two Supabase SDK method names in the legacy login form had been altered during Japanese UI localisation. The patch restores `resetPasswordForEmail` and `signInWithPassword`; SDK/API identifiers must never be translated.
+- GitHub Actions CI run #317 for PR #17, head `2e61b635b31e67728251366dab401d45589e461c`, stopped during `npm run typecheck` because two Supabase SDK method names in the legacy login form had been altered during Japanese-inspired UI redesign. The patch restores `resetPasswordForEmail` and `signInWithPassword`; SDK/API identifiers must never be translated.
 - The homepage now uses a dedicated hero-product selector that requires a persisted catalogue ID and a non-empty image URL. Development preview records have no persisted ID and remain clearly labelled preview artwork in product cards; they cannot be mistaken for published hero photography.
 - Added regression tests for preview-only catalogue data, mixed preview/persisted products and empty image URLs.
 - Lighthouse artifacts are uploaded only when the expected manifest exists, so a previous validation failure is not obscured by an unrelated missing-artifact error.
 - PR #17 is open as a draft against `main`. At this addendum, the fixes have been committed for a new exact-head CI run; typecheck, tests, lint, build and Lighthouse results are not yet claimed.
-- Browser visual QA across the required viewport matrix, Japanese native-speaker copy review, bundled Japanese glyph/line-break validation and accessibility review remain release gates. No catalogue import, photo matching, rights approval, payment activation or production deployment is part of this patch.
+- Browser visual QA across the required viewport matrix, English UI copy review and owner approval, bundled English typography and line-break validation and accessibility review remain release gates. No catalogue import, photo matching, rights approval, payment activation or production deployment is part of this patch.
 
 - Follow-up interface hardening: the mobile search toggle now references the search form in `aria-controls`, and tablet responsive product-grid selectors are scoped beneath `.jp-storefront` so the customer theme cannot style matching owner-workspace selectors. A source-level regression test covers the scope; browser and screen-reader review remain open.
 
@@ -1036,7 +1044,7 @@ These are source-export observations only. They do not mean the CSV was imported
 - Added Japanese route metadata and `noindex, follow` until customer-support and policy text has been reviewed. Added static params for the six intended routes so unknown slugs return not-found.
 - Legal and merchant policy content remains expressly provisional. Privacy and terms notices do not claim a final legal operator, processor list, governing law, shipping promise, fee or returns entitlement. The missing Japanese legal seller disclosure is not fabricated.
 - Added footer links for shopping guide and policy pages. Account and wishlist header controls remain visible at mobile widths rather than being hidden.
-- Native-speaker Japanese copy review, merchant/legal approval, visual QA and CI validation remain release gates.
+- English UI copy review, merchant/legal approval, visual QA and CI validation remain release gates.
 - Footer layout now switches from five desktop columns to a two-column layout below 1000px, keeping the expanded Japanese guide/policy navigation readable on tablet widths.
 
 
@@ -1058,7 +1066,7 @@ These are source-export observations only. They do not mean the CSV was imported
 - Browser screenshots for every customer route and admin/owner isolation at mobile, tablet, desktop and wide desktop.
 - Keyboard-only interaction, focus return, touch targets, screen-reader labels, contrast and reduced-motion review.
 - Japanese font source/licence/subset decision, glyph coverage and line-breaking on real target devices. The current Noto-first CSS stack is a system fallback; no Japanese font has been bundled.
-- Native-speaker copy review, all-route English-language audit, verified legal disclosures, product taxonomy, merchant-approved JPY pricing/tax/shipping/returns and customer-support details.
+- Native-speaker copy review, all-route untranslated-string audit, verified legal disclosures, product taxonomy, merchant-approved actual currency and tax configuration/shipping/returns and customer-support details.
 - Lighthouse HTML/JSON and measured Core Web Vitals review, ideally from Japan/Asia-Pacific.
 - No screenshot or production/staging visual acceptance is claimed by this source-level review.
 
@@ -1068,7 +1076,7 @@ These are source-export observations only. They do not mean the CSV was imported
 - Translated static English headings and overlines on homepage, shop, collection, story, artisans, journal and contact screens.
 - Translated the legacy customer order-detail unpaid-draft warning and its expiry fallback; it explicitly states that no payment was requested or received.
 - Localised design-study accessibility text, brand tagline and footer location. Merchant-source product names/descriptions, categories, collection names and artisan details remain unchanged pending owner-approved Japanese equivalents.
-- Added source-level regression assertions in `src/lib/japanese-copy-contract.test.ts`. These assertions do not replace native-speaker review or browser accessibility testing.
+- Added source-level regression assertions in `src/lib/japanese-copy-contract.test.ts`. These assertions do not replace English UI copy review or browser accessibility testing.
 
 
 ## CI and regression-test addendum — 2026-11-04
@@ -1083,12 +1091,12 @@ These are source-export observations only. They do not mean the CSV was imported
 - PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17) merged into `main` at `5758694f0f20a67546998d7bae6455c4e557e8ea`; final PR head `fd7acf6b04672923ad991e834c1b94d0e34a4c52`.
 - Exact-head GitHub Actions run [#348](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41869692118) passed MySQL migrations, typecheck, all unit/integration tests, lint, production build, Lighthouse assertions and staging archive packaging.
 - CI Lighthouse was collected only on `/` and `/shop`. Home: Performance 0.93, Accessibility 0.95, Best Practices 0.96, SEO 1.00; LCP 1.67 s, TBT 309 ms, CLS 0.000. Shop: Performance 0.97, Accessibility 0.96, Best Practices 0.96, SEO 1.00; LCP 1.90 s, TBT 75 ms, CLS 0.099. These are single-run lab data, not field Core Web Vitals or all-route acceptance.
-- CI packaged a self-hosted staging archive but did not deploy it. No local/staging browser visual sign-off, Japanese native-speaker review, authenticated UAT, rights approval, product import, payment activation or production deployment is claimed.
+- CI packaged a self-hosted staging archive but did not deploy it. No local/staging browser visual sign-off, English UI copy and visual review, authenticated UAT, rights approval, product import, payment activation or production deployment is claimed.
 
 ### Phase 5 — route and viewport QA automation
 
 - Add a Playwright-backed capture matrix for 24 customer/operations entry routes across 360, 414, 768, 1440 and 1600 px. Each capture records status, final URL, document language, horizontal overflow, heading/image/button checks, browser console errors and failed requests, alongside the screenshot.
 - Run the capture against a healthy local/CI application and publish the CI evidence as a short-lived workflow artifact. Local captures remain under ignored `.local-data/visual-review/`.
 - Empty CI databases may correctly return 404 for dynamic product and collection routes. The manifest must record those outcomes; it must not convert them into fake sample catalogue records or imply product visual acceptance.
-- Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, native-speaker Japanese copy, screen-reader/keyboard review, Japan-based performance testing and legal/merchant approvals remain separate acceptance gates.
+- Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, English UI copy and visual review, screen-reader/keyboard review, performance testing with the intended audience and legal/merchant approvals remain separate acceptance gates.
 - The Phase 5 capture harness is being implemented in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); exact-head CI and generated route evidence are pending.

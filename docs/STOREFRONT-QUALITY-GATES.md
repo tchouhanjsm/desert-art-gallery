@@ -1,4 +1,4 @@
-# Japan-informed, English-language storefront quality gates
+# Japanese-Inspired English-Language Storefront Quality Gates
 
 **Source of truth:** [Japan-First Ecommerce Redesign](./JAPAN-ECOMMERCE-REDESIGN.md)  
 **Status:** Required before staging or release. A green CI workflow alone is not visual or merchant acceptance.
@@ -18,7 +18,7 @@ Capture and inspect the public customer journeys, not only the homepage:
 | `/checkout` | No configuration, missing shipping/tax rules, configured destination, field errors, unpaid draft response |
 | `/login`, `/register`, `/account`, `/wishlist` | Signed-out, signed-in, empty and populated states where available |
 | `/story`, `/artisans`, `/journal`, `/contact` | Published/empty states; no unapproved people, images or contact details |
-| Not found | English-language recovery path to the shop |
+| Not found | Japanese recovery path to the shop |
 
 The `/admin` and `/owner` workspaces are separately tested as operations interfaces and are not part of public storefront visual theming.
 
@@ -32,7 +32,7 @@ At minimum test:
 - 1280–1440 px laptop/desktop
 - 1600 px and wider desktop
 
-Use realistic English production-length strings, long product names, numerals, prices and detailed material descriptions. Verify readable line lengths, wrapping and control sizing across viewports. Do not validate using only short placeholder labels. Japanese retail UX conventions must not be confused with Japanese-language UI.
+Use realistic English production-length strings, long merchant-supplied product names, mixed-language source product details, numerals, prices and long material descriptions. Verify readable line wrapping at every required viewport. Do not use short placeholders as the only content test.
 
 ## 3. Visual and usability checks
 
@@ -40,12 +40,12 @@ Use realistic English production-length strings, long product names, numerals, p
 - [ ] Product/category discovery appears early; no tourism/hotel/destination-led hero or long introduction above shopping.
 - [ ] Search, navigation, category links, breadcrumbs, filters and sort are functional, discoverable and URL-stable.
 - [ ] Actual product names, prices, currencies, stock, options and images match their source records.
-- [ ] Price/tax labels do not claim JPY or tax inclusion until the merchant price/tax setup supports it.
+- [ ] Price and tax labels use the actual currency and approved tax configuration from merchant records; never convert or relabel a currency or imply tax inclusion without evidence.
 - [ ] Shipping/returns/payment/legal content appears only when approved and implemented.
 - [ ] No fake reviews, popularity, best-seller markers, maker biographies, urgency or free-shipping claims.
 - [ ] Mobile two-column product cards remain large enough to assess textile detail.
 - [ ] Keyboard, focus-visible, touch-target, screen-reader announcement and reduced-motion behaviour work.
-- [ ] No horizontal overflow, clipped Japanese glyphs, broken images, console errors or dead links.
+- [ ] No horizontal overflow, clipped text, broken images, console errors or dead links.
 - [ ] Customer header/footer do not leak into admin/owner routes.
 
 ## 4. Image and media checks
@@ -84,13 +84,13 @@ Run the available browser/E2E suite as applicable and inspect migration/security
 Attach to the PR or release record:
 
 1. Route-by-route screenshots at the required breakpoints.
-2. English copy and typography review notes, including readability and accessibility.
+2. English UI copy and typography review notes; preserve merchant source-language content without machine translation.
 3. Accessibility/keyboard checklist and remediation.
 4. Lighthouse report and measured Core Web Vitals.
 5. Commerce regression results for cart, inventory, shipping/tax fail-closed behaviour and order-draft idempotency.
 6. Open merchant/legal blockers.
 
-A redesign is not production-ready until owner inputs, image rights, English catalogue/editorial content, tax/shipping/legal and route QA are verified.
+A redesign is not production-ready until owner inputs, image rights, Japanese content, tax/shipping/legal and route QA are verified.
 
 
 ## 8. CSS, navigation and indexability safeguards
@@ -117,4 +117,4 @@ Start the local application first and ensure `/api/health` returns success. Set 
 
 CI runs the same matrix against a production build and uploads the capture set as a seven-day workflow artifact. The CI database is intentionally blank: product and collection routes may return 404, which is recorded as an expected data-empty outcome. That does not prove a real product page has passed visual review. The `/admin` route is unauthenticated and may redirect to owner login; the capture does not authenticate or test privileged workflows.
 
-Review every artifact manually. Automated captures do not provide pixel-diff baselines, screen-reader acceptance, English copy review, complete keyboard testing, real merchant media validation or authenticated customer/owner UAT. Do not mark visual or production acceptance complete based on artifact generation alone.
+Review every artifact manually. Automated captures do not provide pixel-diff baselines, screen-reader acceptance, complete keyboard testing, real merchant media validation or authenticated customer/owner UAT. Do not mark visual or production acceptance complete based on artifact generation alone.

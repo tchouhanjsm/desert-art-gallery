@@ -13,7 +13,7 @@ import {
 
 function formatOrderStatus(status: string) {
   const labels: Record<string, string> = {
-    draft: "Order draft",
+    draft: "Draft",
     pending_payment: "Awaiting payment",
     paid: "Paid",
     processing: "Processing",
@@ -50,7 +50,7 @@ export async function CustomerAccountPage() {
         </form>
       </section>
       <section className="account-section">
-        <div className="section-kicker">DELIVERY ADDRESSES</div><h2>Saved addresses</h2>
+        <div className="section-kicker">DELIVERY DETAILS</div><h2>Saved addresses</h2>
         {addresses.length ? <div className="account-address-grid">{addresses.map((address) => (
           <article className="account-address" key={address.id}>
             {address.isDefaultShipping && <span className="admin-status status-active">Default delivery address</span>}
@@ -59,29 +59,29 @@ export async function CustomerAccountPage() {
             <details className="address-edit"><summary>Edit address</summary><form action={saveLocalCustomerAddress} className="address-form">
               <input type="hidden" name="id" value={address.id} />
               <label>Recipient name<input name="recipient_name" defaultValue={address.recipientName} required maxLength={160} /></label>
-              <label>Street address<input name="address_line_1" defaultValue={address.addressLine1} required maxLength={240} /></label>
-              <label>Apartment, suite or building<input name="address_line_2" defaultValue={address.addressLine2} maxLength={240} /></label>
+              <label>Address line 1<input name="address_line_1" defaultValue={address.addressLine1} required maxLength={240} /></label>
+              <label>Building, apartment or suite<input name="address_line_2" defaultValue={address.addressLine2} maxLength={240} /></label>
               <label>City<input name="city" defaultValue={address.city} required maxLength={120} /></label>
               <label>State / region<input name="region" defaultValue={address.region} maxLength={120} /></label>
               <label>Postal code<input name="postal_code" defaultValue={address.postalCode} required maxLength={24} /></label>
               <label>Country code<input name="country_code" defaultValue={address.countryCode} required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
               <label>Phone number<input name="phone" defaultValue={address.phone} maxLength={40} /></label>
-              <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" defaultChecked={address.isDefaultShipping} /> Set as default delivery address</label>
+              <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" defaultChecked={address.isDefaultShipping} /> Make this the default delivery address</label>
               <button type="submit" className="button-outline">Save address</button>
             </form></details>
-            <form action={deleteLocalCustomerAddress}><input type="hidden" name="id" value={address.id} /><button type="submit" className="address-delete">Remove address</button></form>
+            <form action={deleteLocalCustomerAddress}><input type="hidden" name="id" value={address.id} /><button type="submit" className="address-delete">Delete address</button></form>
           </article>
-        ))}</div> : <div className="empty-note">You have not saved a delivery address yet. Add one below.</div>}
+        ))}</div> : <div className="empty-note">No delivery addresses have been saved yet. Add one below.</div>}
         <details className="address-add"><summary>Add a delivery address</summary><form action={saveLocalCustomerAddress} className="address-form">
           <label>Recipient name<input name="recipient_name" required maxLength={160} /></label>
-          <label>Street address<input name="address_line_1" required maxLength={240} /></label>
-          <label>Apartment, suite or building<input name="address_line_2" maxLength={240} /></label>
+          <label>Address line 1<input name="address_line_1" required maxLength={240} /></label>
+          <label>Building, apartment or suite<input name="address_line_2" maxLength={240} /></label>
           <label>City<input name="city" required maxLength={120} /></label>
           <label>State / region<input name="region" maxLength={120} /></label>
           <label>Postal code<input name="postal_code" required maxLength={24} /></label>
-          <label>Country code<input name="country_code" placeholder="e.g. JP, IN, US" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
+          <label>Country code<input name="country_code" placeholder="e.g. IN, US or JP" required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" /></label>
           <label>Phone number<input name="phone" maxLength={40} /></label>
-          <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" /> Set as default delivery address</label>
+          <label className="address-default"><input type="checkbox" name="is_default_shipping" value="yes" /> Make this the default delivery address</label>
           <button type="submit" className="button-primary dark-button">Save address</button>
         </form></details>
       </section>
@@ -93,8 +93,8 @@ export async function CustomerAccountPage() {
             <strong>{formatMoneyFromMinor(order.totalMinor, order.currency)}</strong>
           </article>
         ))}</div> : <div className="empty-note">There are no orders on this account yet.</div>}
-        <div className="checkout-notice">Only orders created under this customer account are shown. Order history from the previous account system has not been migrated. Payments are disabled.</div>
-        <Link className="text-link" href="/shop">Explore the shop</Link>
+        <div className="checkout-notice">Only orders created under this MySQL account are shown. Order history from the previous account system has not been migrated. Payments are disabled.</div>
+        <Link className="text-link" href="/shop">Explore the collection</Link>
       </section>
     </div>
   );

@@ -64,7 +64,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
       <div className="shop-toolbar atelier-shop-toolbar">
         <span className="atelier-results-count" role="status" aria-live="polite">
           <strong>{visible.length.toLocaleString("en-IN")}</strong>
-          <span>{visible.length.toLocaleString("en-IN")} products</span>
+          <span>{visible.length === 1 ? "product" : "products"}</span>
         </span>
         <div className="shop-controls atelier-shop-controls">
           <label className="visually-hidden" htmlFor="shop-search">Search products</label>
@@ -78,7 +78,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
               setQuery(nextQuery);
               updateUrl({ q: nextQuery, category, sort });
             }}
-            placeholder="Search products or keywords"
+            placeholder="Search by product or keyword"
           />
           <label className="visually-hidden" htmlFor="shop-category">Filter by category</label>
           <select
@@ -94,7 +94,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
               <option key={item} value={item}>{item === ALL_SHOP_CATEGORY ? "All products" : item}</option>
             ))}
           </select>
-          <label className="visually-hidden" htmlFor="shop-sort">Sort products</label>
+          <label className="visually-hidden" htmlFor="shop-sort">Sort by</label>
           <select
             id="shop-sort"
             value={sort}
@@ -105,7 +105,7 @@ export function ShopBrowser({ products }: { products: Product[] }) {
             }}
           >
             <option value="featured">Featured</option>
-            <option value="name">Name: A to Z</option>
+            <option value="name">Name</option>
             <option value="price-low">Price: low to high</option>
             <option value="price-high">Price: high to low</option>
           </select>
@@ -141,13 +141,13 @@ export function ShopBrowser({ products }: { products: Product[] }) {
       ) : (
         <div className="atelier-empty-catalogue">
           <span className="atelier-empty-mark" aria-hidden="true">✳</span>
-          <h2>{products.length ? "No products match your search" : "The collection is taking shape"}</h2>
+          <h2>{products.length ? "No products matched your search" : "Catalogue in preparation"}</h2>
           <p>{products.length
-            ? "Try another search term or clear the filters to see more products."
-            : "Products will be added as their details are confirmed. Contact the gallery with an enquiry in the meantime."}</p>
+            ? "Try another search term or clear your filters and try again."
+            : "Products will be published as their details and media are approved. Contact us with questions about current availability."}</p>
           {hasActiveFilters
             ? <button className="button-outline" type="button" onClick={clearFilters}>Clear all filters</button>
-            : <Link className="button-outline" href="/contact">Contact the gallery</Link>}
+            : <Link className="button-outline" href="/contact">Contact us</Link>}
         </div>
       )}
     </div>

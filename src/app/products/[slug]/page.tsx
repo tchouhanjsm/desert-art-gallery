@@ -40,10 +40,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .filter((price): price is number => price !== null && price !== undefined);
   const distinctVariantPrices = new Set(resolvedVariantPrices);
   const priceLabel = variants.length > 0 && distinctVariantPrices.size > 1
-    ? "Choose an option to see the price"
+    ? "Select an option to see the price"
     : product.priceMinor != null && product.currency
       ? formatMoneyFromMinor(resolvedVariantPrices[0] ?? product.priceMinor, product.currency)
-      : "Contact us for pricing";
+      : "Price on request";
   const hasAvailableStock = variants.length > 0
     ? variants.some((variant) => variant.quantityOnHand > 0)
     : (product.quantityOnHand ?? 0) > 0;
@@ -87,8 +87,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <div className="page-shell atelier-page-shell">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <nav className="breadcrumb atelier-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/shop">Shop</Link>
+      <nav className="breadcrumb atelier-breadcrumb" aria-label="Breadcrumb navigation">
+        <Link href="/shop">All products</Link>
         {product.category ? <><span aria-hidden="true">/</span><span>{product.category}</span></> : null}
         <span aria-hidden="true">/</span>
         <span aria-current="page">{product.name}</span>
@@ -97,28 +97,28 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="product-detail atelier-product-detail">
         <div className="atelier-product-gallery-wrap">
           <ProductGallery images={galleryImages} title={product.name} />
-          {!product.id && <p className="atelier-image-disclaimer">Development preview. Product photography must be reviewed before publication.</p>}
+          {!product.id && <p className="atelier-image-disclaimer">Development preview. Product photography must be reviewed and approved before publication.</p>}
         </div>
         <div className="detail-copy atelier-detail-copy">
           <div className="section-kicker">{product.category || "DESERT ART GALLERY"}</div>
           <h1 className="section-title">{product.name}</h1>
           {product.note && <div className="detail-note">{product.note}</div>}
           <div className="atelier-product-price-panel">
-            <span className="section-kicker">Price</span>
+            <span className="section-kicker">PRICE</span>
             <div className="detail-price">{priceLabel}</div>
             {product.currency && <span>Currency: {product.currency}</span>}
-            <span>Taxes and shipping are based on the destination and confirmed order details.</span>
+            <span>Taxes and shipping costs depend on the destination and confirmed order details.</span>
           </div>
           <div className="atelier-stock-note">
             <span className="atelier-stock-dot" />
             {product.id && !hasAvailableStock
-              ? "Currently out of stock. Contact the gallery for availability."
+              ? "Currently unavailable. Contact us for more information."
               : product.id
-                ? "Availability will be reconfirmed before an order is placed."
-                : "This is a preview listing. Contact the gallery for details and availability."}
+                ? "Availability will be confirmed before an order is placed."
+                : "This is a preview listing. Contact us for product details and availability."}
           </div>
           <p className="product-purchase-guidance">
-            Please review the product information before purchase. Contact the gallery with any questions about materials, size, condition or shipping.
+            Please review the product information before purchasing. Contact us with any questions about materials, dimensions, condition or delivery.
           </p>
           {product.id && product.priceMinor != null && product.currency && hasAvailableStock && (
             <AddToBagButton
@@ -132,11 +132,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           )}
           <WishlistToggle slug={product.slug} />
           <Link className="button-outline enquiry-button" href={buildProductEnquiryHref(product.slug)}>
-            Enquire about this piece
+            Ask about this piece
           </Link>
           <div className="detail-footnote">
             Desert Art Gallery · Jaisalmer, Rajasthan, India<br />
-            Please confirm the final price, availability and shipping costs with the gallery before making payment.
+            Please confirm the final price, availability and delivery costs with the gallery before making any payment.
           </div>
         </div>
       </div>
@@ -148,15 +148,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <>
             {product.description && (
               <>
-                <h3 className="product-information-label">Description</h3>
+                <h3 className="product-information-label">DESCRIPTION</h3>
                 <p className="product-long-description">{product.description}</p>
               </>
             )}
             <div className="product-accordion">
-              {materials.length > 0 && <details><summary>Materials</summary><p>{materials.join(", ")}</p></details>}
-              {sizes.length > 0 && <details><summary>Size & specifications</summary><p>{sizes.join(", ")}</p></details>}
+              {materials.length > 0 && <details><summary>MATERIALS</summary><p>{materials.join(", ")}</p></details>}
+              {sizes.length > 0 && <details><summary>SIZE & DETAILS</summary><p>{sizes.join(", ")}</p></details>}
               {measurements.length > 0 && (
-                <details><summary>Measurements</summary>
+                <details><summary>MEASUREMENTS</summary>
                   <dl className="product-measurements">
                     {measurements.map((measurement) => (
                       <div key={measurement.label}><dt>{measurement.label}</dt><dd>{measurement.value}</dd></div>
@@ -164,21 +164,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   </dl>
                 </details>
               )}
-              {product.conditionNotes && <details><summary>Condition</summary><p>{product.conditionNotes}</p></details>}
-              {product.provenance && <details><summary>Provenance</summary><p>{product.provenance}</p></details>}
-              {product.craftStory && <details><summary>Craft and context</summary><p>{product.craftStory}</p></details>}
+              {product.conditionNotes && <details><summary>CONDITION</summary><p>{product.conditionNotes}</p></details>}
+              {product.provenance && <details><summary>PROVENANCE</summary><p>{product.provenance}</p></details>}
+              {product.craftStory && <details><summary>CRAFT & CONTEXT</summary><p>{product.craftStory}</p></details>}
             </div>
           </>
         ) : (
           <div className="atelier-product-details-pending">
             <p>Additional information about this piece has not yet been published.</p>
-            <p>We do not fill gaps in materials, measurements, condition or provenance with assumptions. Please contact the gallery with any questions.</p>
+            <p>We do not infer missing details about materials, measurements, condition or provenance. Please use the enquiry link above to ask us to verify anything you need to know.</p>
           </div>
         )}
       </section>
       <div className="mobile-buy-bar">
         <div><b>{product.name}</b><span>{priceLabel}</span></div>
-        <Link className="button-primary" href={buildProductEnquiryHref(product.slug)}>Contact the gallery</Link>
+        <Link className="button-primary" href={buildProductEnquiryHref(product.slug)}>Enquire about this piece</Link>
       </div>
     </div>
   );

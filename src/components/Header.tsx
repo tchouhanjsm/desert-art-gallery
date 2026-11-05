@@ -64,13 +64,13 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
         <div className="utility-row jp-utility-row">
           <Link href="/" className="wordmark jp-wordmark" aria-label="Desert Art Gallery home" onClick={closeMenus}>
             <span>DESERT ART GALLERY</span>
-            <small>Textiles · Objects · Stories</small>
+            <small>TEXTILES · OBJECTS · STORIES</small>
           </Link>
 
           <form id="site-search-form" className={searchOpen ? "header-search is-open" : "header-search"} action="/shop" role="search">
             <label className="visually-hidden" htmlFor="site-product-search">Search products</label>
             <Search size={17} aria-hidden="true" />
-            <input id="site-product-search" name="q" type="search" maxLength={100} placeholder="Search products or keywords" />
+            <input id="site-product-search" name="q" type="search" maxLength={100} placeholder="Search by product or keyword" />
             <button type="submit">Search</button>
           </form>
 
@@ -88,11 +88,11 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
             <Link className="icon-button" href="/account" aria-label="My account" onClick={closeMenus}>
               <UserRound size={19} />
             </Link>
-            <Link className="icon-button wishlist-link" href="/wishlist" aria-label={"Wishlist · " + wishlistCount + " items"} onClick={closeMenus}>
+            <Link className="icon-button wishlist-link" href="/wishlist" aria-label={"Wishlist, " + wishlistCount + " items"} onClick={closeMenus}>
               <Heart size={19} />
               {wishlistCount > 0 && <span className="wishlist-count">{wishlistCount}</span>}
             </Link>
-            <button className="icon-button bag-link" type="button" onClick={() => { closeMenus(); openDrawer(); }} aria-label={"Cart · " + lineCount + " items"}>
+            <button className="icon-button bag-link" type="button" onClick={() => { closeMenus(); openDrawer(); }} aria-label={"Shopping bag, " + lineCount + " items"}>
               <ShoppingBag size={19} />
               <span className="bag-count">{lineCount}</span>
             </button>
@@ -118,7 +118,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
                 ref={collectionsButtonRef}
                 className="jp-nav-disclosure"
                 type="button"
-                aria-label={collectionsOpen ? "Close collections" : "Browse collections"}
+                aria-label={collectionsOpen ? "Close categories" : "Open categories"}
                 aria-expanded={collectionsOpen}
                 aria-controls="shop-category-panel"
                 onClick={() => setCollectionsOpen((open) => !open)}
@@ -126,7 +126,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
                 <ChevronDown size={13} aria-hidden="true" />
               </button>
               <div id="shop-category-panel" className={collectionsOpen ? "jp-nav-panel is-open" : "jp-nav-panel"}>
-                <Link href="/shop" onClick={closeMenus} >Shop all products</Link>
+                <Link href="/shop" onClick={closeMenus}>View all products</Link>
                 {collections.map((collection) => (
                   <Link href={"/collections/" + collection.slug} key={collection.slug} onClick={closeMenus}>{collection.name}</Link>
                 ))}

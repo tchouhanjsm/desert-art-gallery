@@ -4,17 +4,13 @@ Last reviewed: 2026-11-04 (Asia/Kolkata)
 
 This register separates code present in the repository from integrations that have been connected and verified in a merchant environment. An implementation checkbox is not a claim that production credentials, customer data, catalogue rights or live payments have been configured.
 
-## Current Japan-informed redesign status — 2026-11-04
+## Owner clarification — 2026-11-04 — English-language storefront
 
-## Language-direction correction — 2026-11-04
+Japanese describes the design and interaction inspiration only. The customer-facing site language is English (`lang="en"`), with local Inter and Playfair Display fonts. Japanese-language content, Japanese address conventions, furigana, Japan-market assumptions and JPY conversion are not requirements. The gallery remains based in Jaisalmer, Rajasthan, India. The English copy correction is a presentation-layer follow-up: it must not translate or rewrite merchant catalogue records, change currency values, or alter the database, customer identity, inventory, checkout or payment safeguards.
 
-The first Japan-informed storefront implementation used Japanese-language UI copy. That was not the intended requirement: **the customer-facing store must remain in English**. Japanese ecommerce conventions are the design reference for information hierarchy, search, category discovery, product detail, purchase reassurance and checkout flow—not a request to translate the site into Japanese.
+## Current Japanese-inspired English-language redesign status — 2026-11-04
 
-A corrective branch, `fix/english-copy-japan-first-storefront`, is being prepared from the merged Phase 5 baseline. It changes source-authored UI copy, accessibility labels, metadata, date formatting, the document language and typography fallbacks while preserving the Japan-informed visual system and existing commerce safeguards. This work is not yet merged or validated on this register's baseline. Merchant-managed catalogue/editorial records are not silently rewritten; owner-reviewed English content is required before publication.
-
-
-
-The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). The Japanese-first storefront implementation was merged to `main` in PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17) at merge commit `5758694f0f20a67546998d7bae6455c4e557e8ea` on 4 November 2026. Continue from `main`; do not resume development on the merged feature branch.
+The controlling customer-facing specification is [`docs/JAPAN-ECOMMERCE-REDESIGN.md`](./JAPAN-ECOMMERCE-REDESIGN.md). The Japanese-inspired English-language storefront presentation was initially merged to `main` in PR [#17](https://github.com/tchouhanjsm/desert-art-gallery/pull/17), followed by route/viewport QA in PR [#18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18). The owner clarified on 4 November 2026 that Japanese describes design conventions only; customer-facing content must remain English. The follow-up language correction is tracked separately. The active correction branch changes only presentation copy, language metadata, font-family selection, tests and documentation; it does not change catalogue records, currency values, database schemas, authentication, inventory, checkout or payment controls. Continue from `main`; do not resume development on the merged feature branch.
 
 The active public root layout no longer imports the superseded Desert Atelier/Desert Modern theme layers. `src/styles/japan-storefront.css` owns the customer storefront presentation; `src/styles/admin-theme.css` owns operations presentation. The commerce/backend safeguards remain unchanged by the theme merge.
 
@@ -22,7 +18,7 @@ The active public root layout no longer imports the superseded Desert Atelier/De
 
 **Lighthouse lab snapshot (run #348, CI test database):** home Performance 0.93 / Accessibility 0.95 / Best Practices 0.96 / SEO 1.00, LCP 1.67 s, TBT 309 ms, CLS 0.000; shop Performance 0.97 / Accessibility 0.96 / Best Practices 0.96 / SEO 1.00, LCP 1.90 s, TBT 75 ms, CLS 0.099. These are two single-run lab reports, not field Core Web Vitals or route-wide acceptance. The staging archive was built as an artifact; it was not deployed to a hosting environment.
 
-**Still not verified or approved:** all-route visual acceptance, authenticated customer/owner journeys, native-speaker Japanese copy review, Japanese glyph/line-break coverage, full accessibility/contrast review, Japan-based customer testing, JPY pricing/tax, merchant shipping/returns, legal seller details, payment provider or production deployment. The CSV retains English source product text and USD prices; storefront UI localisation is not catalogue translation or currency conversion.
+**Still not verified or approved:** all-route visual acceptance of the English-language correction, authenticated customer/owner journeys, full accessibility/contrast review, merchant shipping/returns, legal seller details, payment provider or production deployment. Catalogue currency and source product text remain unchanged; storefront UI copy is not a catalogue translation or currency conversion.
 
 ### Storefront routes and discovery foundations
 
@@ -65,7 +61,7 @@ The active public root layout no longer imports the superseded Desert Atelier/De
 
 - [ ] Connect the merchant-approved Supabase project and apply/verify both migrations in that project. No live database migration was run in this delivery.
 - [ ] Verify RLS, storage access, import/adjustment RPC permissions, transaction rollback and auth callbacks with real Supabase anon/authenticated/service-role sessions.
-- [x] Merge the Japan-first public presentation layer into `main` (PR #17); this is code integration only, not visual, localisation, merchant or production acceptance.
+- [x] Merge the Japanese-inspired English-language public presentation layer into `main` (PR #17); this is code integration only, not visual, merchant or production acceptance.
 - [ ] Verify mobile overflow, keyboard navigation, focus, contrast, touch targets, reduced motion and assistive-technology behavior with browser-based QA.
 - [ ] Replace the local textile placeholder with merchant-authorized original photography in owned storage after rights review; confirm rights for every product, collection, editorial and artisan image.
 - [ ] Add customer registration/email verification and approved staff/owner provisioning.
@@ -240,7 +236,7 @@ Production activation requires merchant-authorized catalogue data and original p
 - **Next engineering increment:** payment-session abstraction and signed webhook/reconciliation boundary in sandbox-only mode, after verifying order-draft and expiry behavior against an approved Supabase test project. Keep real payment capture disabled.
 
 
-## Dated handoff — 2026-11-04 — Japan-first ecommerce redesign
+## Historical handoff — 2026-11-04 — initial Japan-first ecommerce implementation plan (superseded by owner clarification above)
 
 - Adopted `docs/JAPAN-ECOMMERCE-REDESIGN.md` as the customer-facing source of truth. Former Desert Atelier and Desert Modern theme descriptions are historical only.
 - Replaced the active shared public header/footer, set document language to Japanese, and implemented a new public CSS layer with warm-ivory/ink/terracotta/sand tokens.
@@ -251,7 +247,7 @@ Production activation requires merchant-authorized catalogue data and original p
 - No CSV import, photo upload, rights approval, product publication, payment activation or production deployment is claimed by this PR.
 
 
-## Follow-up — 2026-11-04 — Japan-first storefront regression hardening
+## Historical follow-up — 2026-11-04 — initial storefront regression hardening
 
 - The exact-head CI run #317 on commit `2e61b635b31e67728251366dab401d45589e461c` stopped at TypeScript checking. It identified two incorrectly localised Supabase SDK calls in `src/app/login/legacy-login-form.tsx`: `resetPasswordForEmail` and `signInWithPassword`. These API identifiers (and the local password setter) are restored to standard TypeScript names in the follow-up patch.
 - The homepage now selects its hero from persisted catalogue products with a non-empty image URL. Development-only preview records have no database ID and cannot be rendered as published hero photography. The existing catalogue service continues to control published status and media rights.
@@ -262,7 +258,7 @@ Production activation requires merchant-authorized catalogue data and original p
 - Follow-up UI isolation review: the tablet breakpoint's legacy generic product-grid selector is now explicitly scoped to `.jp-storefront`; the Japanese search toggle's `aria-controls` now targets the actual search form rather than its input. A regression assertion covers the responsive CSS scope. This does not replace browser/assistive-technology testing.
 
 
-## Follow-up — 2026-11-04 — Japanese customer information and mobile navigation
+## Historical follow-up — 2026-11-04 — initial customer information and mobile navigation
 
 - Replaced the six English dynamic information pages (`/shipping`, `/returns`, `/faq`, `/tracking`, `/privacy`, `/terms`) with Japanese-first content in a typed information-page module.
 - Added Japanese page metadata and explicit `noindex, follow` metadata while the content remains provisional. Unknown slugs continue to return not-found; no legal-operator page or missing business facts have been invented.
@@ -272,7 +268,7 @@ Production activation requires merchant-authorized catalogue data and original p
 - Added a tablet footer breakpoint: the new five-column desktop information architecture collapses to a two-column grid below 1000px, with the brand block spanning the row. The existing narrower mobile breakpoint remains intact.
 
 
-## Follow-up — 2026-11-04 — Japanese customer-facing copy completion
+## Historical follow-up — 2026-11-04 — initial customer-facing Japanese copy completion (superseded)
 
 - Translated remaining static interface headings and microcopy on homepage, shop, collection, story, artisans, journal and contact routes.
 - Localised the legacy Supabase customer order-detail draft notice, including its reservation-expiry fallback. It states in Japanese that no payment was requested or received.
@@ -289,7 +285,7 @@ Production activation requires merchant-authorized catalogue data and original p
 - A new exact-head CI run is required to verify the corrected test suite. Lint, production build, Lighthouse and staging artifact steps were skipped after the failing test step in run #343.
 
 
-## Dated handoff — 2026-11-04 — Japan-first storefront merge and CI validation
+## Historical handoff — 2026-11-04 — initial Japanese-language storefront merge and CI validation
 
 - PR #17 merged to `main` at `5758694f0f20a67546998d7bae6455c4e557e8ea`; the final PR head was `fd7acf6b04672923ad991e834c1b94d0e34a4c52`.
 - Exact-head CI run #348 passed: MySQL migrations, TypeScript, all unit/integration tests, lint, production build, Lighthouse, Lighthouse artifact upload and self-hosted staging archive packaging.

@@ -57,8 +57,8 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <div className="atelier-empty-catalogue">
           <span className="atelier-empty-mark" aria-hidden="true">✳</span>
           <h2>This collection is being prepared.</h2>
-          <p>Contact the gallery for current product and availability information.</p>
-          <Link className="button-outline" href="/contact">Contact the gallery</Link>
+          <p>Contact us for information about current availability.</p>
+          <Link className="button-outline" href="/contact">Contact us</Link>
         </div>
       )}
     </div>

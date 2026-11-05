@@ -39,23 +39,23 @@ export function LegacyLoginForm() {
         window.location.assign(safeNextPath());
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "We could not complete that request. Please try again.");
+      setMessage(error instanceof Error ? error.message : "We could not complete the request. Please try again.");
     } finally {
       setBusy(false);
     }
   }
 
   return <section className="page-shell">
-    <div className="page-heading"><div className="section-kicker">DESERT ART GALLERY</div><h1>{mode === "login" ? "Welcome back" : "Reset your account password"}</h1><p>{mode === "login" ? "Sign in to view your account details and order history." : "If an account exists, we will send a secure password reset link."}</p></div>
+    <div className="page-heading"><div className="section-kicker">DESERT ART GALLERY</div><h1>{mode === "login" ? "Welcome back" : "Reset your account"}</h1><p>{mode === "login" ? "Sign in to view your account details and order history." : "If an account exists, a secure reset link will be sent."}</p></div>
     <form onSubmit={submit} className="auth-form">
       <label>Email address<input type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label>
       {mode === "login" && <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8}/></label>}
-      <button className="button-primary dark-button" disabled={busy}>{busy ? "Working…" : mode === "login" ? "Sign in" : "Send reset link"}</button>
+      <button className="button-primary dark-button" disabled={busy}>{busy ? "Processing…" : mode === "login" ? "Sign in" : "Send reset link"}</button>
       <p className="form-message" role="status" aria-live="polite">{message}</p>
     </form>
     <div className="auth-links">
       <button onClick={()=>{setMode(mode==="login"?"recover":"login");setMessage("");}}>{mode==="login"?"Forgot your password?":"Back to sign in"}</button>
-      <Link href="/contact">Need help? Contact the gallery</Link>
+      <Link href="/contact">Need help? Contact us</Link>
     </div>
   </section>;
 }

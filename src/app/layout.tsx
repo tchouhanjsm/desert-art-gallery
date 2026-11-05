@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/playfair-display";
 import "./globals.css";
 import "@/styles/japan-storefront.css";
 import "@/styles/admin-theme.css";
@@ -11,14 +13,14 @@ import { getStorefrontCollections } from "@/lib/catalogue";
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
   title: {
-    default: "Desert Art Gallery | Textiles and Handcrafted Objects from Rajasthan",
+    default: "Desert Art Gallery | Textiles and Handcrafted Pieces from Rajasthan",
     template: "%s | Desert Art Gallery",
   },
-  description: "Discover distinctive textiles and handcrafted objects from Jaisalmer, Rajasthan, India, presented with clear details and a sense of place.",
+  description: "Based in Jaisalmer, Rajasthan, India, Desert Art Gallery presents textiles and handcrafted pieces with care for their materials, character and verified details.",
   openGraph: {
     type: "website",
     title: "Desert Art Gallery",
-    description: "A considered online collection of textiles and handcrafted objects from Rajasthan, India.",
+    description: "A considered collection of textiles and handcrafted pieces from Rajasthan.",
     siteName: "Desert Art Gallery",
   },
   robots: { index: true, follow: true },

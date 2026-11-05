@@ -7,8 +7,8 @@ import { listCustomerAddresses } from "@/server/customer/repository";
 import { listMySqlCheckoutConfiguration } from "@/server/checkout/mysql-orders";
 
 export const metadata = {
-  title: "Checkout",
-  description: "Enter your delivery address and review your order draft before payment.",
+  title: "Delivery & order review",
+  description: "Enter your delivery details and review the unpaid order draft.",
   robots: { index: false, follow: false },
 };
 
@@ -46,12 +46,12 @@ export default async function CheckoutPage() {
       taxable_shipping: rule.taxableShipping, disclosure: rule.disclosure,
     }));
     return <div className="page-shell">
-      <div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Delivery details</h1><p>Choose an available shipping method and review the information for your destination.</p></div>
+      <div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>DELIVERY DETAILS</h1><p>Choose an available configured shipping method and review destination-specific information.</p></div>
       <CheckoutForm addresses={addresses} zones={zones} rates={rates} taxRules={taxRules}/>
     </div>;
   }
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return <div className="page-shell"><div className="page-heading"><div className="section-kicker">SECURE CHECKOUT</div><h1>Delivery details</h1><p>Checkout is not fully configured in this environment. No order or payment has been created.</p></div><Link className="text-link" href="/cart">Return to cart</Link></div>;
+  if (!supabase) return <div className="page-shell"><div className="page-heading"><div className="section-kicker">SECURE ORDER REVIEW</div><h1>DELIVERY DETAILS</h1><p>Checkout is not configured. No order or payment has been created.</p></div><Link className="text-link" href="/cart">Return to bag</Link></div>;
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login?next=%2Fcheckout");
@@ -68,7 +68,7 @@ export default async function CheckoutPage() {
   ]);
 
   if (addresses.error || zones.error || rates.error || taxRules.error) {
-    return <div className="page-shell"><div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Delivery details</h1><p>Checkout is not fully configured in this environment. No order or payment has been created.</p></div><div className="checkout-notice" role="status">Shipping, tax and duty disclosures for your destination must be configured and verified before an order draft can be created.</div><Link className="text-link" href="/cart">Return to cart</Link></div>;
+    return <div className="page-shell"><div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>DELIVERY DETAILS</h1><p>Checkout is not configured. No order or payment has been created.</p></div><div className="checkout-notice" role="status">Shipping, tax and duty disclosures must be configured and verified for the destination before an order draft can be created.</div><Link className="text-link" href="/cart">Return to bag</Link></div>;
   }
 
   const savedAddresses = (addresses.data ?? []).map((address) => ({
@@ -76,7 +76,7 @@ export default async function CheckoutPage() {
   }));
 
   return <div className="page-shell">
-    <div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>Delivery details</h1><p>Choose an available shipping method and review the information for your destination.</p></div>
+    <div className="page-heading"><div className="section-kicker">ORDER REVIEW</div><h1>DELIVERY DETAILS</h1><p>Choose an available configured shipping method and review destination-specific information.</p></div>
     <CheckoutForm
       addresses={savedAddresses}
       zones={zones.data ?? []}

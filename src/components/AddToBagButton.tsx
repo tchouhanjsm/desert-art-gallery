@@ -36,7 +36,7 @@ export function AddToBagButton({
     <div className="add-to-bag-control">
       {hasVariants && (
         <label className="variant-select-label">
-          Choose an option
+          Select an option
           <select
             value={selectedVariantId}
             onChange={(event) => {
@@ -45,10 +45,10 @@ export function AddToBagButton({
             }}
             required
           >
-            <option value="">Please choose an option</option>
+            <option value="">Please select an option</option>
             {variants.map((variant) => (
               <option key={variant.id} value={variant.id} disabled={variant.quantityOnHand < 1}>
-                {variant.label}{variant.quantityOnHand < 1 ? " — Out of stock" : ""}
+                {variant.label}{variant.quantityOnHand < 1 ? " — Sold out" : ""}
               </option>
             ))}
           </select>
@@ -70,8 +70,8 @@ export function AddToBagButton({
         }}
       >
         {!canAdd
-          ? hasVariants && !selectedVariant ? "Please choose an option" : "Currently unavailable"
-          : added ? "Added to cart ✓" : "Add to cart"}
+          ? hasVariants && !selectedVariant ? "Please select an option" : "Currently unavailable"
+          : added ? "Added to bag ✓" : "Add to bag"}
       </button>
     </div>
   );

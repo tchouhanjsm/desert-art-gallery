@@ -95,7 +95,7 @@ export function CheckoutForm({
       const reservation = await reserveResponse.json();
       if (!reserveResponse.ok || typeof reservation.reservation_id !== "string") {
         if (reserveResponse.status === 409) reservationKey.current = null;
-        throw new Error(reservation.error || "We could not reserve the requested stock. Refresh your cart and try again.");
+        throw new Error(reservation.error || "Could not reserve the requested stock. Update your bag and try again.");
       }
       if (typeof reservation.expires_at === "string") setHoldExpiry(reservation.expires_at);
 
@@ -113,17 +113,17 @@ export function CheckoutForm({
       });
       const result = await response.json();
       if (!response.ok || typeof result.order_id !== "string") {
-        throw new Error(result.error || "We could not create the order draft.");
+        throw new Error(result.error || "Could not create an order draft.");
       }
       router.push("/account/orders/" + result.order_id);
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : "We could not create the order draft.");
+      setMessage(cause instanceof Error ? cause.message : "Could not create an order draft.");
     } finally {
       setBusy(false);
     }
   }
 
-  if (!lines.length) return <div className="empty-note">Your cart is empty. <Link href="/shop" className="empty-link">Explore the shop</Link></div>;
+  if (!lines.length) return <div className="empty-note">Your bag is empty. <Link href="/shop" className="empty-link">Continue shopping</Link></div>;
 
   return <div className="checkout-layout">
     <form className="checkout-form" onSubmit={handleSubmit}>
@@ -138,11 +138,11 @@ export function CheckoutForm({
         <h2>Enter your delivery address</h2>
         <div className="checkout-fields">
           <label>Postal code<input required maxLength={24} autoComplete="postal-code" value={address.postal_code} onChange={(event) => updateAddress("postal_code", event.target.value)}/></label>
-          <label>Country code<input required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" autoComplete="country" placeholder="Two-letter country code (for example, JP)" value={address.country_code} onChange={(event) => updateAddress("country_code", event.target.value)}/></label>
+          <label>Country code<input required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" autoComplete="country" placeholder="Two-letter country code (e.g. IN, US or JP)" value={address.country_code} onChange={(event) => updateAddress("country_code", event.target.value)}/></label>
           <label>State / region<input maxLength={120} autoComplete="address-level1" value={address.region ?? ""} onChange={(event) => updateAddress("region", event.target.value)}/></label>
           <label>City<input required maxLength={120} autoComplete="address-level2" value={address.city} onChange={(event) => updateAddress("city", event.target.value)}/></label>
-          <label>Street address<input required maxLength={240} autoComplete="address-line1" value={address.address_line_1} onChange={(event) => updateAddress("address_line_1", event.target.value)}/></label>
-          <label>Apartment, suite or building (optional)<input maxLength={240} autoComplete="address-line2" value={address.address_line_2 ?? ""} onChange={(event) => updateAddress("address_line_2", event.target.value)}/></label>
+          <label>Address line 1<input required maxLength={240} autoComplete="address-line1" value={address.address_line_1} onChange={(event) => updateAddress("address_line_1", event.target.value)}/></label>
+          <label>Building, apartment or suite (optional)<input maxLength={240} autoComplete="address-line2" value={address.address_line_2 ?? ""} onChange={(event) => updateAddress("address_line_2", event.target.value)}/></label>
           <label>Full name<input required maxLength={160} autoComplete="name" value={address.recipient_name} onChange={(event) => updateAddress("recipient_name", event.target.value)}/></label>
           <label>Phone number<input maxLength={40} autoComplete="tel" value={address.phone ?? ""} onChange={(event) => updateAddress("phone", event.target.value)}/></label>
         </div>
@@ -151,13 +151,13 @@ export function CheckoutForm({
       <section className="checkout-section">
         <div className="section-kicker">02 / SHIPPING METHOD</div>
         <h2>Available shipping methods</h2>
-        {!currency && <p className="checkout-blocker">All items in your cart must use the same currency to continue.</p>}
-        {matchingZones.length > 1 && <p className="checkout-blocker">Multiple shipping zones are configured for this country. Checkout is unavailable until the configuration is resolved.</p>}
-        {currency && matchingZones.length === 0 && <p className="checkout-blocker">No shipping zone is configured for destination {address.country_code || "not selected"}. Unverified shipping costs and delivery times will not be shown.</p>}
-        {currency && matchingZones.length === 1 && matchingRates.length === 0 && <p className="checkout-blocker">No approved shipping rate is configured for destination {address.country_code || "not selected"} and currency {currency}. Unverified shipping costs and delivery times will not be shown.</p>}
+        {!currency && <p className="checkout-blocker">All items in your bag must use the same currency to continue.</p>}
+        {matchingZones.length > 1 && <p className="checkout-blocker">More than one shipping zone is configured for this country. Checkout is unavailable until the configuration is resolved.</p>}
+        {currency && matchingZones.length === 0 && <p className="checkout-blocker">Destination {address.country_code || "not selected"} has no configured shipping zone. Unverified charges and delivery estimates are not shown.</p>}
+        {currency && matchingZones.length === 1 && matchingRates.length === 0 && <p className="checkout-blocker">Destination {address.country_code || "not selected"} · currency {currency} has no approved shipping rate. Unverified charges and delivery estimates are not shown.</p>}
         {matchingRates.length > 0 && <label>Shipping method
           <select value={effectiveRateId} onChange={(event) => setShippingRateId(event.target.value)} required>
-            <option value="" disabled>Choose a shipping method</option>
+            <option value="" disabled>Select a shipping method</option>
             {matchingRates.map((rate) => <option key={rate.id} value={rate.id}>{rate.name} — {formatMoneyFromMinor(rate.amount_minor, rate.currency)}</option>)}
           </select>
         </label>}
@@ -172,9 +172,9 @@ export function CheckoutForm({
 
       <section className="checkout-section">
         <div className="section-kicker">03 / TAXES & DUTIES</div>
-        <h2>DESTINATION INFORMATION</h2>
+        <h2>DESTINATION CHARGES</h2>
         {!currency || matchingTaxRules.length === 0
-          ? <p className="checkout-blocker">No approved tax configuration exists for this country and currency. Checkout remains unavailable until the business registers the applicable tax rule, including a confirmed zero rate if relevant.</p>
+          ? <p className="checkout-blocker">There is no approved tax configuration for this country and currency. Checkout remains disabled until the merchant configures the applicable rule, including a confirmed zero rate if relevant.</p>
           : matchingTaxRules.map((rule) => <div className="checkout-disclosure" key={rule.id}><strong>{rule.tax_name}</strong><p>{rule.disclosure}</p></div>)}
       </section>
 
@@ -185,14 +185,14 @@ export function CheckoutForm({
       {cartError && <p className="checkout-error" role="alert">{cartError}</p>}
       {message && <p className="checkout-error" role="alert">{message}</p>}
       {holdExpiry && <p className="checkout-blocker" role="status">Stock is temporarily reserved until {new Date(holdExpiry).toLocaleString("en-IN")}. If an order draft is not created, the configured process will release the reservation.</p>}
-      <div className="checkout-notice" role="note">This action creates an unpaid order draft only; no payment is collected. The draft and temporary stock reservation expire. Payments will remain disabled until the payment provider and webhooks have been fully verified.</div>
-      <button className="button-primary dark-button" type="submit" disabled={!canPrepare || busy}>{busy ? "Creating order draft…" : "Create order draft"}</button>
+      <div className="checkout-notice" role="note">This action creates an unpaid order draft only; no payment is taken. The draft and temporary stock reservation expire. Payments will be enabled only after the payment provider and webhook have been verified.</div>
+      <button className="button-primary dark-button" type="submit" disabled={!canPrepare || busy}>{busy ? "Creating order draft…" : "Create unpaid order draft"}</button>
     </form>
     <aside className="cart-summary checkout-summary">
-      <div className="section-kicker">Items in your cart</div><h2>ORDER SUMMARY</h2>
+      <div className="section-kicker">ITEMS IN YOUR BAG</div><h2>ORDER SUMMARY</h2>
       {preview.map((item) => <div className="cart-summary-row" key={item.slug + "::" + (item.variantId ?? "")}><span>{item.name}{item.variantLabel ? " · " + item.variantLabel : ""} × {item.quantityRequested}</span><strong>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor * item.quantityRequested, item.currency) : "Unavailable"}</strong></div>)}
-      <p>Product prices are revalidated against the current catalogue. Shipping and configured taxes are recalculated server-side before the order draft is created.</p>
-      {currency && <p>Currency: <strong>{currency}</strong></p>}
+      <p>Product prices are checked against the current catalogue. Shipping and configured taxes are recalculated on the server before the order draft is created.</p>
+      {currency && <p>Currency:  <strong>{currency}</strong></p>}
       {isLoading && <p className="cart-state">Checking availability…</p>}
     </aside>
   </div>;

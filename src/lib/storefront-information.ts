@@ -6,68 +6,68 @@ export type StorefrontInformationPage = {
 };
 
 /**
- * Customer information pages are Japanese-first, but policy details remain
+ * Customer information pages are presented in English. Policy details remain
  * provisional until the merchant supplies and approves the actual terms.
  * Never infer seller identity, delivery promises, legal obligations or fees.
  */
 export const storefrontInformationPages: Record<string, StorefrontInformationPage> = {
   shipping: {
     title: "Shipping information",
-    intro: "Shipping arrangements depend on the product and destination.",
+    intro: "Shipping details depend on the destination and the item.",
     body: [
-      "Delivery availability, shipping costs and estimated arrival times vary by product and destination. Before purchase, share your country and postal code so the gallery can check the options and provide an individual estimate.",
-      "Import duties, taxes and customs fees may be charged to the recipient under the rules of the destination country. We will share the information available to us before dispatch.",
-      "Once an item has shipped, we will share the carrier tracking details when a tracking number is issued.",
+      "Available destinations, shipping charges and estimated delivery times vary by item and destination. Before purchasing, please share your country and postal code so the gallery can check the options and provide a quote.",
+      "Import duties, taxes and customs fees may be charged to the recipient under the rules of the destination country. We will share the information available to the gallery before dispatch.",
+      "When the carrier provides a tracking number after dispatch, we will share the tracking details.",
     ],
-    draftNotice: "Delivery regions, shipping costs and arrival estimates have not yet been confirmed. Please check the terms for your product and destination before ordering.",
+    draftNotice: "Destinations, shipping charges and delivery timing have not yet been confirmed. Please check the conditions for your item and destination before placing an order.",
   },
   returns: {
-    title: "Returns and exchanges",
-    intro: "Please confirm the conditions for each item before ordering.",
+    title: "Returns & exchanges",
+    intro: "Please review the conditions for each item before ordering.",
     body: [
-      "Return and exchange eligibility may vary by item. For vintage pieces and textiles with individual variations, please confirm the condition and item-specific terms in writing before purchase.",
+      "Return or exchange eligibility may vary by item. For vintage pieces and textiles with individual variations, please request written confirmation of the item's condition and applicable terms before purchasing.",
       "If an item arrives damaged or materially differs from the description agreed before purchase, contact the gallery promptly with your order number and photographs showing its condition.",
-      "The formal returns and exchanges policy will be published after review and approval by the business operator.",
+      "The official returns and exchanges policy will be published after it has been reviewed and approved by the merchant.",
     ],
-    draftNotice: "This page is a preliminary notice, not a formal returns policy. Please ask the gallery to confirm the conditions for your item before placing an order.",
+    draftNotice: "This page is an interim guide, not an official returns or exchanges policy. Please confirm the terms for each item before ordering.",
   },
   faq: {
     title: "Frequently asked questions",
-    intro: "Answers to common questions before you buy.",
+    intro: "Answers to common questions before you purchase.",
     body: [
       "Q. How can I check whether an item is available?\nA. Contact the gallery with the product name. Availability will be checked before any payment is accepted.",
-      "Q. Can I ask about sizing and measurements?\nA. Yes. Contact the gallery with questions about the exact measurements and fit of the individual item.",
-      "Q. Do you ship internationally?\nA. Availability depends on the destination. Share your country and postal code so the gallery can check.",
+      "Q. Can I ask about sizing and measurements?\nA. Yes. Contact the gallery with questions about the actual measurements and fit of a specific item.",
+      "Q. Do you ship internationally?\nA. Availability depends on the destination. Share your country and postal code so the gallery can check whether delivery is possible.",
       "Q. Will the item look exactly like the photograph?\nA. Vintage and handmade pieces may vary individually. Please confirm the exact item you will receive before purchasing.",
     ],
-    draftNotice: "This is general information only. Please confirm the condition, availability and shipping terms for your specific item before ordering.",
+    draftNotice: "This is general information only. Please confirm the condition, availability and delivery terms for each item before ordering.",
   },
   tracking: {
     title: "Order tracking",
     intro: "Information about tracking after dispatch.",
     body: [
-      "Tracking details will be shared once the carrier issues a tracking number. Include your order number when asking about delivery progress.",
-      "This page is not currently connected to a carrier tracking system.",
+      "Once the carrier issues a tracking number, the gallery will share the tracking information. Include your order number when asking about a shipment.",
+      "This page is not currently connected to a carrier tracking service.",
     ],
-    draftNotice: "Automatic tracking lookup is not available on this page. Contact the gallery for tracking information.",
+    draftNotice: "This page cannot look up tracking numbers automatically. Contact the gallery for tracking information.",
   },
   privacy: {
-    title: "Privacy policy",
+    title: "Privacy notice",
     intro: "How customer information is handled.",
     body: [
-      "This draft is for review while the privacy policy is being prepared. Before publication, the business must confirm and specify its legal name, privacy contact, service providers, retention periods, legal bases for processing and the rights applicable to customers.",
-      "Do not send sensitive payment information, such as credit card numbers, by email.",
+      "This draft is for review while the gallery's privacy practices are being established. Before publication, it must identify the actual merchant, privacy contact, service providers, retention periods, legal bases for processing and customer rights that apply.",
+      "Do not send sensitive payment information, such as card numbers, by email.",
     ],
-    draftNotice: "This is a draft for review, not the official privacy policy. Do not rely on it as a legal notice until the business details and actual data practices have been confirmed.",
+    draftNotice: "This is a pre-publication draft, not an official privacy notice. Do not rely on it as a legal statement until the merchant details and actual data practices have been verified.",
   },
   terms: {
-    title: "Terms of service",
-    intro: "Terms and conditions for purchases.",
+    title: "Terms of use",
+    intro: "Terms relating to purchases.",
     body: [
-      "The formal terms require approval by the business operator and review for each country in which products will be sold. They must clearly define the seller, order acceptance, pricing, payment, shipping, duties, returns, warranties, dispute handling and governing law.",
-      "This staging environment does not currently collect online payments or create legally binding accepted orders.",
+      "The official terms require merchant approval and review for each intended sales market. They must clearly define the seller, order formation, prices, payment, delivery, duties, returns, warranties, dispute handling and governing law.",
+      "This preview environment does not process online payments or create legally binding confirmed orders.",
     ],
-    draftNotice: "This is a draft for review, not the official terms of service. Do not treat it as the purchase terms until the seller and sales conditions have been confirmed and approved.",
+    draftNotice: "This is a pre-publication draft, not the official terms of use. Do not treat it as contractual purchase terms until the actual seller and sales conditions have been reviewed and approved.",
   },
 };
 

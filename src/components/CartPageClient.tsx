@@ -15,7 +15,7 @@ export function CartPageClient() {
   const canContinue = !isLoading && !error && lines.length > 0 && preview.length === lines.length
     && preview.every((item) => item.available && item.priceMinor !== null && Boolean(item.currency))
     && Object.keys(totals).length === 1;
-  if (!lines.length) return <div className="empty-note">Your cart is empty.<br/><Link href="/shop" className="empty-link">Continue shopping</Link></div>;
+  if (!lines.length) return <div className="empty-note">Your bag is empty.<br/><Link href="/shop" className="empty-link">Continue shopping</Link></div>;
   return <div className="cart-page-layout">
     <section className="cart-page-lines">
       {isLoading && <p className="cart-state">Checking product details and availability…</p>}
@@ -25,15 +25,15 @@ export function CartPageClient() {
         <div className="cart-line-details"><div className="section-kicker">DESERT ART GALLERY</div><h2>{item.name}</h2>
           <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price unavailable"}</p>
           {item.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}
-          <div className="cart-quantity"><button aria-label="Decrease quantity by one" onClick={() => setQuantity(item.slug, item.quantityRequested - 1, item.variantId ?? undefined)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity by one" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1, item.variantId ?? undefined)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug, item.variantId ?? undefined)}>Remove</button></div>
+          <div className="cart-quantity"><button aria-label="Decrease quantity" onClick={() => setQuantity(item.slug, item.quantityRequested - 1, item.variantId ?? undefined)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1, item.variantId ?? undefined)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug, item.variantId ?? undefined)}>Remove</button></div>
           {!item.available && <small className="cart-error">Only {item.availableQuantity} available. Please adjust the quantity.</small>}
         </div>
       </article>)}
     </section>
-    <aside className="cart-summary"><div className="section-kicker">ORDER SUMMARY</div><h2>Items in your cart</h2>
-      {Object.entries(totals).map(([currency, amount]) => <div className="cart-summary-row" key={currency}><span>Subtotal ({currency})</span><strong>{formatMoneyFromMinor(amount, currency)}</strong></div>)}
+    <aside className="cart-summary"><div className="section-kicker">ORDER SUMMARY</div><h2>Items in your bag</h2>
+      {Object.entries(totals).map(([currency, amount]) => <div className="cart-summary-row" key={currency}><span>Subtotal ({currency}）</span><strong>{formatMoneyFromMinor(amount, currency)}</strong></div>)}
       <p>Shipping, taxes and duties vary by destination.</p>
-      <div className="checkout-notice">The next step creates an order draft only. No payment will be collected until an approved payment provider and verified webhooks are configured.</div>
+      <div className="checkout-notice">The next step creates an unpaid order draft only. No payment is taken until an approved payment provider and its webhook have been configured.</div>
       {canContinue ? <Link href="/checkout" className="button-primary dark-button">Continue to delivery details</Link> : <span className="button-outline checkout-disabled" aria-disabled="true">Check availability before continuing</span>}
     </aside>
   </div>;
