@@ -92,7 +92,7 @@ suite("native local MySQL and private-media backup/restore", () => {
           "SELECT probe_value FROM dag_backup_probe WHERE id = 1",
         );
         expect(rows[0]?.probe_value).toBe(probeValue);
-        const [migrations] = await targetConnection.query<mysql.RowDataPacket[]>(
+        const [migrations] = await targetConnection.query<RowDataPacket[]>(
           "SELECT COUNT(*) AS total FROM __drizzle_migrations",
         );
         expect(Number(migrations[0]?.total ?? 0)).toBeGreaterThan(0);
@@ -122,7 +122,7 @@ suite("native local MySQL and private-media backup/restore", () => {
     const targetMediaRoot = join(targetMediaParent, "must-not-exist");
     const mediaFolder = join(mediaRoot, "products", "product-" + suffix);
     const admin = await mysql.createConnection(adminConfig);
-    let sourcePool: mysql.Pool | undefined;
+    let sourcePool: Pool | undefined;
 
     try {
       await admin.query(
