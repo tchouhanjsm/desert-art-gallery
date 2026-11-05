@@ -33,7 +33,10 @@ export function StorefrontProductCard({ product }: { product: Product }) {
       <Link className="atelier-product-link" href={"/products/" + product.slug}>
         <div className="atelier-product-media">
           {isPreview ? (
-            <PreviewArtwork title={product.name} category={product.category} variant={previewVariant(product.category)} />
+            <div className="atelier-image-placeholder" role="img" aria-label={"Photography pending for " + product.name}>
+              <span className="atelier-image-placeholder-mark" aria-hidden="true">DAG</span>
+              <span className="atelier-image-placeholder-caption">PHOTOGRAPHY PENDING</span>
+            </div>
           ) : (
             <StorefrontImage
               placeholder="blur"

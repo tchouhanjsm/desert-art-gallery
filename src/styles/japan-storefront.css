@@ -266,3 +266,35 @@
   text-align:right;
   font-variant-numeric:tabular-nums;
 }
+
+/* Image-ready merchandising: deliberate surfaces, never faux product photography. */
+.jp-storefront .jp-home-hero-copy{max-width:590px;}
+.jp-storefront .jp-home-hero-kicker{display:flex;align-items:center;gap:10px;}
+.jp-storefront .jp-home-hero-kicker::before{content:"";width:28px;height:1px;background:var(--atelier-clay);}
+.jp-storefront .jp-home-hero h1{max-width:590px;letter-spacing:-.052em;}
+.jp-storefront .jp-home-hero-copy>p{max-width:460px;font-size:14px;line-height:1.9;}
+.jp-storefront .jp-home-hero-media--empty{position:relative;isolation:isolate;min-height:0;aspect-ratio:5/4;background:#ded2c2;overflow:hidden;}
+.jp-storefront .jp-home-hero-media--empty::before,.jp-storefront .jp-home-hero-media--empty::after{position:absolute;content:"";pointer-events:none;}
+.jp-storefront .jp-home-hero-media--empty::before{inset:8% 12% 12% 18%;border:1px solid rgba(69,52,39,.2);background:linear-gradient(135deg,rgba(255,255,255,.34),rgba(255,255,255,0) 55%),linear-gradient(25deg,#c2aa91,#e9ddcc 52%,#c9b8a4);transform:rotate(-5deg);}
+.jp-storefront .jp-home-hero-media--empty::after{inset:17% 19% 18% 29%;border:1px solid rgba(69,52,39,.18);background:linear-gradient(145deg,#eee5d8,#b99d82);transform:rotate(4deg);}
+.jp-storefront .jp-home-hero-empty{position:relative;z-index:1;min-height:0;height:100%;padding:clamp(20px,3vw,40px);justify-content:flex-end;background:linear-gradient(0deg,rgba(36,31,26,.84),rgba(36,31,26,.03) 68%);}
+.jp-storefront .jp-home-hero-empty span,.jp-storefront .jp-home-hero-empty strong,.jp-storefront .jp-home-hero-empty small{position:relative;z-index:1;color:#fff;}
+.jp-storefront .jp-home-hero-empty .jp-hero-placeholder-index{font-size:9px;letter-spacing:.16em;color:#f1d9c8;}
+.jp-storefront .jp-home-hero-empty strong{max-width:420px;font-size:clamp(24px,3vw,38px);line-height:1.15;}
+.jp-storefront .jp-home-hero-empty small{max-width:370px;color:rgba(255,255,255,.78);line-height:1.65;}
+.jp-storefront .jp-hero-placeholder-swatches{display:flex;gap:6px;margin-top:8px;}
+.jp-storefront .jp-hero-placeholder-swatches i{display:block;width:28px;height:5px;background:#dfc4a8;}
+.jp-storefront .jp-hero-placeholder-swatches i:nth-child(2){background:#b66e51;}
+.jp-storefront .jp-hero-placeholder-swatches i:nth-child(3){background:#6d6255;}
+.jp-storefront .atelier-image-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;overflow:hidden;background:linear-gradient(140deg,#ece4d9,#d6c8b7 55%,#e7ddd0);}
+.jp-storefront .atelier-image-placeholder::before,.jp-storefront .atelier-image-placeholder::after{position:absolute;content:"";pointer-events:none;border:1px solid rgba(74,57,42,.18);}
+.jp-storefront .atelier-image-placeholder::before{inset:8% 13%;background:linear-gradient(140deg,rgba(255,255,255,.4),rgba(255,255,255,0) 60%);transform:rotate(-4deg);}
+.jp-storefront .atelier-image-placeholder::after{inset:16% 21%;background:rgba(159,118,85,.12);transform:rotate(5deg);}
+.jp-storefront .atelier-image-placeholder-mark{position:relative;z-index:1;color:rgba(67,55,44,.62);font-family:var(--jp-font-display);font-size:clamp(25px,3vw,42px);letter-spacing:.13em;}
+.jp-storefront .atelier-image-placeholder-caption{position:absolute;z-index:2;bottom:12px;padding:4px 8px;background:rgba(251,249,245,.88);color:var(--atelier-muted);font-size:8px;font-weight:700;letter-spacing:.13em;}
+.jp-storefront .atelier-product-card-wishlist{z-index:5;}
+.jp-storefront .jp-home-utility-strip>div{align-items:flex-start;}
+.jp-storefront .jp-home-utility-strip>div>span{flex:0 0 auto;color:var(--atelier-clay);font-family:var(--jp-font-display);font-size:18px;line-height:1.3;}
+.jp-storefront .jp-home-utility-strip small{line-height:1.6;}
+@media(max-width:760px){.jp-storefront .jp-home-hero-media--empty{aspect-ratio:5/4;min-height:0;}.jp-storefront .jp-home-hero-empty{min-height:0!important;}.jp-storefront .jp-home-utility-strip{grid-template-columns:1fr;gap:13px;}.jp-storefront .jp-home-utility-strip>div{max-width:none;}}
+@media(max-width:430px){.jp-storefront .jp-home-hero{width:calc(100% - 32px);}.jp-storefront .jp-home-hero h1{font-size:clamp(33px,8.6vw,40px);}.jp-storefront .atelier-product-media{aspect-ratio:4/5;}.jp-storefront .atelier-image-placeholder-mark{font-size:30px;}}

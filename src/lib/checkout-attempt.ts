@@ -10,17 +10,14 @@ export type CheckoutAttemptInput = {
 
 export type CheckoutAttemptKeys = {
   fingerprint: string;
+  reservationFingerprint: string;
   reservationKey: string;
   orderDraftKey: string;
 };
 
 function normalizeLines(lines: readonly CartLine[]) {
   return lines
-    .map((line) => ({
-      slug: line.slug,
-      variantId: line.variantId ?? null,
-      quantity: line.quantity,
-    }))
+    .map((line) => ({ slug: line.slug, variantId: line.variantId ?? null, quantity: line.quantity }))
     .sort((left, right) => {
       const leftKey = left.slug + "\u0000" + (left.variantId ?? "");
       const rightKey = right.slug + "\u0000" + (right.variantId ?? "");
@@ -28,11 +25,12 @@ function normalizeLines(lines: readonly CartLine[]) {
     });
 }
 
-/**
- * The fingerprint represents the exact order-draft request after the same
- * address/note normalization performed by the API. Reordered cart lines and
- * whitespace-only address edits therefore replay the same checkout attempt.
- */
+/** The reservation endpoint receives only cart lines. */
+export function buildReservationFingerprint(lines: readonly CartLine[]): string {
+  return JSON.stringify(normalizeLines(lines));
+}
+
+/** The order-draft fingerprint covers every value which determines the draft. */
 export function buildCheckoutAttemptFingerprint(input: CheckoutAttemptInput): string {
   return JSON.stringify({
     lines: normalizeLines(input.lines),
@@ -43,22 +41,24 @@ export function buildCheckoutAttemptFingerprint(input: CheckoutAttemptInput): st
 }
 
 /**
- * Retain both idempotency keys until the checkout payload changes. A retry
- * after an ambiguous network response must replay both the stock reservation
- * and order-draft request instead of generating a fresh order key.
+ * Reuse a reservation key while cart lines are unchanged. Order-draft replay
+ * remains tied to the full request so a changed address, rate or note can
+ * create a new draft against the same stock hold.
  */
 export function getCheckoutAttemptKeys(
   fingerprint: string,
+  reservationFingerprint: string,
   current: CheckoutAttemptKeys | null,
   createKey: () => string,
 ): CheckoutAttemptKeys {
   if (current?.fingerprint === fingerprint) return current;
 
-  const reservationKey = createKey();
+  const reservationKey = current?.reservationFingerprint === reservationFingerprint
+    ? current.reservationKey
+    : createKey();
   const orderDraftKey = createKey();
   if (!reservationKey || !orderDraftKey || reservationKey === orderDraftKey) {
     throw new Error("Checkout attempt keys must be distinct non-empty values.");
   }
-
-  return { fingerprint, reservationKey, orderDraftKey };
+  return { fingerprint, reservationFingerprint, reservationKey, orderDraftKey };
 }

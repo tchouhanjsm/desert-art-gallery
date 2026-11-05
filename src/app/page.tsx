@@ -23,10 +23,10 @@ export default async function HomePage() {
     <div className="jp-home">
       <section className="jp-home-hero" aria-labelledby="home-heading">
         <div className="jp-home-hero-copy">
-          <div className="jp-home-hero-kicker">DESERT ART GALLERY · Jaisalmer, Rajasthan</div>
+          <div className="jp-home-hero-kicker">A CURATED ONLINE STORE · Jaisalmer, Rajasthan</div>
           <h1 id="home-heading">Distinctive textiles.<br /><em>Considered pieces for living.</em></h1>
           <p>
-            Explore a considered selection of heritage textiles and handcrafted objects, each presented with the product details we can verify.
+            Discover distinctive textiles and handcrafted pieces, selected for their character, material and place in everyday life.
           </p>
           <div className="jp-home-hero-actions">
             <Link className="button-primary" href="/shop">Shop all products</Link>
@@ -53,8 +53,10 @@ export default async function HomePage() {
           ) : (
             <div className="jp-home-hero-empty">
               <span>ONLINE STORE · CATALOGUE IN PREPARATION</span>
-              <strong>We are preparing the catalogue while product details and photography are reviewed.</strong>
-              <small>Listings appear only after product details, media and rights checks are complete.</small>
+              <span className="jp-hero-placeholder-index">01 / THE COLLECTION</span>
+              <strong>Objects with character. Details worth discovering.</strong>
+              <small>Product listings appear only after details, photography and usage rights are approved.</small>
+              <div className="jp-hero-placeholder-swatches" aria-hidden="true"><i /><i /><i /></div>
             </div>
           )}
         </div>
