@@ -70,3 +70,12 @@ The current frontend increment adds the following customer-journey safeguards:
 - Draft/inactive variants are excluded from the public available-stock decision.
 
 The exact-head workflow [#381](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41986240749) passed on 5 November 2026: migrations, typecheck, 320 tests, lint, build, 120 Playwright captures at 390/430/768/1280/1440px and Lighthouse. Lighthouse scores were homepage 98/95/96/100 and shop 96/96/96/100 (performance/accessibility/best-practices/SEO); assertions had zero failures. The capture manifest records zero broken images, missing/generic alt text, horizontal overflow, unnamed buttons, HTTP errors or failed requests. Its 15 console 404s are the expected empty-database product/collection and not-found routes, not broken images. Automated screenshots are not full manual sign-off: the CI catalogue is empty, so product detail, variants, populated cart and approved photography remain unverified. Owner-connected staging UAT remains required. No image migration, backend change, payment activation or policy claim is part of this work.
+
+
+## Presentation continuation — shared composition and catalogue counts — 2026-11-05
+
+The current frontend increment introduces shared `StorefrontPageHeading` and `StorefrontSectionHeading` components and applies them to homepage merchandising sections, shop, collections, cart, wishlist, customer information, contact, story, makers and journal pages. Route-specific class names, content and actions remain supplied by their existing pages.
+
+Homepage category links and shop category select/chips now show counts computed from the catalogue records passed to those views. Counts are not configured separately and are not rendered when the corresponding category is absent. This does not introduce new catalogue content.
+
+The four legacy stylesheet layers were removed after verifying global style imports across App Router and component files. The active customer stylesheet remains `japan-storefront.css`; owner/admin remains on `admin-theme.css`. Exact-head CI and automated responsive review must run again after this increment. No manual screenshot inspection or live-catalogue acceptance is implied by the refactor.
