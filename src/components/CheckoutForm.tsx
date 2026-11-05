@@ -238,7 +238,7 @@ export function CheckoutForm({
       <div aria-live="polite">
         {summaryRows.map(({ line, item }) => <div className="cart-summary-row" key={line.slug + "::" + (line.variantId ?? "")}>
           <span>{item?.name ?? formatCartFallbackName(line.slug)}{item?.variantLabel ? " · " + item.variantLabel : ""} × {line.quantity}</span>
-          <strong>{item?.priceMinor !== null && item?.priceMinor !== undefined && item.currency ? formatMoneyFromMinor(item.priceMinor * line.quantity, item.currency) : "Awaiting verification"}</strong>
+          <strong>{item && item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor * line.quantity, item.currency) : "Awaiting verification"}</strong>
         </div>)}
         {currency && selectedRate && (
           <div className="cart-summary-row">

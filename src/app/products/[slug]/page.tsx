@@ -36,15 +36,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const [product, catalogueProducts] = await Promise.all([getStorefrontProduct(slug), getStorefrontProducts()]);
   if (!product) notFound();
 
-  const relatedProducts = catalogueProducts.filter((candidate) =>
+  const relatedByCollection = catalogueProducts.filter((candidate) =>
     candidate.slug !== product.slug
     && isPublishedProductRecord(candidate)
-    && (
-      (Boolean(product.collectionSlugs?.length)
-        && Boolean(candidate.collectionSlugs?.some((collectionSlug) => product.collectionSlugs?.includes(collectionSlug))))
-      || (Boolean(product.category) && candidate.category === product.category)
+    && Boolean(candidate.collectionSlugs?.some((collectionSlug) => product.collectionSlugs?.includes(collectionSlug))),
+  );
+  const relatedProducts = [
+    ...relatedByCollection,
+    ...catalogueProducts.filter((candidate) =>
+      candidate.slug !== product.slug
+      && isPublishedProductRecord(candidate)
+      && Boolean(product.category && candidate.category === product.category)
+      && !relatedByCollection.some((related) => related.slug === candidate.slug),
     ),
-  ).slice(0, 4);
+  ].slice(0, 4);
+  const relatedHeading = relatedByCollection.length > 0 ? "More from this collection" : "More from this category";
   const variants = product.variants ?? [];
   const activeVariants = variants.filter((variant) => variant.status === "active");
   const canAddToBag = hasPurchasableProductOption(product);
@@ -196,7 +202,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="atelier-related-heading">
             <div>
               <div className="section-kicker">MORE TO EXPLORE</div>
-              <h2 id="related-products-heading" className="section-title">More pieces from this collection</h2>
+              <h2 id="related-products-heading" className="section-title">{relatedHeading}</h2>
             </div>
             <Link href={product.category ? "/shop?category=" + encodeURIComponent(product.category) : "/shop"} className="text-link">Browse related pieces</Link>
           </div>

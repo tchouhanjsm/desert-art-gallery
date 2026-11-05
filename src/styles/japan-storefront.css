@@ -311,7 +311,7 @@
 .jp-storefront .storefront-media-placeholder--hero::after{inset:16% 18% 17% 30%;background:linear-gradient(140deg,#d8c8b7,#a98f76);transform:rotate(5deg);}
 .jp-storefront .storefront-media-placeholder--hero .storefront-media-placeholder-mark{font-size:clamp(46px,7vw,90px);color:rgba(56,44,33,.28);}
 .jp-storefront .jp-home-hero-empty{position:relative;isolation:isolate;display:block;overflow:hidden;background:#51473c;}
-.jp-storefront .jp-home-hero-empty .storefront-media-placeholder--hero{z-index:-1;}
+.jp-storefront .jp-home-hero-empty .storefront-media-placeholder--hero{z-index:0;}
 .jp-storefront .jp-home-hero-empty::before,.jp-storefront .jp-home-hero-empty::after{display:none;}
 .jp-storefront .jp-home-hero-empty-copy{position:absolute;inset:auto 0 0;z-index:2;padding:clamp(20px,3vw,40px);display:grid;gap:9px;background:linear-gradient(0deg,rgba(36,31,26,.88),rgba(36,31,26,0));}
 .jp-storefront .jp-home-hero-empty-copy>span:first-child{color:#fff;font-size:9px;font-weight:700;letter-spacing:.12em;}

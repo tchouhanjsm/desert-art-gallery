@@ -54,7 +54,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         )}
       </div>
       <div className="atelier-collection-toolbar">
-        <span>{productsInCollection.length.toLocaleString("en-IN")} {productsInCollection.length === 1 ? "published product" : "published products"}</span>
+        <span>{productsInCollection.length.toLocaleString("en-IN")} {productsInCollection.length === 1 ? "product" : "products"}</span>
         <Link href="/shop">Browse all products</Link>
       </div>
       {productsInCollection.length ? (

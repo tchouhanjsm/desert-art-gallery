@@ -26,10 +26,7 @@ export function StorefrontProductCard({ product }: { product: Product }) {
       <Link className="atelier-product-link" href={"/products/" + product.slug}>
         <div className="atelier-product-media">
           {isPreview ? (
-            <div className="atelier-image-placeholder" role="img" aria-label={"Photography pending for " + product.name}>
-              <span className="atelier-image-placeholder-mark" aria-hidden="true">DAG</span>
-              <span className="atelier-image-placeholder-caption">PHOTOGRAPHY PENDING</span>
-            </div>
+<StorefrontMediaPlaceholder variant="product" label={"Photography pending for " + product.name} caption="PHOTOGRAPHY PENDING" />
           ) : (
             <StorefrontImage
               placeholder="blur"
