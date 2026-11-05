@@ -30,7 +30,10 @@ suite("native local MySQL and private-media backup/restore", () => {
     const backupRoot = await mkdtemp(join(tmpdir(), "dag-backup-bundles-"));
     const targetMediaParent = await mkdtemp(join(tmpdir(), "dag-backup-restore-media-"));
     const targetMediaRoot = join(targetMediaParent, "restored-media");
-    const sourceMediaDirectory = join(mediaRoot, "products", "product-" + suffix);
+    const productId = randomUUID();
+    const mediaId = randomUUID();
+    const storageKey = "products/" + productId + "/" + mediaId + ".jpg";
+    const sourceMediaDirectory = join(mediaRoot, "products", productId);
     const mediaBytes = Buffer.from([0xff, 0xd8, 0xff, 0x00, 0x01, 0x02]);
     const probeValue = "probe-" + suffix;
     const admin = await mysql.createConnection(adminConfig);
@@ -52,12 +55,20 @@ suite("native local MySQL and private-media backup/restore", () => {
       sourcePool = mysql.createPool({ ...sourceConfig, connectionLimit: 2 });
       await migrate(drizzle(sourcePool, { schema, mode: "default" }), { migrationsFolder: "./drizzle" });
       await sourcePool.query(
+        "INSERT INTO products (id, title, slug, currency, price_minor, status) VALUES (?, ?, ?, 'INR', 0, 'draft')",
+        [productId, "Backup restore test product", "backup-restore-" + suffix],
+      );
+      await sourcePool.query(
+        "INSERT INTO product_media (id, product_id, storage_key, alt_text, rights_confirmed, rights_evidence, mime_type, byte_size, position, is_primary) VALUES (?, ?, ?, ?, 0, '', 'image/jpeg', ?, 0, 1)",
+        [mediaId, productId, storageKey, "Backup restore fixture image", mediaBytes.length],
+      );
+      await sourcePool.query(
         "CREATE TABLE dag_backup_probe (id INT NOT NULL PRIMARY KEY, probe_value VARCHAR(100) NOT NULL) ENGINE=InnoDB",
       );
       await sourcePool.query("INSERT INTO dag_backup_probe (id, probe_value) VALUES (1, ?)", [probeValue]);
 
       await mkdir(sourceMediaDirectory, { recursive: true });
-      await writeFile(join(sourceMediaDirectory, "01-primary.jpg"), mediaBytes);
+      await writeFile(join(sourceMediaDirectory, mediaId + ".jpg"), mediaBytes);
 
       const backup = await createLocalBackupBundle({
         databaseUrl: sourceUrl.toString(),
@@ -83,7 +94,7 @@ suite("native local MySQL and private-media backup/restore", () => {
         targetMediaRoot,
       });
       expect(restored.targetDatabase).toBe(targetDatabase);
-      expect(await readFile(join(targetMediaRoot, "products", "product-" + suffix, "01-primary.jpg")))
+      expect(await readFile(join(targetMediaRoot, "products", productId, mediaId + ".jpg")))
         .toEqual(mediaBytes);
 
       const targetConnection = await mysql.createConnection(parseLocalMySqlConnectionUrl(targetUrl.toString()));
