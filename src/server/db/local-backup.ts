@@ -107,11 +107,16 @@ function resolveLocalMediaRoot(value = process.env.MEDIA_STORAGE_ROOT): string {
   if (getMediaStorageDriver() !== "local") {
     throw new Error("Local backup/restore is blocked while MEDIA_STORAGE_DRIVER=s3. Remote object-store backup must be verified separately; no partial backup is created.");
   }
-  const resolved = value?.trim()
-    ? path.resolve(value.trim())
-    : path.resolve(getMediaStorageRoot());
+  const configured = value?.trim();
+  if (configured && !path.isAbsolute(configured)) {
+    throw new Error("MEDIA_STORAGE_ROOT must be an absolute filesystem path for backup operations.");
+  }
+  const resolved = configured ? path.resolve(configured) : path.resolve(getMediaStorageRoot());
   if (resolved === path.parse(resolved).root) {
     throw new Error("MEDIA_STORAGE_ROOT cannot be a filesystem root for backup operations.");
+  }
+  if (isPathInside(path.resolve(process.cwd(), "public"), resolved)) {
+    throw new Error("Private media root cannot be inside the public web directory.");
   }
   return resolved;
 }
@@ -360,20 +365,13 @@ async function copyFileWithDigest(sourcePath: string, destinationPath: string): 
   }
 }
 
-function assertNoDatabaseSwitchStatements(dumpPath: string): Promise<void> {
-  return new Promise(async (resolve, reject) => {
-    const lines = createInterface({ input: createReadStream(dumpPath, { encoding: "utf8" }), crlfDelay: Infinity });
-    try {
-      for await (const line of lines) {
-        if (/^\s*(?:USE\s+|CREATE\s+(?:DATABASE|SCHEMA)\b|DROP\s+(?:DATABASE|SCHEMA)\b|ALTER\s+(?:DATABASE|SCHEMA)\b)/i.test(line)) {
-          throw new Error("SQL backup contains a database-switch or database-definition statement; refusing to restore it into a different target.");
-        }
-      }
-      resolve();
-    } catch (error) {
-      reject(error);
+async function assertNoDatabaseSwitchStatements(dumpPath: string): Promise<void> {
+  const lines = createInterface({ input: createReadStream(dumpPath, { encoding: "utf8" }), crlfDelay: Infinity });
+  for await (const line of lines) {
+    if (/^\\s*(?:USE\\s+|CREATE\\s+(?:DATABASE|SCHEMA)\\b|DROP\\s+(?:DATABASE|SCHEMA)\\b|ALTER\\s+(?:DATABASE|SCHEMA)\\b)/i.test(line)) {
+      throw new Error("SQL backup contains a database-switch or database-definition statement; refusing to restore it into a different target.");
     }
-  });
+  }
 }
 
 async function copyMediaTree(
