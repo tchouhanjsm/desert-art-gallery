@@ -36,6 +36,7 @@ export const storefrontReviewRoutes = [
   { id: "not-found", path: "/route-that-does-not-exist-review", area: "customer", allowedStatuses: [404] },
   { id: "admin-entry", path: "/admin", area: "operations", allowedStatuses: [200, 302, 307, 308, 401, 403] },
   { id: "owner-login", path: "/owner/login", area: "operations", allowedStatuses: [200] },
+  { id: "storefront-visual-assets", path: "/storefront-visual-assets", area: "customer", allowedStatuses: [200] },
 ] as const satisfies readonly StorefrontReviewRoute[];
 
 export const storefrontReviewViewports = [

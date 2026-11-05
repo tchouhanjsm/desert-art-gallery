@@ -17,7 +17,7 @@ describe("storefront visual review matrix", () => {
     for (const path of [
       "/", "/shop", "/cart", "/checkout", "/login", "/register", "/account",
       "/account/recovery", "/wishlist", "/story", "/artisans", "/journal",
-      "/contact", "/shipping", "/returns", "/faq", "/tracking", "/privacy", "/terms",
+      "/contact", "/shipping", "/returns", "/faq", "/tracking", "/privacy", "/terms", "/storefront-visual-assets",
     ]) {
       expect(paths.has(path), `Missing visual review route: ${path}`).toBe(true);
     }

@@ -1,6 +1,6 @@
 # Japanese-Inspired English-Language Storefront Visual Review
 
-**Review state:** The Phase 5 route/viewport capture harness is merged. The English-language correction is being implemented on a follow-up branch; new screenshots must be captured from that exact branch head before sign-off.  
+**Review state:** PR #19 English-language correction is merged. Phase 6 visual-merchandising and ecommerce-experience work is in progress; screenshots from the exact Phase 6 head and owner-approved catalogue data are required before sign-off.  
 **Scope:** Public customer storefront only. Owner/admin interfaces remain separate.  
 **Primary implementation:** `src/styles/japan-storefront.css`, imported by `src/app/layout.tsx`.
 
@@ -33,6 +33,14 @@ The Phase 5 review script captures the public shopping and operations route matr
 - The generic delivery-address contract remains generic. No Japan-only address, furigana or postcode lookup feature is introduced.
 - Shipping, tax, returns, payment, seller identity and legal terms remain provisional until merchant-approved configuration and legal review are supplied.
 - Product images may be published only when the product is published and the relevant usage rights are confirmed.
+
+## Phase 6 visual merchandising focus
+
+- The homepage must surface the shop action and product discovery early. A large text-only hero or monogram panel must not consume the first viewport when approved catalogue products are available.
+- Collection tiles may use photography only when the collection is a persisted owner-managed record with a non-empty media path and reviewed alt text. Local preview placeholders are not collection photography.
+- Product cards should show the actual category, title, merchant note and available verified facts such as material, size and one-of-a-kind status. A buy-ready cue is permitted only when the persisted product/option has a real price, currency and available stock.
+- Preview artwork must be identified as a design placeholder and never shown as product photography.
+- Editorial content should support product discovery and make useful curation information visible. Do not repeat generic brand text merely to fill vertical space.
 
 ## Visual QA limitations
 

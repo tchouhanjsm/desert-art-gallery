@@ -16,6 +16,22 @@ Keep `<html lang="en">`, all customer-facing headings, navigation, buttons, form
 
 This decision supersedes any later section in this document that calls for Japanese-language content, a `lang="ja"` document, Japanese glyph testing, native-speaker Japanese copy review, Japanese-language taglines, furigana, Japanese address forms, Japan-market user testing or JPY conversion. Those items are not current requirements. Historical references to Japanese retail examples describe design inspiration only.
 
+## Phase 6 — visual merchandising and ecommerce experience
+
+The English-language correction was merged in PR #19. The next milestone is product merchandising and the practical shopping journey. Do not repeat the language correction or change the approved colour palette and Inter/Playfair typography.
+
+Apply six workstreams:
+1. **Photography integrity:** inspect approved media mappings, image source paths, MIME/alt/rights safeguards and rendered results. Never use external stock, hotlink Etsy or substitute generic artwork for product photographs.
+2. **Homepage merchandising:** make the first viewport clearly communicate a real shop; lead with products/collections when approved records exist, retain a deliberate empty-catalogue state when none exist, and keep category discovery early.
+3. **Collections and categories:** surface only published collections; use a real collection image only when its media path and descriptive alt text are approved. Avoid broad static empty collection tiles.
+4. **Product cards and detail:** show truthful source-backed price/currency, supplied category/title/notes, approved images, and verified material/size/condition details. Never add sales badges, popularity, reviews, urgency or stock claims unless supported by data.
+5. **Editorial merchandising:** use editorial modules to explain curation, material, provenance and craft where verified. Replace long generic brand filler with purposeful shopping help; retain story, maker and journal content only when real published content exists.
+6. **Visual evidence:** capture desktop and mobile routes on the exact PR head. Review home, shop, collection and product, plus cart/checkout and supporting pages. CI's blank database is not an adequate real-product visual review; record that limitation explicitly.
+
+Permanent principle: **DO NOT ABANDON MINIMALISM. ABANDON EMPTINESS.** The aim is calm product density, not empty space or invented content.
+
+This phase is presentation-only. Preserve the MySQL catalogue, media storage, image-rights checks, product lifecycle, stock, price, cart, checkout, payments, shipping/tax fail-closed behaviour, security boundaries, imports and admin/owner workflows.
+
 ## 0. Instruction to the AI agent — read this before changing code
 
 You are acting as a senior Japanese ecommerce product-design and frontend engineering team. Your task is to **replace the existing public-facing storefront theme and redesign the complete customer-facing shopping experience**, not to make a few CSS adjustments to the current theme.

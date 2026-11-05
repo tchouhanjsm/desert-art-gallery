@@ -19,6 +19,8 @@ type CaptureRecord = {
   h1Count: number | null;
   imagesWithoutAlt: number | null;
   brokenImages: number | null;
+  imagesWithGenericAlt: number | null;
+  externalProductImageRequests: string[];
   buttonsWithoutAccessibleName: number | null;
   httpErrors: string[];
   consoleErrors: string[];
@@ -88,7 +90,12 @@ async function main(): Promise<void> {
       const failure = request.failure()?.errorText ?? "request failed";
       if (isExpectedNavigationAbort(failure)) return;
       const owner = requestOwners.get(request) ?? activeRecord;
-      owner?.failedRequests.push(`${request.method()} ${request.url()} — ${failure}`);
+      const requestUrl = request.url();
+      owner?.failedRequests.push(`${request.method()} ${requestUrl} — ${failure}`);
+      if (owner && /product-media|\/api\/media\/|\/api\/admin\/media\//i.test(requestUrl)) {
+        const requestOrigin = new URL(requestUrl).origin;
+        if (requestOrigin !== baseUrl.origin) owner.externalProductImageRequests.push(requestUrl);
+      }
     });
 
     for (const route of storefrontReviewRoutes) {
@@ -109,6 +116,8 @@ async function main(): Promise<void> {
           h1Count: null,
           imagesWithoutAlt: null,
           brokenImages: null,
+          imagesWithGenericAlt: null,
+          externalProductImageRequests: [],
           buttonsWithoutAccessibleName: null,
           httpErrors: [],
           consoleErrors: [],
@@ -142,6 +151,10 @@ async function main(): Promise<void> {
               h1Count: document.querySelectorAll("h1").length,
               imagesWithoutAlt: document.querySelectorAll("img:not([alt])").length,
               brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
+              imagesWithGenericAlt: [...document.images].filter((image) => {
+                const alt = (image.getAttribute("alt") || "").trim();
+                return !alt || /^(image|photo|product image|picture|untitled)$/i.test(alt);
+              }).length,
               buttonsWithoutAccessibleName: buttons.filter((button) => {
                 const label = button.getAttribute("aria-label")?.trim();
                 const title = button.getAttribute("title")?.trim();
@@ -156,6 +169,7 @@ async function main(): Promise<void> {
           record.h1Count = metrics.h1Count;
           record.imagesWithoutAlt = metrics.imagesWithoutAlt;
           record.brokenImages = metrics.brokenImages;
+          record.imagesWithGenericAlt = metrics.imagesWithGenericAlt;
           record.buttonsWithoutAccessibleName = metrics.buttonsWithoutAccessibleName;
 
           const screenshotName = `${route.id}--${viewport.id}.png`;
@@ -204,7 +218,8 @@ async function main(): Promise<void> {
     limitations: [
       "This is an unauthenticated route and layout smoke review; it does not exercise signed-in customer or owner workflows.",
       "CI uses a blank test database. Dynamic product and collection routes may correctly return 404 until approved merchant records exist.",
-      "A screenshot is evidence for human review, not automatic visual sign-off or native-speaker/accessibility acceptance.",
+      "A screenshot is evidence for human review, not automatic visual sign-off or accessibility acceptance.",
+      "The default CI database is empty. Product-card, product-detail and collection merchandising must be checked with owner-approved staging data.",
       "No product data, media, rights, prices, policies or customer records are created by this script.",
     ],
     records,

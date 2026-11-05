@@ -36,10 +36,10 @@ Use realistic English production-length strings, long merchant-supplied product 
 
 ## 3. Visual and usability checks
 
-- [ ] First viewport unmistakably communicates online shopping, real product types and a clear shopping CTA.
-- [ ] Product/category discovery appears early; no tourism/hotel/destination-led hero or long introduction above shopping.
+- [ ] First viewport unmistakably communicates online shopping, real product types, a clear shopping CTA and early product/collection discovery.
+- [ ] Product/category discovery appears early; no tourism/hotel/destination-led hero or long introduction above shopping. Empty states are deliberate, not large filler panels.
 - [ ] Search, navigation, category links, breadcrumbs, filters and sort are functional, discoverable and URL-stable.
-- [ ] Actual product names, prices, currencies, stock, options and images match their source records.
+- [ ] Actual product names, prices, currencies, stock, options and images match their source records. Cards expose useful verified facts and a truthful view/buy status.
 - [ ] Price and tax labels use the actual currency and approved tax configuration from merchant records; never convert or relabel a currency or imply tax inclusion without evidence.
 - [ ] Shipping/returns/payment/legal content appears only when approved and implemented.
 - [ ] No fake reviews, popularity, best-seller markers, maker biographies, urgency or free-shipping claims.
@@ -51,7 +51,7 @@ Use realistic English production-length strings, long merchant-supplied product 
 ## 4. Image and media checks
 
 - [ ] Published product cards and product pages use the approved application media route/storage path.
-- [ ] No Etsy image URL or external reference-site image is hotlinked.
+- [ ] No Etsy image URL or external reference-site image is hotlinked. CI visual capture records product-media image requests outside the site origin.
 - [ ] Primary image mapping, alt text, MIME, file size, checksum, sort order and image rights are verified.
 - [ ] Private media remains inaccessible until existing permission/publication rules allow it.
 - [ ] Preview artwork is explicitly identified and never represented as product photography.
