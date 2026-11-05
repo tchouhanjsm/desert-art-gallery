@@ -37,6 +37,8 @@ jobs:
       DATABASE_URL: mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_test
       MEDIA_STORAGE_ROOT: /tmp/desert-gallery-ci-media
       MYSQL_INTEGRATION_TEST: "1"
+      MYSQL_BACKUP_INTEGRATION_TEST: "1"
+      MYSQL_BACKUP_TEST_ADMIN_URL: mysql://root:root@127.0.0.1:3306/mysql
       NEXT_PUBLIC_SITE_URL: http://localhost:4174
     steps:
       - uses: actions/checkout@v4
@@ -62,6 +64,10 @@ jobs:
           exit 1
       - name: Apply MySQL migrations
         run: npm run db:migrate
+      - name: Verify native MySQL client tools
+        run: |
+          command -v mysqldump
+          command -v mysql
       - name: Typecheck
         run: npm run typecheck
       - name: Unit and integration tests
