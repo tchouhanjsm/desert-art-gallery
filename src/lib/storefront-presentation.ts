@@ -16,3 +16,34 @@ export function selectStorefrontHeroProduct(products: readonly Product[]): Produ
     product.image.trim().length > 0
   ) ?? null;
 }
+
+/** Only persisted collections with a real image path and descriptive alt text use photo tiles. */
+export function isPublishedCollectionImage(collection: {
+  id?: string;
+  image?: string | null;
+  imageAlt?: string | null;
+}): boolean {
+  return typeof collection.id === "string" && collection.id.trim().length > 0
+    && typeof collection.image === "string" && collection.image.trim().length > 0
+    && typeof collection.imageAlt === "string" && collection.imageAlt.trim().length > 0;
+}
+
+/** Only merchant-supplied product facts are surfaced on the product card. */
+export function getProductCardFacts(product: Product): string[] {
+  const facts: string[] = [];
+  if (product.isOneOfAKind === true) facts.push("One of a kind");
+  if (product.materials?.length) facts.push(product.materials.slice(0, 2).join(" · "));
+  if (product.sizes?.length) facts.push(product.sizes.slice(0, 2).join(" · "));
+  return facts;
+}
+
+/** A card is purchase-ready only when a published product/variant is priced and in stock. */
+export function hasPurchasableProductOption(product: Product): boolean {
+  if (!isPublishedProductRecord(product)) return false;
+  if (product.variants?.length) {
+    return product.variants.some((variant) =>
+      variant.status === "active" && variant.priceMinor !== null && variant.quantityOnHand > 0
+    );
+  }
+  return product.priceMinor !== null && Boolean(product.currency) && (product.quantityOnHand ?? 0) > 0;
+}

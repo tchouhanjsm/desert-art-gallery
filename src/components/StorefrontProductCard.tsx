@@ -5,6 +5,7 @@ import { formatMoneyFromMinor } from "@/lib/money";
 import type { Product } from "@/lib/products";
 import { PreviewArtwork } from "@/components/PreviewArtwork";
 import { WishlistToggle } from "@/components/WishlistToggle";
+import { getProductCardFacts, hasPurchasableProductOption } from "@/lib/storefront-presentation";
 
 function previewVariant(category: string): "textile" | "embroidered" | "object" | "heritage" {
   const value = category.toLowerCase();
@@ -16,6 +17,8 @@ function previewVariant(category: string): "textile" | "embroidered" | "object" 
 
 export function StorefrontProductCard({ product }: { product: Product }) {
   const isPreview = !product.id;
+  const facts = getProductCardFacts(product);
+  const purchasable = hasPurchasableProductOption(product);
   const price = product.priceMinor != null && product.currency
     ? formatMoneyFromMinor(product.priceMinor, product.currency)
     : "Price on request";
@@ -41,16 +44,21 @@ export function StorefrontProductCard({ product }: { product: Product }) {
               sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 23vw"
             />
           )}
-          {isPreview && <span className="atelier-preview-label">PHOTOGRAPHY PENDING</span>}
+          {isPreview && <span className="atelier-preview-label">PREVIEW · NOT FOR SALE</span>}
           <span className="atelier-product-open" aria-hidden="true">↗</span>
         </div>
         <div className="atelier-product-meta">
           {product.category && <span className="atelier-product-category">{product.category}</span>}
           <h3>{product.name}</h3>
           {product.note && <p>{product.note}</p>}
+          {facts.length > 0 && (
+            <ul className="atelier-product-facts" aria-label="Product details">
+              {facts.map((fact) => <li key={fact}>{fact}</li>)}
+            </ul>
+          )}
           <div className="atelier-product-bottom">
             <span className="atelier-product-price">{price}</span>
-            <span className="atelier-product-action">View piece</span>
+            <span className="atelier-product-action">{purchasable ? "View & buy" : "View details"}</span>
           </div>
         </div>
       </Link>

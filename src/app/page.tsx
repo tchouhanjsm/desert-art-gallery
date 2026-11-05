@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
-import { selectStorefrontHeroProduct } from "@/lib/storefront-presentation";
+import { isPublishedCollectionImage, selectStorefrontHeroProduct } from "@/lib/storefront-presentation";
 
 export const metadata = {
   title: "Textiles and Handcrafted Pieces from Rajasthan",
@@ -20,16 +20,16 @@ export default async function HomePage() {
     <div className="jp-home">
       <section className="jp-home-hero" aria-labelledby="home-heading">
         <div className="jp-home-hero-copy">
-          <div className="jp-home-hero-kicker">JAISALMER · RAJASTHAN · INDIA</div>
-          <h1 id="home-heading">Textiles and handmade pieces, <em>with a story to tell.</em></h1>
+          <div className="jp-home-hero-kicker">DESERT ART GALLERY · Jaisalmer, Rajasthan</div>
+          <h1 id="home-heading">Distinctive textiles.<br /><em>Considered pieces for living.</em></h1>
           <p>
-            Based in Jaisalmer, Rajasthan, India, we curate pieces for everyday living, paying attention to the character of each object and the details we can verify.
+            Explore a considered selection of heritage textiles and handcrafted objects, each presented with the product details we can verify.
           </p>
           <div className="jp-home-hero-actions">
-            <Link className="button-primary" href="/shop">Explore the collection</Link>
-            <Link className="text-link" href="/story">Our story</Link>
+            <Link className="button-primary" href="/shop">Shop all products</Link>
+            <Link className="text-link" href="/story">Browse categories</Link>
           </div>
-          <p className="jp-home-hero-note">Products are added as their descriptions, photographs and availability are reviewed.</p>
+          
         </div>
         <div className="jp-home-hero-media">
           {heroProduct ? (
@@ -50,19 +50,19 @@ export default async function HomePage() {
             <div className="jp-home-hero-empty">
               <span>ONLINE STORE · CATALOGUE IN PREPARATION</span>
               <strong>We are preparing the catalogue while product details and photography are reviewed.</strong>
-              <small>Only verified listings will be published.</small>
+              <small>Listings appear only after product details, media and rights checks are complete.</small>
             </div>
           )}
         </div>
       </section>
 
-      <section className="jp-home-utility-strip" aria-label="Shopping promises">
-        <div><span aria-hidden="true">01</span><div><b>Product details reviewed</b><small>Listings are based on information we have checked.</small></div></div>
-        <div><span aria-hidden="true">02</span><div><b>Photography and permissions checked</b><small>Only approved product photography is published.</small></div></div>
-        <div><span aria-hidden="true">03</span><div><b>Questions about a piece</b><small>Ask us about the details of an individual piece.</small></div></div>
+      <section className="jp-home-utility-strip" aria-label="Shopping information">
+        <div><span aria-hidden="true">01</span><div><b>Know what you are buying</b><small>Product descriptions and specifications are shown when verified.</small></div></div>
+        <div><span aria-hidden="true">02</span><div><b>Thoughtful image selection</b><small>Product photography is reviewed for accuracy and usage rights.</small></div></div>
+        <div><span aria-hidden="true">03</span><div><b>Clear before you order</b><small>Ask us to confirm price, availability and delivery details.</small></div></div>
       </section>
 
-      {collections.length > 0 && (
+      {collections.filter(isPublishedCollectionImage).length > 0 && (
         <section className="jp-home-section jp-home-section--muted" aria-labelledby="collections-heading">
           <div className="jp-home-section-inner">
             <div className="jp-home-section-heading">
@@ -73,7 +73,7 @@ export default async function HomePage() {
               <Link href="/shop" className="text-link">View all products</Link>
             </div>
             <div className="jp-home-collection-grid">
-              {collections.slice(0, 4).map((collection) => (
+              {collections.filter(isPublishedCollectionImage).slice(0, 4).map((collection) => (
                 <Link className="jp-home-collection-card" href={"/collections/" + collection.slug} key={collection.slug}>
                   <div className="jp-home-collection-media">
                     <Image
@@ -96,8 +96,8 @@ export default async function HomePage() {
         <div className="jp-home-section-inner">
           <div className="jp-home-section-heading">
             <div>
-              <div className="section-kicker">THE ONLINE CATALOGUE</div>
-              <h2 id="catalogue-heading" className="section-title">Shop the collection</h2>
+              <div className="section-kicker">THE ONLINE COLLECTION</div>
+              <h2 id="catalogue-heading" className="section-title">Shop considered pieces</h2>
             </div>
             {products.length > 0 && <Link href="/shop" className="text-link">View more products</Link>}
           </div>
@@ -109,9 +109,9 @@ export default async function HomePage() {
             </div>
           ) : (
             <div className="jp-home-empty">
-              <h3>Catalogue in preparation</h3>
-              <p>We will publish pieces here once their details and photography have been reviewed. Contact us with any questions about current availability.</p>
-              <Link href="/contact" className="button-outline">Contact us</Link>
+              <h3>The collection is being prepared with care</h3>
+              <p>We are reviewing original product photography, product details and permissions before listings go live. Explore the shop or contact the gallery about a specific piece.</p>
+              <Link href="/shop" className="button-outline">Explore the shop</Link>
             </div>
           )}
         </div>
@@ -119,15 +119,17 @@ export default async function HomePage() {
 
       <section className="jp-home-story" aria-labelledby="home-story-heading">
         <div className="jp-home-story-copy">
-          <div className="section-kicker">THE STORY BEHIND THE PIECES</div>
-          <h2 id="home-story-heading" className="section-title">Chosen with care, <em>shared with context.</em></h2>
+          <div className="section-kicker">THE GALLERY APPROACH</div>
+          <h2 id="home-story-heading" className="section-title">A closer look at <em>craft and character.</em></h2>
           <p>
-            Desert Art Gallery is based in Jaisalmer, Rajasthan. We bring together textiles and handcrafted objects, presenting each piece with respect for its character and transparent, verified information.
+            From Jaisalmer, Rajasthan, we bring together distinctive textiles and handcrafted objects. Every listing is built around the individual piece—not generic claims.
           </p>
-          <Link href="/story" className="text-link">Discover our story</Link>
+          <Link href="/story" className="text-link">Our approach to curation</Link>
         </div>
-        <div className="jp-home-story-art" role="img" aria-label="A graphic panel featuring the Desert Art Gallery monogram">
-          <span>DAG</span>
+        <div className="jp-home-story-art jp-home-editorial-note">
+          <span className="section-kicker">CURATION NOTES</span>
+          <strong>Material<br />Texture<br />Provenance<br />Character</strong>
+          <small>Facts are shared when verified. Nothing is guessed to fill a listing.</small>
         </div>
       </section>
     </div>

@@ -18,7 +18,7 @@ export function PreviewArtwork({
       <span className="atelier-preview-art-code">DAG / VISUAL STUDY</span>
       <span className="atelier-preview-art-monogram" aria-hidden="true">D</span>
       <span className="atelier-preview-art-title">{category || "THE GALLERY"}</span>
-      <span className="atelier-preview-art-caption">ORIGINAL PHOTOGRAPHY TO BE ADDED</span>
+      <span className="atelier-preview-art-caption">DESIGN PLACEHOLDER · NOT PRODUCT PHOTOGRAPHY</span>
     </div>
   );
 }
