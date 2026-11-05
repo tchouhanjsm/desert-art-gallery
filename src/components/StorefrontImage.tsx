@@ -20,5 +20,5 @@ export function StorefrontImage(props: StorefrontImageProps) {
       </span>
     );
   }
-  return <Image {...props} onError={() => setUnavailable(true)} />;
+  return <Image {...props} alt={props.alt} onError={() => setUnavailable(true)} />;
 }
