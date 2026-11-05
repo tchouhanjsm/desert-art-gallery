@@ -8,6 +8,7 @@ import { buildProductEnquiryHref } from "@/lib/product-enquiry";
 import type { Metadata } from "next";
 import { AddToBagButton } from "@/components/AddToBagButton";
 import { ProductGallery } from "@/components/ProductGallery";
+import { StorefrontMediaPlaceholder } from "@/components/StorefrontMediaPlaceholder";
 import { getSiteUrl } from "@/lib/site-url";
 import { WishlistToggle } from "@/components/WishlistToggle";
 import { hasPurchasableProductOption, isPublishedProductRecord } from "@/lib/storefront-presentation";
@@ -66,15 +67,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const hasAvailableStock = variants.length > 0
     ? activeVariants.some((variant) => variant.quantityOnHand > 0)
     : (product.quantityOnHand ?? 0) > 0;
-  const galleryImages: ProductImage[] = product.images?.length
-    ? product.images
-    : [{
-      id: "development-preview",
-      url: product.image,
-      altText: product.imageAlt || product.name,
-      sortOrder: 0,
-      isPrimary: true,
-    }];
+  const galleryImages: ProductImage[] = product.images ?? [];
 
   const siteUrl = getSiteUrl();
   const jsonLd = {
@@ -82,7 +75,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     "@type": "Product",
     name: product.name,
     ...(product.description || product.note ? { description: product.description || product.note } : {}),
-    image: galleryImages.map((image) => new URL(image.url, siteUrl).toString()),
+    ...(galleryImages.length ? { image: galleryImages.map((image) => new URL(image.url, siteUrl).toString()) } : {}),
     ...(product.category ? { category: product.category } : {}),
     ...(product.id && product.priceMinor != null && product.currency ? {
       offers: {
@@ -115,7 +108,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <div className="product-detail atelier-product-detail">
         <div className="atelier-product-gallery-wrap">
-          <ProductGallery images={galleryImages} title={product.name} />
+          {galleryImages.length > 0 ? (
+            <ProductGallery images={galleryImages} title={product.name} />
+          ) : (
+            <div className="detail-gallery-main product-image-wrap">
+              <StorefrontMediaPlaceholder variant="product" label={"Photography pending for " + product.name} caption="PHOTOGRAPHY PENDING" />
+            </div>
+          )}
           {!product.id && <p className="atelier-image-disclaimer">Development preview. Product photography must be reviewed and approved before publication.</p>}
         </div>
         <div className="detail-copy atelier-detail-copy">

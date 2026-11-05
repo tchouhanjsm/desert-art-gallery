@@ -339,3 +339,5 @@
 @media(max-width:1000px){.jp-storefront .atelier-related-products .atelier-product-grid{grid-template-columns:repeat(3,minmax(0,1fr));}.jp-storefront .atelier-related-heading{align-items:start;}}
 @media(max-width:760px){.jp-storefront .atelier-collection-hero{aspect-ratio:5/4;min-height:0;}.jp-storefront .atelier-related-products .atelier-product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px;}.jp-storefront .atelier-related-heading{flex-direction:column;}.jp-storefront .atelier-related-products{margin-top:34px;padding-top:25px;}.jp-storefront .cart-summary,.jp-storefront .checkout-summary{position:static;}.jp-storefront .atelier-collection-toolbar{font-size:10px;}}
 @media(prefers-reduced-motion:reduce){.jp-storefront .storefront-media-placeholder::before,.jp-storefront .storefront-media-placeholder::after{transform:none;}}
+
+.jp-storefront .atelier-product-gallery-wrap .detail-gallery-main{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--atelier-stone);}
