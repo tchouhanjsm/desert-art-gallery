@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import mysql from "mysql2/promise";
+import type { Pool, RowDataPacket } from "mysql2";
 import { drizzle } from "drizzle-orm/mysql2";
 import { migrate } from "drizzle-orm/mysql2/migrator";
 import * as schema from "./schema";
@@ -33,7 +34,7 @@ suite("native local MySQL and private-media backup/restore", () => {
     const mediaBytes = Buffer.from([0xff, 0xd8, 0xff, 0x00, 0x01, 0x02]);
     const probeValue = "probe-" + suffix;
     const admin = await mysql.createConnection(adminConfig);
-    let sourcePool: mysql.Pool | undefined;
+    let sourcePool: Pool | undefined;
 
     try {
       await admin.query(
@@ -87,7 +88,7 @@ suite("native local MySQL and private-media backup/restore", () => {
 
       const targetConnection = await mysql.createConnection(parseLocalMySqlConnectionUrl(targetUrl.toString()));
       try {
-        const [rows] = await targetConnection.query<mysql.RowDataPacket[]>(
+        const [rows] = await targetConnection.query<RowDataPacket[]>(
           "SELECT probe_value FROM dag_backup_probe WHERE id = 1",
         );
         expect(rows[0]?.probe_value).toBe(probeValue);
@@ -146,13 +147,8 @@ suite("native local MySQL and private-media backup/restore", () => {
         backupPath: backup.backupPath,
         databaseUrl: sourceUrl.toString(),
         targetMediaRoot,
-      })).rejects.toThrow(/different database/);
-      expect(() => {
-        if (targetMediaRoot.startsWith("/")) return;
-        throw new Error("expected an absolute test path");
-      }).not.toThrow();
-      expect(await import("node:fs/promises").then(({ lstat }) => lstat(targetMediaRoot).then(() => true).catch(() => false)))
-        .toBe(false);
+      })).rejects.toThrow(/checksum/);
+      await expect(access(targetMediaRoot)).rejects.toThrow();
     } finally {
       await sourcePool?.end().catch(() => undefined);
       await admin.query("DROP DATABASE IF EXISTS `" + sourceDatabase + "`").catch(() => undefined);
