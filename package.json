@@ -14,6 +14,8 @@
     "db:ping": "node --import=tsx scripts/mysql-status.ts --ping",
     "db:status": "node --import=tsx scripts/mysql-status.ts",
     "db:migrate": "node --import=tsx scripts/migrate-mysql.ts",
+    "db:backup": "node --import=tsx scripts/backup-local-workspace.ts",
+    "db:restore": "node --import=tsx scripts/restore-local-workspace.ts",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
     "db:import-editorial": "node --env-file=.env --import=tsx scripts/import-editorial-to-mysql.ts",
     "db:bootstrap-admin": "node --env-file=.env --import=tsx scripts/bootstrap-local-admin.ts",
