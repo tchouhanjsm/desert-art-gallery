@@ -1116,3 +1116,27 @@ These are source-export observations only. They do not mean the CSV was imported
 - Empty CI databases may correctly return 404 for dynamic product and collection routes. The manifest must record those outcomes; it must not convert them into fake sample catalogue records or imply product visual acceptance.
 - Screenshots and automated telemetry are review evidence only. Authenticated customer/owner workflows, actual merchant catalogue media, English UI copy and visual review, screen-reader/keyboard review, performance testing with the intended audience and legal/merchant approvals remain separate acceptance gates.
 - The Phase 5 capture harness is being implemented in draft [PR #18](https://github.com/tchouhanjsm/desert-art-gallery/pull/18); exact-head CI and generated route evidence are pending.
+
+
+## Phase 7 — cart resilience and product purchase-path clarity — 2026-11-05
+
+This follow-on remains within the existing visual merchandising PR and is still presentation-layer work.
+
+### Implemented in the frontend
+- The cart page and cart drawer render every locally stored line even while the server preview is loading, fails, or omits a line. Product identity can be human-readably derived from the existing slug only as a temporary fallback; price, currency, availability and approved media continue to come exclusively from the server preview.
+- Product and cart image presentation uses the shared resilient storefront image component. A missing image receives an intentional neutral placeholder and does not expose a broken-image icon or raw alt text.
+- The cart drawer has an accessible dialog name, initial focus, keyboard focus containment, Escape-to-close, focus restoration and background scroll locking.
+- Cart quantity controls have product-specific accessible names. Increase is disabled until a matching server preview confirms availability and remaining quantity; removal and decrement remain available while the preview is unresolved.
+- The mobile product-detail sticky action now takes buyable products to their purchase controls. Products without a verified purchasable option retain an enquiry action. Draft/inactive variants do not contribute to public availability.
+- The mobile purchase action is navigation to the actual purchase controls, not a synthetic add-to-cart action; variant selection and the existing cart domain remain authoritative.
+
+### Boundaries preserved
+- No photo archive was uploaded, downloaded, migrated or committed. Real photography remains a later owner-approved media phase.
+- No catalogue, database schema, inventory, reservation, price calculation, checkout, payment, shipping, tax, authentication, import or media-rights logic was changed.
+- No product, price, stock, review, fulfilment or policy information was fabricated.
+- All customer-facing UI remains English-only.
+
+### Validation and remaining acceptance
+- Exact-head typecheck, tests, lint, production build, route/viewport screenshots and Lighthouse validation must pass on the final PR head before this increment can be accepted.
+- CI's blank database can validate empty catalogue and common chrome states, but cannot validate a real product, variant, populated cart or product photography. Merchant-connected UAT is still required.
+- The named `docs/AGENT-DESIGN-REVIEW-PROMPT.md` referenced in the handoff prompt is not present in this repository branch; its contents were not inferred or recreated.

@@ -1,6 +1,6 @@
 # Japanese-Inspired English-Language Storefront Visual Review
 
-**Review state:** PR #19 English-language correction is merged. Phase 6 visual-merchandising and ecommerce-experience work is in progress; screenshots from the exact Phase 6 head and owner-approved catalogue data are required before sign-off.  
+**Review state:** PR #19 and PR #20 are merged. PR #21 continues the visual-merchandising work; Phase 7 cart and mobile purchase-path hardening is being validated. Exact-head CI and owner-approved catalogue data are required before sign-off.  
 **Scope:** Public customer storefront only. Owner/admin interfaces remain separate.  
 **Primary implementation:** `src/styles/japan-storefront.css`, imported by `src/app/layout.tsx`.
 
@@ -56,3 +56,17 @@ Automated capture validates route loading, viewport rendering and measurable UI 
 - [ ] Payment, shipping, tax and legal states are truthful and do not imply unsupported capabilities.
 - [ ] All route/viewport artifacts have been manually inspected.
 - [ ] Authenticated customer and owner workflows have been tested separately.
+
+
+## Phase 7 — cart resilience and product purchase-path clarity
+
+The current frontend increment adds the following customer-journey safeguards:
+
+- Cart rows are anchored to locally stored cart identity and are not hidden when server preview data is pending or unavailable. Only a matching server preview may contribute price, currency, current inventory, or product media.
+- Cart page and drawer use the reusable resilient image component and a neutral, explicit placeholder when no approved image is available.
+- The cart drawer is implemented as a keyboard-operable modal dialog with labelled heading, initial focus, tab containment, Escape handling, focus restoration and background scroll locking.
+- Decrement and remove remain available on unresolved lines; increase remains disabled until the server preview confirms available quantity.
+- The product-detail sticky mobile action scrolls to actual buying controls only when the product has a verified purchasable option. Otherwise it directs the customer to the existing enquiry route.
+- Draft/inactive variants are excluded from the public available-stock decision.
+
+The increment has not yet received exact-head CI or manual browser sign-off. The empty CI database cannot verify a populated cart, variant selection, a real product page or approved photography. Owner-connected staging UAT remains required. No image migration, backend change, payment activation or policy claim is part of this work.

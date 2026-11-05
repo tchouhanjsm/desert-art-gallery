@@ -18,7 +18,7 @@ Capture and inspect the public customer journeys, not only the homepage:
 | `/checkout` | No configuration, missing shipping/tax rules, configured destination, field errors, unpaid draft response |
 | `/login`, `/register`, `/account`, `/wishlist` | Signed-out, signed-in, empty and populated states where available |
 | `/story`, `/artisans`, `/journal`, `/contact` | Published/empty states; no unapproved people, images or contact details |
-| Not found | Japanese recovery path to the shop |
+| Not found | English recovery path to the shop |
 
 The `/admin` and `/owner` workspaces are separately tested as operations interfaces and are not part of public storefront visual theming.
 
@@ -90,7 +90,7 @@ Attach to the PR or release record:
 5. Commerce regression results for cart, inventory, shipping/tax fail-closed behaviour and order-draft idempotency.
 6. Open merchant/legal blockers.
 
-A redesign is not production-ready until owner inputs, image rights, Japanese content, tax/shipping/legal and route QA are verified.
+A redesign is not production-ready until owner inputs, image rights, approved English UI and merchant content, tax/shipping/legal and route QA are verified.
 
 
 ## 8. CSS, navigation and indexability safeguards
@@ -118,3 +118,15 @@ Start the local application first and ensure `/api/health` returns success. Set 
 CI runs the same matrix against a production build and uploads the capture set as a seven-day workflow artifact. The CI database is intentionally blank: product and collection routes may return 404, which is recorded as an expected data-empty outcome. That does not prove a real product page has passed visual review. The `/admin` route is unauthenticated and may redirect to owner login; the capture does not authenticate or test privileged workflows.
 
 Review every artifact manually. Automated captures do not provide pixel-diff baselines, screen-reader acceptance, complete keyboard testing, real merchant media validation or authenticated customer/owner UAT. Do not mark visual or production acceptance complete based on artifact generation alone.
+
+
+## 10. Phase 7 — cart resilience and purchase-path checks
+
+- [ ] Every locally stored cart line remains visible while its server preview is loading or unavailable; a preview failure must not remove the customer's ability to decrement or remove a line.
+- [ ] Cart price, currency, inventory and image data are shown only from the matching server preview; unmatched lines cannot be priced or sent to checkout.
+- [ ] Product and cart images use the shared resilient image component or a deliberate placeholder; no broken-image icon or raw alt text is exposed.
+- [ ] The cart drawer has a labelled modal dialog, initial focus, contained keyboard focus, Escape-to-close, focus restoration and background scroll lock.
+- [ ] Cart quantity controls expose item-specific accessible names. Increase remains disabled unless current server data confirms stock.
+- [ ] The product-detail mobile sticky action navigates to real purchase controls for buyable products and to enquiry for products without a verified purchasable option.
+- [ ] Only active variants can contribute to product availability and add-to-bag options.
+- [ ] No client-provided price, availability or media value is promoted to server authority.

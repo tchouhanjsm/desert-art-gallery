@@ -1,17 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { formatMoneyFromMinor } from "@/lib/money";
 import { cartLineKey, mergeCartLine, normalizeCartLines, setCartLineQuantity, type CartLine } from "@/lib/cart";
+import { StorefrontImage } from "@/components/StorefrontImage";
+import { formatCartFallbackName, getCartDisplayRows, type CartPreviewItem } from "@/lib/cart-presentation";
 
-type CartPreviewItem = {
-  slug: string; variantId: string | null; variantLabel: string | null; name: string;
-  quantityRequested: number; availableQuantity: number; available: boolean;
-  priceMinor: number | null; currency: string | null; image: string | null; imageAlt: string;
-};
 type CartContextValue = {
   lines: CartLine[]; preview: CartPreviewItem[]; lineCount: number; isLoading: boolean; error: string;
   drawerOpen: boolean; addItem: (slug: string, maximum: number, variantId?: string) => void;
@@ -118,28 +114,146 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 function CartDrawer() {
   const { lines, preview, isLoading, error, drawerOpen, closeDrawer, removeItem, setQuantity } = useCart();
-  if (!drawerOpen) return null;
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const rows = getCartDisplayRows(lines, preview);
   const totals: Record<string, number> = {};
-  for (const item of preview) {
-    if (item.priceMinor !== null && item.currency) totals[item.currency] = (totals[item.currency] ?? 0) + item.priceMinor * item.quantityRequested;
+  for (const { line, item } of rows) {
+    if (item?.priceMinor !== null && item?.priceMinor !== undefined && item.currency) {
+      totals[item.currency] = (totals[item.currency] ?? 0) + item.priceMinor * line.quantity;
+    }
   }
-  return <div className="cart-overlay" role="presentation" onClick={closeDrawer}>
-    <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(event) => event.stopPropagation()}>
-      <div className="cart-drawer-header"><div><div className="section-kicker">YOUR BAG</div><h2>Your bag</h2></div><button className="icon-button" onClick={closeDrawer} aria-label="Close shopping bag">×</button></div>
-      {isLoading && <p className="cart-state">Checking product details and availability…</p>}
-      {error && <p className="cart-error" role="status">{error}</p>}
-      {!lines.length ? <div className="empty-note">Your bag is empty.<br/><Link href="/shop" className="empty-link" onClick={closeDrawer}>Continue shopping</Link></div> :
-        <div className="cart-drawer-lines">{preview.map((item) => <article className="cart-line" key={cartLineKey(item.slug, item.variantId ?? undefined)}>
-          {item.image ? <Image src={item.image} alt={item.imageAlt} width={88} height={116} unoptimized /> : <div className="cart-line-placeholder" aria-hidden="true" />}
-          <div className="cart-line-details"><h3>{item.name}</h3>
-            {item.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}
-            {item.priceMinor !== null && item.currency ? <p>{formatMoneyFromMinor(item.priceMinor, item.currency)}</p> : <p>Price unavailable</p>}
-            <div className="cart-quantity"><button aria-label="Decrease quantity" onClick={() => setQuantity(item.slug, item.quantityRequested - 1, item.variantId ?? undefined)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1, item.variantId ?? undefined)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug, item.variantId ?? undefined)}>Remove</button></div>
-            {!item.available && <small className="cart-error">Only {item.availableQuantity} available. Please adjust the quantity.</small>}
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDrawer();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+      if (!focusable.length) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const activeElement = document.activeElement;
+      const focusIsInside = dialogRef.current?.contains(activeElement) ?? false;
+      if (event.shiftKey && (activeElement === first || !focusIsInside)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (activeElement === last || !focusIsInside)) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+    };
+  }, [drawerOpen, closeDrawer]);
+
+  if (!drawerOpen) return null;
+
+  return (
+    <div
+      className="cart-overlay"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) closeDrawer();
+      }}
+    >
+      <aside
+        ref={dialogRef}
+        className="cart-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-drawer-title"
+        tabIndex={-1}
+      >
+        <div className="cart-drawer-header">
+          <div>
+            <div className="section-kicker">YOUR BAG</div>
+            <h2 id="cart-drawer-title">Your bag</h2>
           </div>
-        </article>)}</div>}
-      {!!Object.keys(totals).length && <div className="cart-drawer-total"><span>Subtotal</span><strong>{Object.entries(totals).map(([currency, amount]) => formatMoneyFromMinor(amount, currency)).join(" · ")}</strong></div>}
-      <div className="cart-drawer-footer"><Link href="/cart" className="button-primary dark-button" onClick={closeDrawer}>View bag</Link><p>Shipping and taxes are not included. Checkout will be available once delivery, tax and payment settings have been configured.</p></div>
-    </aside>
-  </div>;
+          <button ref={closeButtonRef} className="icon-button" type="button" onClick={closeDrawer} aria-label="Close shopping bag">×</button>
+        </div>
+        {isLoading && <p className="cart-state" role="status">Checking product details and availability…</p>}
+        {error && <p className="cart-error" role="alert">{error}</p>}
+        {!lines.length ? (
+          <div className="empty-note">Your bag is empty.<br /><Link href="/shop" className="empty-link" onClick={closeDrawer}>Continue shopping</Link></div>
+        ) : (
+          <div className="cart-drawer-lines">
+            {rows.map(({ line, item }) => {
+              const name = item?.name ?? formatCartFallbackName(line.slug);
+              const imageAlt = item?.imageAlt?.trim() || (item ? name : "Product image pending review");
+              return (
+                <article className="cart-line" key={cartLineKey(line.slug, line.variantId)}>
+                  <div className="cart-line-media cart-line-media--compact">
+                    {item?.image ? (
+                      <StorefrontImage src={item.image} alt={imageAlt} fill sizes="80px" />
+                    ) : (
+                      <div className="cart-line-placeholder" role="img" aria-label={"Product image pending review for " + name}>
+                        <span>Image pending review</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="cart-line-details">
+                    <h3>{name}</h3>
+                    {item?.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}
+                    {item ? (
+                      <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price unavailable"}</p>
+                    ) : (
+                      <p className="cart-preview-pending">Product details are being checked.</p>
+                    )}
+                    <div className="cart-quantity">
+                      <button type="button" aria-label={"Decrease quantity for " + name} onClick={() => setQuantity(line.slug, line.quantity - 1, line.variantId)}>−</button>
+                      <span aria-live="polite">{line.quantity}</span>
+                      <button
+                        type="button"
+                        aria-label={"Increase quantity for " + name}
+                        disabled={!item?.available || line.quantity >= (item?.availableQuantity ?? 0)}
+                        onClick={() => setQuantity(line.slug, line.quantity + 1, line.variantId)}
+                      >
+                        +
+                      </button>
+                      <button className="cart-remove" type="button" onClick={() => removeItem(line.slug, line.variantId)}>Remove</button>
+                    </div>
+                    {item && !item.available && <small className="cart-error">Only {item.availableQuantity} available. Please adjust the quantity.</small>}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+        {!!Object.keys(totals).length && (
+          <div className="cart-drawer-total">
+            <span>Subtotal</span>
+            <strong>{Object.entries(totals).map(([currency, amount]) => formatMoneyFromMinor(amount, currency)).join(" · ")}</strong>
+          </div>
+        )}
+        <div className="cart-drawer-footer">
+          <Link href="/cart" className="button-primary dark-button" onClick={closeDrawer}>View bag</Link>
+          <p>Shipping and taxes are not included. Checkout will be available once delivery, tax and payment settings have been configured.</p>
+        </div>
+      </aside>
+    </div>
+  );
 }

@@ -1,6 +1,19 @@
 # Production readiness register
 
-Last reviewed: 2026-11-04 (Asia/Kolkata)
+Last reviewed: 2026-11-05 (Asia/Kolkata)
+
+## Current storefront frontend continuation — 2026-11-05
+
+The English-language storefront redesign continues on [PR #21](https://github.com/tchouhanjsm/desert-art-gallery/pull/21), branch `feat/visual-merchandising-ecommerce-phase6`. PR #20 has merged; PR #21 was synchronized with the resulting `main` head before this increment. This is not a new redesign or a new PR.
+
+The latest frontend work hardens the cart page/drawer and product-detail mobile purchase path. Cart rows remain editable while server preview data is unresolved; only matched server preview data may supply current price, currency, inventory and media. The drawer receives modal keyboard focus management, Escape handling, focus restoration and body scroll locking. Product detail uses active variants for availability, and the mobile sticky CTA leads to real purchase controls or the existing enquiry route as appropriate.
+
+**Validation status:** exact-head CI for this increment is pending. The preceding PR #21 head passed its full CI workflow, including migrations, typecheck, unit/integration tests, lint, production build, 120 route/viewport captures and Lighthouse. That evidence predates the current cart changes and is not a substitute for a new exact-head run.
+
+**Visual evidence limitation:** CI uses an intentionally blank catalogue. It can verify the empty catalogue and shared layout, but cannot establish correct real product details, variant options, populated cart behaviour or merchant photography. Real-catalogue UAT and visual review remain open.
+
+**Scope:** no photo migration/download/upload, database/schema change, inventory, price, cart API, reservation, checkout, payment, tax/shipping, authentication or media-rights behaviour is included. Customer-facing UI remains English-only. The referenced `docs/AGENT-DESIGN-REVIEW-PROMPT.md` is absent from the repository and has not been reconstructed.
+
 
 This register separates code present in the repository from integrations that have been connected and verified in a merchant environment. An implementation checkbox is not a claim that production credentials, customer data, catalogue rights or live payments have been configured.
 

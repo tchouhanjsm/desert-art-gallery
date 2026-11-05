@@ -1,40 +1,116 @@
 "use client";
-import Image from "next/image";
-import { galleryBlurDataUrl } from "@/lib/image";
+
 import Link from "next/link";
-import { formatMoneyFromMinor } from "@/lib/money";
+import { StorefrontImage } from "@/components/StorefrontImage";
 import { useCart } from "@/components/CartProvider";
 import { cartLineKey } from "@/lib/cart";
+import { formatMoneyFromMinor } from "@/lib/money";
+import { formatCartFallbackName, getCartDisplayRows } from "@/lib/cart-presentation";
 
 export function CartPageClient() {
   const { lines, preview, isLoading, error, removeItem, setQuantity } = useCart();
+  const rows = getCartDisplayRows(lines, preview);
   const totals: Record<string, number> = {};
-  for (const item of preview) {
-    if (item.priceMinor !== null && item.currency) totals[item.currency] = (totals[item.currency] ?? 0) + item.priceMinor * item.quantityRequested;
+  for (const { line, item } of rows) {
+    if (item?.priceMinor !== null && item?.priceMinor !== undefined && item.currency) {
+      totals[item.currency] = (totals[item.currency] ?? 0) + item.priceMinor * line.quantity;
+    }
   }
-  const canContinue = !isLoading && !error && lines.length > 0 && preview.length === lines.length
-    && preview.every((item) => item.available && item.priceMinor !== null && Boolean(item.currency))
+  const canContinue = !isLoading && !error && rows.length > 0
+    && rows.every(({ item }) => item?.available && item.priceMinor !== null && Boolean(item.currency))
     && Object.keys(totals).length === 1;
-  if (!lines.length) return <div className="empty-note">Your bag is empty.<br/><Link href="/shop" className="empty-link">Continue shopping</Link></div>;
-  return <div className="cart-page-layout">
-    <section className="cart-page-lines">
-      {isLoading && <p className="cart-state">Checking product details and availability…</p>}
-      {error && <p className="cart-error" role="status">{error}</p>}
-      {preview.map((item) => <article className="cart-page-line" key={cartLineKey(item.slug, item.variantId ?? undefined)}>
-        {item.image ? <Image placeholder="blur" blurDataURL={galleryBlurDataUrl} src={item.image} alt={item.imageAlt} width={160} height={210} /> : <div className="cart-line-placeholder" />}
-        <div className="cart-line-details"><div className="section-kicker">DESERT ART GALLERY</div><h2>{item.name}</h2>
-          <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price unavailable"}</p>
-          {item.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}
-          <div className="cart-quantity"><button aria-label="Decrease quantity" onClick={() => setQuantity(item.slug, item.quantityRequested - 1, item.variantId ?? undefined)}>−</button><span>{item.quantityRequested}</span><button aria-label="Increase quantity" disabled={item.quantityRequested >= item.availableQuantity} onClick={() => setQuantity(item.slug, item.quantityRequested + 1, item.variantId ?? undefined)}>+</button><button className="cart-remove" onClick={() => removeItem(item.slug, item.variantId ?? undefined)}>Remove</button></div>
-          {!item.available && <small className="cart-error">Only {item.availableQuantity} available. Please adjust the quantity.</small>}
+
+  if (!lines.length) {
+    return (
+      <div className="empty-note cart-empty-state">
+        <p>Your bag is empty.</p>
+        <p>Explore the collection to find a piece worth keeping.</p>
+        <Link href="/shop" className="button-outline">Continue shopping</Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cart-page-layout">
+      <section className="cart-page-lines" aria-label="Items in your bag">
+        {isLoading && <p className="cart-state" role="status">Checking product details and availability…</p>}
+        {error && <p className="cart-error" role="alert">{error}</p>}
+        {rows.map(({ line, item }) => {
+          const name = item?.name ?? formatCartFallbackName(line.slug);
+          const imageAlt = item?.imageAlt?.trim() || (item ? name : "Product image pending review");
+          return (
+            <article className="cart-page-line" key={cartLineKey(line.slug, line.variantId)}>
+              <div className="cart-line-media">
+                {item?.image ? (
+                  <StorefrontImage src={item.image} alt={imageAlt} fill sizes="(max-width: 520px) 95px, 130px" />
+                ) : (
+                  <div className="cart-line-placeholder" role="img" aria-label={"Product image pending review for " + name}>
+                    <span>Image pending review</span>
+                  </div>
+                )}
+              </div>
+              <div className="cart-line-details">
+                <div className="section-kicker">DESERT ART GALLERY</div>
+                <h2>{name}</h2>
+                {item ? (
+                  <p>{item.priceMinor !== null && item.currency ? formatMoneyFromMinor(item.priceMinor, item.currency) : "Price unavailable"}</p>
+                ) : (
+                  <p className="cart-preview-pending">Product details are being checked.</p>
+                )}
+                {item?.variantLabel && <p className="cart-variant-label">{item.variantLabel}</p>}
+                <div className="cart-quantity">
+                  <button
+                    type="button"
+                    aria-label={"Decrease quantity for " + name}
+                    onClick={() => setQuantity(line.slug, line.quantity - 1, line.variantId)}
+                  >
+                    −
+                  </button>
+                  <span aria-live="polite">{line.quantity}</span>
+                  <button
+                    type="button"
+                    aria-label={"Increase quantity for " + name}
+                    disabled={!item?.available || line.quantity >= (item?.availableQuantity ?? 0)}
+                    onClick={() => setQuantity(line.slug, line.quantity + 1, line.variantId)}
+                  >
+                    +
+                  </button>
+                  <button
+                    className="cart-remove"
+                    type="button"
+                    onClick={() => removeItem(line.slug, line.variantId)}
+                  >
+                    Remove
+                  </button>
+                </div>
+                {item && !item.available && (
+                  <small className="cart-error">Only {item.availableQuantity} available. Please adjust the quantity.</small>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      <aside className="cart-summary" aria-labelledby="cart-summary-heading">
+        <div className="section-kicker">ORDER SUMMARY</div>
+        <h2 id="cart-summary-heading">Items in your bag</h2>
+        {Object.entries(totals).map(([currency, amount]) => (
+          <div className="cart-summary-row" key={currency}>
+            <span>Subtotal ({currency})</span>
+            <strong>{formatMoneyFromMinor(amount, currency)}</strong>
+          </div>
+        ))}
+        <p>Shipping, taxes and duties vary by destination.</p>
+        <div className="checkout-notice">
+          The next step creates an unpaid order draft only. No payment is taken until an approved payment provider and its webhook have been configured.
         </div>
-      </article>)}
-    </section>
-    <aside className="cart-summary"><div className="section-kicker">ORDER SUMMARY</div><h2>Items in your bag</h2>
-      {Object.entries(totals).map(([currency, amount]) => <div className="cart-summary-row" key={currency}><span>Subtotal ({currency}）</span><strong>{formatMoneyFromMinor(amount, currency)}</strong></div>)}
-      <p>Shipping, taxes and duties vary by destination.</p>
-      <div className="checkout-notice">The next step creates an unpaid order draft only. No payment is taken until an approved payment provider and its webhook have been configured.</div>
-      {canContinue ? <Link href="/checkout" className="button-primary dark-button">Continue to delivery details</Link> : <span className="button-outline checkout-disabled" aria-disabled="true">Check availability before continuing</span>}
-    </aside>
-  </div>;
+        {canContinue ? (
+          <Link href="/checkout" className="button-primary dark-button">Continue to delivery details</Link>
+        ) : (
+          <span className="button-outline checkout-disabled" aria-disabled="true">Check availability before continuing</span>
+        )}
+      </aside>
+    </div>
+  );
 }
