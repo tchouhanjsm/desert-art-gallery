@@ -100,3 +100,10 @@ npm run visual:review
 ```
 
 The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIEW_BASE_URL` to review another local/staging URL and `STOREFRONT_REVIEW_OUTPUT_DIR` to choose a separate output folder. Screenshots and the JSON manifest are written under ignored `.local-data/visual-review/`; they are not committed. The capture is an unauthenticated smoke review and does not replace signed-in UAT, English copy and visual sign-off, or visual sign-off.
+
+
+## Presentation layer ownership
+
+The active public presentation is owned by `src/styles/japan-storefront.css`; neutral reset rules and base font tokens remain in `src/app/globals.css`; the separate owner workspace is styled by `src/styles/admin-theme.css`. The root `src/app/layout.tsx` is the single entry point for these global stylesheets. Do not add a second public theme or import global styles from page/component files.
+
+The superseded `theme.css`, `phase1.css`, `editorial.css` and inactive `admin.css` layers were removed after auditing the App Router and component source tree. Shared `StorefrontPageHeading` and `StorefrontSectionHeading` components standardise public heading semantics while preserving route-specific classes. Category counts in homepage discovery and shop filters are derived from the exact catalogue records supplied to those views; they are not seeded or hard-coded.
