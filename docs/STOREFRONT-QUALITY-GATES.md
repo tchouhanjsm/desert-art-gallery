@@ -135,7 +135,7 @@ Review every artifact manually. Automated captures do not provide pixel-diff bas
 ## 11. Checkout retry and delivery-address UX
 
 - [ ] Repeating the same checkout payload reuses both the reservation and order-draft idempotency keys.
-- [ ] Changing cart lines, destination/address, selected shipping rate or delivery note creates a new checkout attempt key pair.
+- [ ] Changing cart lines creates a new reservation key. Changing address, selected shipping rate or delivery note reuses the reservation key and creates a new order-draft key.
 - [ ] Address whitespace and cart-line ordering alone do not create a new request fingerprint when the server normalizes them to the same request.
 - [ ] Editing any field after selecting a saved delivery address switches the selector to the custom-address option; it never implies the account's saved address was modified.
 - [ ] The order summary shows the actual configured shipping amount only after an applicable rate is selected.
@@ -148,3 +148,14 @@ Review every artifact manually. Automated captures do not provide pixel-diff bas
 [Run #384](https://github.com/tchouhanjsm/desert-art-gallery/actions/runs/41989843935) passed for the checkout-resilience PR head: migrations, typecheck, 320 tests, lint, build, 120 route/viewport captures and Lighthouse. Home Lighthouse: 92/95/96/100; shop: 90/96/96/100; zero assertion failures. The capture manifest reports zero capture failures, horizontal overflow, broken images, missing/generic alt labels, unnamed buttons, HTTP errors, failed requests or page errors. Fifteen console 404 messages are limited to the intentionally empty database's product/collection routes and deliberate not-found route.
 
 Automated CI is not signed-in customer acceptance. The following remain open: retry after a real ambiguous network response, saved address editing under an authenticated customer, order creation with merchant-configured shipping and tax, review of a real server-calculated order total, and cancellation/expiry UAT. No payment flow is available or implied.
+
+
+## 12. Visual merchandising and market guardrails — 2026-11-05
+
+- [ ] Homepage communicates a curated online store in the first viewport and provides useful shopping/category actions without unsupported catalogue claims.
+- [ ] Empty-catalogue hero and product-card image areas use image-ready graphic placeholders with fixed proportions; no unrelated photographs or fake stock images.
+- [ ] Published catalogue content and product photography remain source-backed and rights-approved.
+- [ ] Customer UI is English-only.
+- [ ] No market, currency, address, tax, shipping, duties, returns or legal seller rule changes without explicit owner approval.
+- [ ] Owner confirms India-only, Japan-only with English UI, or multi-market before market-specific checkout and policy changes.
+- [ ] Real product photography migration remains deferred.

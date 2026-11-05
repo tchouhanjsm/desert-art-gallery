@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { StorefrontImage } from "@/components/StorefrontImage";
+import { StorefrontMediaPlaceholder } from "@/components/StorefrontMediaPlaceholder";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
 import { ALL_SHOP_CATEGORY, getShopCategories } from "@/lib/shop-query";
@@ -23,10 +24,10 @@ export default async function HomePage() {
     <div className="jp-home">
       <section className="jp-home-hero" aria-labelledby="home-heading">
         <div className="jp-home-hero-copy">
-          <div className="jp-home-hero-kicker">DESERT ART GALLERY · Jaisalmer, Rajasthan</div>
+          <div className="jp-home-hero-kicker">A CURATED ONLINE STORE · Jaisalmer, Rajasthan</div>
           <h1 id="home-heading">Distinctive textiles.<br /><em>Considered pieces for living.</em></h1>
           <p>
-            Explore a considered selection of heritage textiles and handcrafted objects, each presented with the product details we can verify.
+            Discover distinctive textiles and handcrafted pieces, selected for their character, material and place in everyday life.
           </p>
           <div className="jp-home-hero-actions">
             <Link className="button-primary" href="/shop">Shop all products</Link>
@@ -52,9 +53,13 @@ export default async function HomePage() {
             </Link>
           ) : (
             <div className="jp-home-hero-empty">
-              <span>ONLINE STORE · CATALOGUE IN PREPARATION</span>
-              <strong>We are preparing the catalogue while product details and photography are reviewed.</strong>
-              <small>Listings appear only after product details, media and rights checks are complete.</small>
+              <StorefrontMediaPlaceholder variant="hero" label="Abstract image placeholder; approved product photography is pending" caption="PHOTOGRAPHY PENDING" />
+              <div className="jp-home-hero-empty-copy">
+                <span>ONLINE STORE · CATALOGUE IN PREPARATION</span>
+                <span className="jp-hero-placeholder-index">01 / THE COLLECTION</span>
+                <strong>Objects with character. Details worth discovering.</strong>
+                <small>Product listings appear only after details, photography and usage rights are approved.</small>
+              </div>
             </div>
           )}
         </div>
@@ -83,7 +88,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      {collections.filter(isPublishedCollectionImage).length > 0 && (
+      {collections.length > 0 && (
         <section className="jp-home-section jp-home-section--muted" aria-labelledby="collections-heading">
           <div className="jp-home-section-inner">
             <div className="jp-home-section-heading">
@@ -94,15 +99,14 @@ export default async function HomePage() {
               <Link href="/shop" className="text-link">View all products</Link>
             </div>
             <div className="jp-home-collection-grid">
-              {collections.filter(isPublishedCollectionImage).slice(0, 4).map((collection) => (
+              {collections.slice(0, 4).map((collection) => (
                 <Link className="jp-home-collection-card" href={"/collections/" + collection.slug} key={collection.slug}>
                   <div className="jp-home-collection-media">
-                    <StorefrontImage
-                      src={collection.image}
-                      alt={collection.imageAlt || collection.name}
-                      fill
-                      sizes="(max-width: 760px) 46vw, 24vw"
-                    />
+                    {isPublishedCollectionImage(collection) ? (
+                      <StorefrontImage src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="(max-width: 760px) 46vw, 24vw" />
+                    ) : (
+                      <StorefrontMediaPlaceholder variant="collection" label={"Collection photography pending for " + collection.name} caption="COLLECTION PHOTO PENDING" />
+                    )}
                   </div>
                   <h3>{collection.name}</h3>
                   <p>{collection.description}</p>

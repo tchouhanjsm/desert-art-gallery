@@ -1181,3 +1181,35 @@ The Playwright capture matrix is aligned to the owner-requested viewport widths:
 - Evidence: [route review artifact](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397956203), [Lighthouse artifact](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397562703), [staging archive](https://api.github.com/repos/tchouhanjsm/desert-art-gallery/actions/artifacts/13397876821).
 
 The CI database is intentionally blank and the browser run is unauthenticated. These checks do not replace authenticated customer UAT with merchant-configured destination/shipping/tax rules, real product records or manual review of a populated order draft. Payment remains disabled.
+
+
+## Phase 9 — visual merchandising and image-ready storefront — 2026-11-05
+
+### Operative market instruction and unresolved conflict
+The dated owner clarification at the top of this brief says India is the market and Japan is design inspiration only. Later sections 1.3, 2.1 and 3.2 describe Japanese customers, Japanese shopping language and Japan-market buying expectations. These statements conflict. Until the owner explicitly confirms the commercial target market, the dated clarification is the operative instruction for engineering: English-only UI; no changes to currency, address schema, tax, shipping, duties, legal seller disclosures or checkout conventions. This phase does not localise or alter commerce rules. Before any market-facing change, owner must explicitly decide: (a) India-only, (b) Japan-only with English UI, or (c) multi-market English storefront, and approve resulting tax, currency, shipping, returns, seller-identity and address requirements with qualified advisers.
+
+### Visual merchandising increment
+- Reframed homepage hero language to communicate a curated online store immediately, not a destination or a gallery visit.
+- Refined the catalogue-empty hero into a deliberately composed editorial placeholder. It is a graphic surface only, not stock imagery or a claimed product representation.
+- Replaced category-derived preview artwork on product cards with an explicit photography-pending placeholder using the existing 4:5 media frame.
+- Preserved published media behaviour, rights gates, collection visibility, source-backed product facts and shopping routes.
+- Added scoped responsive refinements for mobile category/assurance rhythm and image placeholder sizing.
+
+### Checkout reservation-idempotency review
+- The reservation endpoint receives cart lines only. Its inventory repository replays a key only for the same customer and normalized variant/quantity set. A new key can create another 15-minute hold for the same stock.
+- The prior shared fingerprint included lines, address, shipping rate and note. An address/rate/note change therefore created a new reservation key and could unnecessarily duplicate stock holds.
+- Reservation identity is now tied only to normalized cart lines. Order-draft identity remains tied to the full normalized checkout request. Address/rate/note edits reuse the current inventory hold while using a fresh order idempotency key.
+- Same-mounted-attempt retries replay both identities. Reservation expiry/release returns a conflict and requires a new reservation key; the server-side 15-minute expiry/release worker remains authoritative.
+- In-memory keys are lost on component unmount or page reload. Cross-refresh replay is not guaranteed by this phase.
+- No reservation API, inventory SQL, expiry policy or order calculation was changed.
+
+### Photography boundary
+Approximately 3,000 product photographs for around 300 products remain deferred. This phase does not migrate, upload, download, optimise, hotlink or commit those files. Placeholders reserve layout proportions for a later approved media-mapping and rights-review phase.
+
+## Phase 9 frontend continuation — 2026-11-05
+
+- A shared media-placeholder component is now used by product cards, homepage hero and collection imagery when a rights-approved photograph is unavailable. Published collection discovery is no longer suppressed merely because its image has not been approved; the collection itself must still be returned by the published-collection service.
+- Collection pages retain a stable image area, show the published product count and link back to the shop.
+- Product detail pages link the category breadcrumb to filtered shop results and show up to four genuine related published products based on shared category/collection data. Development previews are excluded.
+- Cart and checkout order summaries retain every local cart line while withholding price/media/availability unless the exact server preview is present.
+- After an ambiguous order POST response, checkout locks request-defining fields and offers a same-request retry. This preserves the reservation/order idempotency pair on the mounted page; a reload still loses in-memory attempt keys and is documented as a limitation.

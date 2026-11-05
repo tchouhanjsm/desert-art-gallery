@@ -1,4 +1,5 @@
 import { StorefrontImage } from "@/components/StorefrontImage";
+import { StorefrontMediaPlaceholder } from "@/components/StorefrontMediaPlaceholder";
 import { galleryBlurDataUrl } from "@/lib/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,11 +46,17 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <p>{collection.description}</p>
         <Link className="text-link" href="/shop">View all products</Link>
       </header>
-      {isPublishedCollectionImage(collection) && (
-        <div className="atelier-collection-hero">
+      <div className="atelier-collection-hero">
+        {isPublishedCollectionImage(collection) ? (
           <StorefrontImage placeholder="blur" blurDataURL={galleryBlurDataUrl} src={collection.image} alt={collection.imageAlt || collection.name} fill sizes="100vw" />
-        </div>
-      )}
+        ) : (
+          <StorefrontMediaPlaceholder variant="collection" label={"Collection photography pending for " + collection.name} caption="COLLECTION PHOTO PENDING" />
+        )}
+      </div>
+      <div className="atelier-collection-toolbar">
+        <span>{productsInCollection.length.toLocaleString("en-IN")} {productsInCollection.length === 1 ? "product" : "products"}</span>
+        <Link href="/shop">Browse all products</Link>
+      </div>
       {productsInCollection.length ? (
         <div className="atelier-product-grid">
           {productsInCollection.map((product) => <StorefrontProductCard key={product.slug} product={product} />)}

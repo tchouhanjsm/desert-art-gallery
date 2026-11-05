@@ -266,3 +266,78 @@
   text-align:right;
   font-variant-numeric:tabular-nums;
 }
+
+/* Image-ready merchandising: deliberate surfaces, never faux product photography. */
+.jp-storefront .jp-home-hero-copy{max-width:590px;}
+.jp-storefront .jp-home-hero-kicker{display:flex;align-items:center;gap:10px;}
+.jp-storefront .jp-home-hero-kicker::before{content:"";width:28px;height:1px;background:var(--atelier-clay);}
+.jp-storefront .jp-home-hero h1{max-width:590px;letter-spacing:-.052em;}
+.jp-storefront .jp-home-hero-copy>p{max-width:460px;font-size:14px;line-height:1.9;}
+.jp-storefront .jp-home-hero-media--empty{position:relative;isolation:isolate;min-height:0;aspect-ratio:5/4;background:#ded2c2;overflow:hidden;}
+.jp-storefront .jp-home-hero-media--empty::before,.jp-storefront .jp-home-hero-media--empty::after{position:absolute;content:"";pointer-events:none;}
+.jp-storefront .jp-home-hero-media--empty::before{inset:8% 12% 12% 18%;border:1px solid rgba(69,52,39,.2);background:linear-gradient(135deg,rgba(255,255,255,.34),rgba(255,255,255,0) 55%),linear-gradient(25deg,#c2aa91,#e9ddcc 52%,#c9b8a4);transform:rotate(-5deg);}
+.jp-storefront .jp-home-hero-media--empty::after{inset:17% 19% 18% 29%;border:1px solid rgba(69,52,39,.18);background:linear-gradient(145deg,#eee5d8,#b99d82);transform:rotate(4deg);}
+.jp-storefront .jp-home-hero-empty{position:relative;z-index:1;min-height:0;height:100%;padding:clamp(20px,3vw,40px);justify-content:flex-end;background:linear-gradient(0deg,rgba(36,31,26,.84),rgba(36,31,26,.03) 68%);}
+.jp-storefront .jp-home-hero-empty span,.jp-storefront .jp-home-hero-empty strong,.jp-storefront .jp-home-hero-empty small{position:relative;z-index:1;color:#fff;}
+.jp-storefront .jp-home-hero-empty .jp-hero-placeholder-index{font-size:9px;letter-spacing:.16em;color:#f1d9c8;}
+.jp-storefront .jp-home-hero-empty strong{max-width:420px;font-size:clamp(24px,3vw,38px);line-height:1.15;}
+.jp-storefront .jp-home-hero-empty small{max-width:370px;color:rgba(255,255,255,.78);line-height:1.65;}
+.jp-storefront .jp-hero-placeholder-swatches{display:flex;gap:6px;margin-top:8px;}
+.jp-storefront .jp-hero-placeholder-swatches i{display:block;width:28px;height:5px;background:#dfc4a8;}
+.jp-storefront .jp-hero-placeholder-swatches i:nth-child(2){background:#b66e51;}
+.jp-storefront .jp-hero-placeholder-swatches i:nth-child(3){background:#6d6255;}
+.jp-storefront .atelier-image-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;overflow:hidden;background:linear-gradient(140deg,#ece4d9,#d6c8b7 55%,#e7ddd0);}
+.jp-storefront .atelier-image-placeholder::before,.jp-storefront .atelier-image-placeholder::after{position:absolute;content:"";pointer-events:none;border:1px solid rgba(74,57,42,.18);}
+.jp-storefront .atelier-image-placeholder::before{inset:8% 13%;background:linear-gradient(140deg,rgba(255,255,255,.4),rgba(255,255,255,0) 60%);transform:rotate(-4deg);}
+.jp-storefront .atelier-image-placeholder::after{inset:16% 21%;background:rgba(159,118,85,.12);transform:rotate(5deg);}
+.jp-storefront .atelier-image-placeholder-mark{position:relative;z-index:1;color:rgba(67,55,44,.62);font-family:var(--jp-font-display);font-size:clamp(25px,3vw,42px);letter-spacing:.13em;}
+.jp-storefront .atelier-image-placeholder-caption{position:absolute;z-index:2;bottom:12px;padding:4px 8px;background:rgba(251,249,245,.88);color:var(--atelier-muted);font-size:8px;font-weight:700;letter-spacing:.13em;}
+.jp-storefront .atelier-product-card-wishlist{z-index:5;}
+.jp-storefront .jp-home-utility-strip>div{align-items:flex-start;}
+.jp-storefront .jp-home-utility-strip>div>span{flex:0 0 auto;color:var(--atelier-clay);font-family:var(--jp-font-display);font-size:18px;line-height:1.3;}
+.jp-storefront .jp-home-utility-strip small{line-height:1.6;}
+@media(max-width:760px){.jp-storefront .jp-home-hero-media--empty{aspect-ratio:5/4;min-height:0;}.jp-storefront .jp-home-hero-empty{min-height:0!important;}.jp-storefront .jp-home-utility-strip{grid-template-columns:1fr;gap:13px;}.jp-storefront .jp-home-utility-strip>div{max-width:none;}}
+@media(max-width:430px){.jp-storefront .jp-home-hero{width:calc(100% - 32px);}.jp-storefront .jp-home-hero h1{font-size:clamp(33px,8.6vw,40px);}.jp-storefront .atelier-product-media{aspect-ratio:4/5;}.jp-storefront .atelier-image-placeholder-mark{font-size:30px;}}
+
+/* Phase 9 — consistent image-ready placeholders and product discovery. */
+.jp-storefront .storefront-media-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(145deg,#eee7dc,#d9cbbc 58%,#e9e0d5);}
+.jp-storefront .storefront-media-placeholder::before,.jp-storefront .storefront-media-placeholder::after{position:absolute;content:"";pointer-events:none;border:1px solid rgba(65,51,40,.2);}
+.jp-storefront .storefront-media-placeholder::before{inset:9% 14%;background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,0) 62%);transform:rotate(-4deg);}
+.jp-storefront .storefront-media-placeholder::after{inset:17% 22%;background:linear-gradient(145deg,rgba(169,132,100,.18),rgba(255,255,255,.05));transform:rotate(5deg);}
+.jp-storefront .storefront-media-placeholder-mark{position:relative;z-index:1;color:rgba(67,55,44,.58);font-family:var(--jp-font-display);font-size:clamp(26px,3vw,42px);letter-spacing:.13em;}
+.jp-storefront .storefront-media-placeholder-caption{position:absolute;z-index:2;right:10px;bottom:10px;left:10px;width:max-content;max-width:calc(100% - 20px);margin:auto;padding:5px 8px;background:rgba(251,249,245,.92);color:var(--atelier-muted);font-size:8px;font-weight:700;letter-spacing:.12em;text-align:center;}
+.jp-storefront .storefront-media-placeholder--hero{background:linear-gradient(135deg,#b8a18a,#e5d8c7 52%,#a89078);}
+.jp-storefront .storefront-media-placeholder--hero::before{inset:7% 11% 12% 20%;background:linear-gradient(140deg,#efe4d4,#b99d82);transform:rotate(-6deg);}
+.jp-storefront .storefront-media-placeholder--hero::after{inset:16% 18% 17% 30%;background:linear-gradient(140deg,#d8c8b7,#a98f76);transform:rotate(5deg);}
+.jp-storefront .storefront-media-placeholder--hero .storefront-media-placeholder-mark{font-size:clamp(46px,7vw,90px);color:rgba(56,44,33,.28);}
+.jp-storefront .jp-home-hero-empty{position:relative;isolation:isolate;display:block;overflow:hidden;background:#51473c;}
+.jp-storefront .jp-home-hero-empty .storefront-media-placeholder--hero{z-index:0;}
+.jp-storefront .jp-home-hero-empty::before,.jp-storefront .jp-home-hero-empty::after{display:none;}
+.jp-storefront .jp-home-hero-empty-copy{position:absolute;inset:auto 0 0;z-index:2;padding:clamp(20px,3vw,40px);display:grid;gap:9px;background:linear-gradient(0deg,rgba(36,31,26,.88),rgba(36,31,26,0));}
+.jp-storefront .jp-home-hero-empty-copy>span:first-child{color:#fff;font-size:9px;font-weight:700;letter-spacing:.12em;}
+.jp-storefront .jp-home-hero-empty-copy .jp-hero-placeholder-index{color:#f1d9c8;font-size:9px;letter-spacing:.16em;}
+.jp-storefront .jp-home-hero-empty-copy strong{max-width:440px;color:#fff;font-family:var(--jp-font-display);font-size:clamp(24px,3vw,38px);font-weight:500;line-height:1.15;}
+.jp-storefront .jp-home-hero-empty-copy small{max-width:370px;color:rgba(255,255,255,.78);font-size:10px;line-height:1.65;}
+.jp-storefront .jp-home-collection-media{isolation:isolate;}
+.jp-storefront .atelier-collection-hero{position:relative;width:100%;aspect-ratio:16/5;min-height:220px;max-height:460px;margin:0 auto 22px;overflow:hidden;background:var(--atelier-stone);}
+.jp-storefront .atelier-collection-hero img{width:100%;height:100%;object-fit:cover;}
+.jp-storefront .atelier-collection-hero .storefront-media-placeholder--collection{position:absolute;}
+.jp-storefront .atelier-collection-toolbar{margin:0 0 24px;padding:12px 0;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--atelier-line);border-bottom:1px solid var(--atelier-line);color:var(--atelier-muted);font-size:11px;}
+.jp-storefront .atelier-collection-toolbar a{color:var(--atelier-clay-dark);font-weight:700;}
+.jp-storefront .atelier-related-products{max-width:var(--atelier-container);margin:52px auto 45px;padding-top:34px;border-top:1px solid var(--atelier-line);}
+.jp-storefront .atelier-related-heading{margin-bottom:20px;display:flex;align-items:end;justify-content:space-between;gap:18px;}
+.jp-storefront .atelier-related-heading .section-title{margin:0;font-size:clamp(24px,3vw,36px);}
+.jp-storefront .atelier-related-products .atelier-product-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+.jp-storefront .checkout-retry-locked{padding:13px 15px;border:1px solid #c9a68e;background:#f2e8dd;color:#704535;font-size:11px;line-height:1.75;}
+.jp-storefront .checkout-form input:disabled,.jp-storefront .checkout-form select:disabled,.jp-storefront .checkout-form textarea:disabled{background:#f2efe9;color:#716a61;cursor:not-allowed;}
+.jp-storefront .cart-page-layout{gap:clamp(26px,4vw,60px);}
+.jp-storefront .cart-summary{position:sticky;top:150px;}
+.jp-storefront .cart-page-line{align-items:start;}
+.jp-storefront .cart-line-details h2{line-height:1.3;}
+.jp-storefront .checkout-layout{gap:clamp(26px,4vw,60px);}
+.jp-storefront .checkout-summary{position:sticky;top:150px;}
+@media(max-width:1000px){.jp-storefront .atelier-related-products .atelier-product-grid{grid-template-columns:repeat(3,minmax(0,1fr));}.jp-storefront .atelier-related-heading{align-items:start;}}
+@media(max-width:760px){.jp-storefront .atelier-collection-hero{aspect-ratio:5/4;min-height:0;}.jp-storefront .atelier-related-products .atelier-product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px;}.jp-storefront .atelier-related-heading{flex-direction:column;}.jp-storefront .atelier-related-products{margin-top:34px;padding-top:25px;}.jp-storefront .cart-summary,.jp-storefront .checkout-summary{position:static;}.jp-storefront .atelier-collection-toolbar{font-size:10px;}}
+@media(prefers-reduced-motion:reduce){.jp-storefront .storefront-media-placeholder::before,.jp-storefront .storefront-media-placeholder::after{transform:none;}}
+
+.jp-storefront .atelier-product-gallery-wrap .detail-gallery-main{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--atelier-stone);}
