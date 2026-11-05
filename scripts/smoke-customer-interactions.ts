@@ -63,7 +63,7 @@ async function main(): Promise<void> {
       "Header search submits the search term to the shop URL",
       { width: 1280, height: 900 },
       async (page) => {
-        const search = page.getByRole("searchbox", { name: "Search products" });
+        const search = page.locator("#site-product-search");
         await search.fill("indigo");
         await page.getByRole("button", { name: "Search", exact: true }).click();
         await page.waitForURL(/\/shop\?q=indigo/);
