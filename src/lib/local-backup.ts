@@ -34,7 +34,7 @@ const BACKUP_ID_PATTERN = /^\d{8}T\d{6}Z-[a-f0-9]{8}$/;
 const DATABASE_NAME_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 
-export function createLocalBackupId(now = new Date(), uniqueId = randomUUID()): string {
+export function createLocalBackupId(now = new Date(), uniqueId: string = randomUUID()): string {
   if (!/^[a-f0-9-]{36}$/i.test(uniqueId)) {
     throw new Error("Backup identifier entropy is invalid.");
   }
