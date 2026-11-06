@@ -66,6 +66,22 @@ jobs:
         run: npm run typecheck
       - name: Unit and integration tests
         run: npm test
+      - name: Backup, verify and restore local MySQL and media
+        shell: bash
+        run: |
+          set -euo pipefail
+          backup_output="$(npm run --silent local:backup)"
+          printf '%s\\n' "$backup_output"
+          backup_id="$(printf '%s\\n' "$backup_output" | awk '/^Backup ID: / { print $3 }')"
+          test -n "$backup_id"
+          npm run local:backup:verify -- "$backup_id"
+
+          mysql --protocol=tcp -h127.0.0.1 -uroot -proot -e "CREATE DATABASE desert_gallery_restore CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci; GRANT ALL PRIVILEGES ON desert_gallery_restore.* TO 'dag_test'@'%';"
+          restore_media_root=/tmp/desert-gallery-ci-restore-media
+          test ! -e "$restore_media_root"
+          DATABASE_URL=mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_restore MEDIA_STORAGE_ROOT="$restore_media_root" npm run local:restore -- --backup="$backup_id" --confirm-empty-database=desert_gallery_restore --confirm-empty-media-root="$restore_media_root"
+          DATABASE_URL=mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_restore npm run db:status
+          test -d "$restore_media_root"
       - name: Lint
         run: npm run lint
       - name: Production build
