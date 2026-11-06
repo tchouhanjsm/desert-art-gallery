@@ -88,6 +88,7 @@ export function validateLocalBackupManifest(value: unknown): LocalBackupManifest
   }
   if (
     typeof database.name !== "string" || !DATABASE_NAME_PATTERN.test(database.name)
+    || /(^|[-_])(prod|production|live|staging|hostinger)([-_]|$)/i.test(database.name)
     || typeof database.serverVersion !== "string" || !database.serverVersion.trim()
     || typeof database.serverComment !== "string"
     || !Number.isSafeInteger(database.migrationCount) || Number(database.migrationCount) < 1
