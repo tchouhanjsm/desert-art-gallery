@@ -22,6 +22,7 @@ jobs:
         image: mysql:8.0.36
         env:
           MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_HOST: "%"
           MYSQL_DATABASE: desert_gallery_test
           MYSQL_USER: dag_test
           MYSQL_PASSWORD: dag_test_password
