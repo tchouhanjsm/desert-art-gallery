@@ -200,24 +200,28 @@ async function stageMediaRestore(
   const stagingRoot = path.join(parent, "." + path.basename(mediaRoot) + ".restore-" + randomUUID());
   await mkdir(stagingRoot, { recursive: false, mode: 0o700 });
   await chmod(stagingRoot, 0o700);
-
-  for (const file of manifest.media.files) {
-    const source = path.resolve(backupDirectory, "media", ...file.path.split("/"));
-    const destination = path.resolve(stagingRoot, ...file.path.split("/"));
-    if (!isPathWithin(path.join(backupDirectory, "media"), source) || !isPathWithin(stagingRoot, destination)) {
-      throw new Error("Restore media path escapes its verified snapshot.");
+  try {
+    for (const file of manifest.media.files) {
+      const source = path.resolve(backupDirectory, "media", ...file.path.split("/"));
+      const destination = path.resolve(stagingRoot, ...file.path.split("/"));
+      if (!isPathWithin(path.join(backupDirectory, "media"), source) || !isPathWithin(stagingRoot, destination)) {
+        throw new Error("Restore media path escapes its verified snapshot.");
+      }
+      const sourceInfo = await lstat(source);
+      if (!sourceInfo.isFile() || sourceInfo.isSymbolicLink()) throw new Error("Restore media source is not a regular file.");
+      await mkdir(path.dirname(destination), { recursive: true, mode: 0o700 });
+      await copyFile(source, destination);
+      await chmod(destination, 0o600);
+      const copied = await sha256File(destination);
+      if (copied.bytes !== file.sizeBytes || copied.sha256 !== file.sha256) {
+        throw new Error("Staged media checksum does not match: " + file.path);
+      }
     }
-    const sourceInfo = await lstat(source);
-    if (!sourceInfo.isFile() || sourceInfo.isSymbolicLink()) throw new Error("Restore media source is not a regular file.");
-    await mkdir(path.dirname(destination), { recursive: true, mode: 0o700 });
-    await copyFile(source, destination);
-    await chmod(destination, 0o600);
-    const copied = await sha256File(destination);
-    if (copied.bytes !== file.sizeBytes || copied.sha256 !== file.sha256) {
-      throw new Error("Staged media checksum does not match: " + file.path);
-    }
+    return stagingRoot;
+  } catch (error) {
+    await rm(stagingRoot, { recursive: true, force: true });
+    throw error;
   }
-  return stagingRoot;
 }
 
 async function installStagedMedia(stagingRoot: string, mediaRoot: string): Promise<void> {
