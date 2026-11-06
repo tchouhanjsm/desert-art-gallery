@@ -79,3 +79,12 @@ The current frontend increment introduces shared `StorefrontPageHeading` and `St
 Homepage category links and shop category select/chips now show counts computed from the catalogue records passed to those views. Counts are not configured separately and are not rendered when the corresponding category is absent. This does not introduce new catalogue content.
 
 The four legacy stylesheet layers were removed after verifying global style imports across App Router and component files. The active customer stylesheet remains `japan-storefront.css`; owner/admin remains on `admin-theme.css`. Exact-head CI and automated responsive review must run again after this increment. No manual screenshot inspection or live-catalogue acceptance is implied by the refactor.
+
+
+## Populated catalogue smoke acceptance — 2026-11-06
+
+CI now supplements the empty-state route sweep with one synthetic published product, one synthetic published collection and generated geometric test artwork in an isolated MySQL database/media root. The product route verifies the two-image gallery and thumbnail change; the collection route verifies its cover image and linked product; the customer smoke verifies variant selection, add-to-bag and the server-derived price/stock preview. The two dynamic fixture routes must return HTTP 200 across mobile, tablet and desktop captures.
+
+The fixture is created only inside the GitHub Actions disposable test job after the backup/restore acceptance step. Its explicit environment/database/path guard rejects any other target. Generated media and a labelled INR test value are not merchant photography, real products or proposed prices. The suite stops before checkout, order creation, stock reservation and payment.
+
+This improves automated confidence in the populated public storefront path; it does not replace manual review with an owner-approved product and authorised photo set, authenticated customer UAT, accessibility sign-off, actual local recovery or deployment to an owner-approved staging host.

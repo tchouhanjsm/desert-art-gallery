@@ -38,6 +38,17 @@ export const storefrontReviewRoutes = [
   { id: "owner-login", path: "/owner/login", area: "operations", allowedStatuses: [200] },
 ] as const satisfies readonly StorefrontReviewRoute[];
 
+export const storefrontFixtureReviewRoutes = [
+  { id: "ci-fixture-collection", path: "/collections/ci-review-collection", area: "customer", allowedStatuses: [200] },
+  { id: "ci-fixture-product", path: "/products/ci-review-product", area: "customer", allowedStatuses: [200] },
+] as const satisfies readonly StorefrontReviewRoute[];
+
+export function getStorefrontReviewRoutes(includeSyntheticFixtures = false): readonly StorefrontReviewRoute[] {
+  return includeSyntheticFixtures
+    ? [...storefrontReviewRoutes, ...storefrontFixtureReviewRoutes]
+    : storefrontReviewRoutes;
+}
+
 export const storefrontReviewViewports = [
   { id: "mobile-390", width: 390, height: 844 },
   { id: "mobile-430", width: 430, height: 932 },

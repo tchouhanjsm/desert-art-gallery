@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isExpectedNavigationAbort, storefrontReviewRoutes, storefrontReviewViewports } from "./storefront-review";
+import {
+  getStorefrontReviewRoutes,
+  isExpectedNavigationAbort,
+  storefrontFixtureReviewRoutes,
+  storefrontReviewRoutes,
+  storefrontReviewViewports,
+} from "./storefront-review";
 
 describe("storefront visual review matrix", () => {
   it("defines unique, rooted route entries with explicit accepted statuses", () => {
@@ -26,6 +32,17 @@ describe("storefront visual review matrix", () => {
   it("keeps operations entry points explicitly identified", () => {
     expect(storefrontReviewRoutes.filter((route) => route.area === "operations").map((route) => route.path))
       .toEqual(["/admin", "/owner/login"]);
+  });
+
+  it("adds only strict-200 synthetic product and collection routes when fixture mode is explicitly enabled", () => {
+    expect(getStorefrontReviewRoutes()).toEqual(storefrontReviewRoutes);
+    const fixtures = getStorefrontReviewRoutes(true).slice(storefrontReviewRoutes.length);
+    expect(fixtures).toEqual(storefrontFixtureReviewRoutes);
+    expect(fixtures.map((route) => route.path)).toEqual([
+      "/collections/ci-review-collection",
+      "/products/ci-review-product",
+    ]);
+    expect(fixtures.every((route) => route.allowedStatuses.length === 1 && route.allowedStatuses[0] === 200)).toBe(true);
   });
 
   it("covers the required mobile, tablet and desktop widths", () => {

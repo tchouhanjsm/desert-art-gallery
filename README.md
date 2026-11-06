@@ -99,7 +99,7 @@ npx playwright install chromium
 npm run visual:review
 ```
 
-The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIEW_BASE_URL` to review another local/staging URL and `STOREFRONT_REVIEW_OUTPUT_DIR` to choose a separate output folder. Screenshots and the JSON manifest are written under ignored `.local-data/visual-review/`; they are not committed. The capture is an unauthenticated smoke review and does not replace signed-in UAT, English copy and visual sign-off, or visual sign-off.
+The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIEW_BASE_URL` to review another local/staging URL and `STOREFRONT_REVIEW_OUTPUT_DIR` to choose a separate output folder. Screenshots and the JSON manifest are written under ignored `.local-data/visual-review/`; they are not committed. CI adds a synthetic published product/collection fixture to exercise real MySQL-backed routes, rights-checked media, the two-image gallery and a populated pre-checkout bag. The seeder is hard-locked to the disposable GitHub Actions database and media directory; it is not a local or production data command. Generated images and test price are not merchant content. The capture remains unauthenticated and does not replace owner-approved product/photo review, signed-in UAT, accessibility review or staging sign-off.
 
 
 ## Presentation layer ownership

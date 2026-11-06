@@ -18,6 +18,11 @@ const outputDirectory = resolve(
   process.env.STOREFRONT_INTERACTION_OUTPUT_DIR ?? ".local-data/interaction-review",
 );
 const results: InteractionResult[] = [];
+const fixtureMode = process.env.STOREFRONT_REVIEW_FIXTURES === "true";
+const fixtureProductSlug = "ci-review-product";
+const fixtureCollectionSlug = "ci-review-collection";
+const fixtureProductName = "CI review fixture — not for sale";
+const fixtureVariantId = "00000000-0000-4000-8000-000000000204";
 
 function record(id: string, description: string, status: InteractionResult["status"], detail?: string) {
   results.push({ id, description, status, ...(detail ? { detail } : {}) });
@@ -134,6 +139,96 @@ async function main(): Promise<void> {
         }
       },
     );
+    if (fixtureMode) {
+      await runCheck(
+        browser,
+        "published-product-gallery",
+        "A published MySQL product renders both rights-checked CI media images on the real product route",
+        { width: 390, height: 844 },
+        async (page) => {
+          await page.goto(new URL("/products/" + fixtureProductSlug, baseUrl).toString(), { waitUntil: "domcontentloaded" });
+          await page.getByRole("heading", { level: 1, name: fixtureProductName }).waitFor({ state: "visible" });
+          const galleryImage = page.locator(".detail-gallery-main img").first();
+          await galleryImage.waitFor({ state: "visible" });
+          await page.waitForFunction(() => {
+            const image = document.querySelector(".detail-gallery-main img") as HTMLImageElement | null;
+            return Boolean(image && image.complete && image.naturalWidth > 0);
+          }, undefined, { timeout: 20_000 });
+          const firstAlt = await galleryImage.getAttribute("alt");
+          if (!firstAlt?.includes("Synthetic CI illustration")) {
+            throw new Error("The primary product image did not retain its descriptive synthetic alt text.");
+          }
+          await page.getByRole("button", { name: "Product image 2 / 2" }).click();
+          await page.waitForFunction(() => {
+            const image = document.querySelector(".detail-gallery-main img") as HTMLImageElement | null;
+            return Boolean(image && image.complete && image.naturalWidth > 0 && image.alt.includes("alternate view"));
+          }, undefined, { timeout: 20_000 });
+        },
+      );
+
+      await runCheck(
+        browser,
+        "published-collection-merchandising",
+        "A published collection renders its CI-only cover image and linked product card",
+        { width: 1280, height: 900 },
+        async (page) => {
+          await page.goto(new URL("/collections/" + fixtureCollectionSlug, baseUrl).toString(), { waitUntil: "domcontentloaded" });
+          const heading = page.getByRole("heading", { level: 1 });
+          await heading.waitFor({ state: "visible" });
+          if (!(await heading.innerText()).includes("CI review collection")) {
+            throw new Error("The published collection heading did not render.");
+          }
+          await page.getByRole("link", { name: new RegExp(fixtureProductName, "i") }).waitFor({ state: "visible" });
+          const cover = page.locator(".atelier-collection-hero img").first();
+          await cover.waitFor({ state: "visible" });
+          await page.waitForFunction(() => {
+            const image = document.querySelector(".atelier-collection-hero img") as HTMLImageElement | null;
+            return Boolean(image && image.complete && image.naturalWidth > 0);
+          }, undefined, { timeout: 20_000 });
+          const alt = await cover.getAttribute("alt");
+          if (!alt?.includes("Synthetic geometric CI artwork")) {
+            throw new Error("The collection cover did not retain its descriptive synthetic alt text.");
+          }
+        },
+      );
+
+      await runCheck(
+        browser,
+        "product-to-populated-bag",
+        "A customer can select a published option, add the product and see server-priced bag details without creating an order",
+        { width: 390, height: 844 },
+        async (page) => {
+          await page.goto(new URL("/products/" + fixtureProductSlug, baseUrl).toString(), { waitUntil: "domcontentloaded" });
+          await page.getByRole("heading", { level: 1, name: fixtureProductName }).waitFor({ state: "visible" });
+          await page.getByLabel("Select an option").selectOption(fixtureVariantId);
+          await page.getByRole("button", { name: "Add to bag" }).click();
+          const dialog = page.getByRole("dialog", { name: "Your bag" });
+          await dialog.waitFor({ state: "visible" });
+          await dialog.getByRole("heading", { name: fixtureProductName, exact: true }).waitFor({ state: "visible" });
+          await dialog.getByText("CI test option", { exact: true }).waitFor({ state: "visible" });
+          await page.waitForFunction(() => {
+            const details = document.querySelector(".cart-drawer .cart-line-details");
+            return Boolean(details && /₹|INR/.test(details.textContent ?? ""));
+          }, undefined, { timeout: 20_000 });
+          const increment = dialog.getByRole("button", { name: "Increase quantity for " + fixtureProductName });
+          await page.waitForFunction(() => {
+            const button = [...document.querySelectorAll<HTMLButtonElement>(".cart-drawer button")]
+              .find((item) => item.getAttribute("aria-label") === "Increase quantity for CI review fixture — not for sale");
+            return Boolean(button && !button.disabled);
+          }, undefined, { timeout: 20_000 });
+          await increment.click();
+          const quantity = dialog.locator(".cart-quantity span").first();
+          if ((await quantity.innerText()).trim() !== "2") {
+            throw new Error("The test bag did not accept the second in-stock unit.");
+          }
+          await page.waitForFunction(() => {
+            const button = [...document.querySelectorAll<HTMLButtonElement>(".cart-drawer button")]
+              .find((item) => item.getAttribute("aria-label") === "Increase quantity for CI review fixture — not for sale");
+            return Boolean(button?.disabled);
+          }, undefined, { timeout: 20_000 });
+        },
+      );
+    }
   } finally {
     await browser.close();
   }
@@ -147,11 +242,15 @@ async function main(): Promise<void> {
     checkCount: results.length,
     failedCount: failed.length,
     results,
+    fixtureMode,
     limitations: [
-      "Uses an empty CI catalogue; does not add products or modify merchant data.",
+      fixtureMode
+        ? "The populated-catalogue checks use one clearly labelled synthetic product, one synthetic collection, generated artwork and a throwaway test price in the disposable CI database only."
+        : "The default local smoke mode does not seed or require a populated catalogue.",
       "Does not authenticate customers or owners.",
-      "Does not submit checkout, create orders, reserve stock or attempt payments.",
-      "Does not replace human visual inspection or authenticated UAT.",
+      "Stops at bag preview: it does not submit checkout, create order drafts, reserve inventory or attempt payments.",
+      "Generated CI artwork is not merchant photography; real catalogue and rights review remain owner acceptance gates.",
+      "Does not replace human visual inspection, keyboard/screen-reader review or authenticated UAT.",
     ],
   };
   await writeFile(

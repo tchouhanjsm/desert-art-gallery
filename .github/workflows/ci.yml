@@ -88,9 +88,16 @@ jobs:
           test -d "$restore_media_root"
           test "$(cat "$restore_media_root/products/ci-fixture/backup-restore-proof.txt")" = "dag-backup-restore-proof"
           grep -F "Media files: 1" <<< "$backup_output"
+      - name: Seed isolated published storefront review fixtures
+        env:
+          MYSQL_CATALOGUE_ENABLED: "true"
+          STOREFRONT_REVIEW_FIXTURES: "true"
+        run: npm run storefront:review:seed
       - name: Lint
         run: npm run lint
       - name: Production build
+        env:
+          MYSQL_CATALOGUE_ENABLED: "true"
         run: npm run build
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
@@ -99,6 +106,8 @@ jobs:
         env:
           STOREFRONT_REVIEW_BASE_URL: http://localhost:4174
           STOREFRONT_REVIEW_OUTPUT_DIR: .local-data/visual-review/ci-${{ github.sha }}
+          MYSQL_CATALOGUE_ENABLED: "true"
+          STOREFRONT_REVIEW_FIXTURES: "true"
         run: |
           set -euo pipefail
           server_log=/tmp/desert-art-gallery-visual-review-server.log
@@ -129,6 +138,8 @@ jobs:
         env:
           STOREFRONT_INTERACTION_BASE_URL: http://localhost:4174
           STOREFRONT_INTERACTION_OUTPUT_DIR: .local-data/interaction-review
+          MYSQL_CATALOGUE_ENABLED: "true"
+          STOREFRONT_REVIEW_FIXTURES: "true"
         run: npm run smoke:customer
       - name: Upload customer interaction report
         if: always() && hashFiles('.local-data/interaction-review/interaction-manifest.json') != ''
