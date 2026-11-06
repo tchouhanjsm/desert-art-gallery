@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { createReadStream } from "node:fs";
 import { chmod, copyFile, lstat, mkdir, mkdtemp, readdir, rename, rm, rmdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -86,7 +86,7 @@ async function writeClientDefaults(directory: string, config: ReturnType<typeof 
   return filename;
 }
 
-function waitForCommand(child: ReturnType<typeof spawn>, commandLabel: string): Promise<void> {
+function waitForCommand(child: ChildProcess, commandLabel: string): Promise<void> {
   return new Promise((resolve, reject) => {
     child.once("error", (error) => {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
@@ -106,8 +106,12 @@ async function runDatabaseRestore(defaultsFile: string, database: string, dumpPa
   const child = spawn("mysql", buildMySqlRestoreArguments(defaultsFile, database), {
     stdio: ["pipe", "ignore", "pipe"],
   });
-  child.stderr.resume();
   const command = waitForCommand(child, "mysql");
+  if (!child.stdin || !child.stderr) {
+    child.kill();
+    throw new Error("mysql did not provide the expected input streams.");
+  }
+  child.stderr.resume();
   try {
     await Promise.all([
       pipeline(createReadStream(dumpPath), createGunzip(), child.stdin),
