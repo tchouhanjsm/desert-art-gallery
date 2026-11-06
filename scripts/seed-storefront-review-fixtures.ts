@@ -37,7 +37,7 @@ function assertIsolatedCiEnvironment(): void {
   const rawUrl = process.env.DATABASE_URL;
   if (!rawUrl) throw new Error("The disposable storefront fixture database is not configured.");
   const url = new URL(rawUrl);
-  const databaseName = decodeURIComponent(url.pathname.replace(/^\\//, ""));
+  const databaseName = decodeURIComponent(url.pathname.slice(1));
   if (
     url.protocol !== "mysql:" ||
     url.hostname !== "127.0.0.1" ||
