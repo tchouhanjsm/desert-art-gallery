@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import { chmod, copyFile, lstat, mkdir, mkdtemp, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -57,7 +57,7 @@ async function writeClientDefaults(directory: string, config: ReturnType<typeof 
   return filename;
 }
 
-function waitForCommand(child: ReturnType<typeof spawn>, commandLabel: string): Promise<void> {
+function waitForCommand(child: ChildProcess, commandLabel: string): Promise<void> {
   return new Promise((resolve, reject) => {
     child.once("error", (error) => {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
@@ -76,8 +76,12 @@ function waitForCommand(child: ReturnType<typeof spawn>, commandLabel: string): 
 async function runDatabaseDump(defaultsFile: string, database: string, destination: string): Promise<void> {
   const args = buildMySqlDumpArguments(defaultsFile, database);
   const child = spawn("mysqldump", args, { stdio: ["ignore", "pipe", "pipe"] });
-  child.stderr.resume();
   const command = waitForCommand(child, "mysqldump");
+  if (!child.stdout || !child.stderr) {
+    child.kill();
+    throw new Error("mysqldump did not provide the expected output streams.");
+  }
+  child.stderr.resume();
   try {
     await Promise.all([
       pipeline(child.stdout, createGzip({ level: 6 }), createWriteStream(destination, { flags: "wx", mode: 0o600 })),
