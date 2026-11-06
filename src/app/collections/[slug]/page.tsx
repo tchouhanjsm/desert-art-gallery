@@ -9,6 +9,8 @@ import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue
 import { collections } from "@/lib/products";
 import { isPublishedCollectionImage } from "@/lib/storefront-presentation";
 
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
   return process.env.NODE_ENV === "development" ? collections.map((collection) => ({ slug: collection.slug })) : [];
 }
