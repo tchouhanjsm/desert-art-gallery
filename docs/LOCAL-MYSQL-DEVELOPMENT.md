@@ -176,3 +176,8 @@ This is a read-only preview. Review row counts, warnings, source SKU collisions,
 | .local-data/backups/ | Reserved database and media backups | Ignored |
 
 A directory existing does not mean the database or backup process uses it. Confirm the native MySQL server's actual data directory and complete a tested backup/restore before treating this workstation as a verified data store. Production hosting, migrations and durable hosted media remain out of scope until local acceptance is complete.
+
+
+## 9. Back up and restore local state
+
+See [Local Backup and Restore](./LOCAL-BACKUP-RESTORE.md) for the guarded database and media backup, offline checksum verification, and empty-target restore commands. A prepared `.local-data/backups/` directory is only a storage location; a backup is considered usable only after `npm run local:backup:verify` passes and a restore is exercised against a separate empty local database and media directory.
