@@ -149,3 +149,8 @@ The existing `npm run db:bootstrap-admin` remains restricted to local loopback M
 - Customer messaging, email verification, carrier integration or unapproved policy content.
 
 A staging deployment is accepted only after the checklist passes against the actual host, database and browser session. CI success alone is not evidence that the staging environment has been provisioned.
+
+
+## Backup and restore proof before staging acceptance
+
+Before using real staging data, perform a provider-specific database and private-media backup, then restore it into a separate disposable staging database and media directory. The local `npm run local:backup` / `npm run local:restore` commands are intentionally loopback-only and must not be used against the remote staging host. Keep a verified previous release artifact separately from database/media recovery; rolling back application code is not a substitute for restoring compatible data.
