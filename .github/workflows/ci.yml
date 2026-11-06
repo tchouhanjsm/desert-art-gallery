@@ -72,8 +72,8 @@ jobs:
         run: |
           set -euo pipefail
           backup_output="$(npm run --silent local:backup)"
-          printf '%s\\n' "$backup_output"
-          backup_id="$(printf '%s\\n' "$backup_output" | awk '/^Backup ID: / { print $3 }')"
+          printf '%s\n' "$backup_output"
+          backup_id="$(printf '%s\n' "$backup_output" | awk '/^Backup ID: / { print $3 }')"
           test -n "$backup_id"
           npm run local:backup:verify -- "$backup_id"
 
