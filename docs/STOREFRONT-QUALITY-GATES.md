@@ -192,3 +192,33 @@ These checks do not create products, alter customer data, authenticate users, cr
 - [ ] The active image retains descriptive, source-approved alternative text and the current image position is announced politely.
 - [ ] A single-image gallery has no non-functional navigation controls; no-image state remains handled by the product page's existing placeholder.
 - [ ] Empty-catalogue CI cannot validate a published product gallery. Complete manual mobile review using an owner-approved product and its authorised image set before release.
+
+
+## 16. Published-catalogue storefront acceptance fixture — 2026-11-06
+
+The exact-head workflow now includes a populated-catalogue acceptance mode. After the local backup/restore round-trip (so recovery still snapshots exactly its dedicated one-file media sentinel), `storefront:review:seed` inserts one synthetic category, one published product, one active two-unit variant, one published collection and a two-image product gallery plus collection cover. The PNG artwork is generated specifically for automated layout verification and is labelled synthetic/not-for-sale in the data and alt text.
+
+The seeder hard-fails unless all these values match: `NODE_ENV=test`, `CI=true`, `GITHUB_ACTIONS=true`, `STOREFRONT_REVIEW_FIXTURES=true`, `MYSQL_CATALOGUE_ENABLED=true`, loopback MySQL URL for the exact `desert_gallery_test` database using the CI test account, local media driver and dedicated `/tmp/desert-gallery-ci-media` root. It refuses duplicate fixture records and is not a local, staging or production seeding utility.
+
+Fixture-enabled CI adds two strict-HTTP-200 routes, increasing the route sweep from 24 / 120 captures to 26 / 130 route-viewport captures. The product and collection artwork are served through the normal rights-checked `/product-media` and `/media` routes; no browser response or catalogue repository is mocked.
+
+The populated customer interaction checks verify:
+- [ ] Published collection, product detail and linked product card render from the actual MySQL catalogue.
+- [ ] Two product images load and the second thumbnail changes the active gallery image; descriptive alt text is retained.
+- [ ] The published collection cover loads through the application media route with descriptive alt text.
+- [ ] Selecting the active test variant adds the product to the bag; server preview supplies product/variant name, INR test value and current quantity.
+- [ ] Quantity can be raised to two and the increment is disabled at the stock ceiling.
+
+The interaction suite stops at bag preview. It does not submit checkout, create an order draft, reserve inventory or attempt payment. It does not authenticate a customer or create customer data. The throwaway fixture price and synthetic images are test inputs, not merchant content or proposed selling prices.
+
+This closes the empty-CI-catalogue gap for public product/collection rendering, media integrity, gallery selection and pre-checkout bag preview. It does not validate real product facts, owner-authorised photography, actual owner-device recovery, signed-in checkout, shipping/tax, payment, or a deployed staging host. Human visual and merchant review remain required before release.
+
+
+### Accessibility audit interpretation — decorative thumbnails
+
+The visual audit reports missing alt attributes separately from generic descriptive labels. An explicit `alt=""` is accepted for a decorative thumbnail image when its containing interactive control has its own accessible name (the product-gallery thumbnail buttons are labelled with their image position). Missing `alt` attributes, whitespace-only values and generic labels such as "image" or "photo" remain audit failures. The automated tests cover this distinction.
+
+
+## Dynamic catalogue route delivery — 2026-11-06
+
+Product and collection slugs are live MySQL content and can be added or published after a deployment. Their App Router segments therefore use `dynamic = "force-dynamic"` and explicitly `dynamicParams = true`, with no build-time `generateStaticParams` list. Published detail pages resolve their slug against the public MySQL repositories at request time; unavailable or unpublished records still use the application's `notFound()` path. This avoids baking the empty CI catalogue or development-only sample slugs into the production route manifest.

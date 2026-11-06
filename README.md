@@ -99,7 +99,7 @@ npx playwright install chromium
 npm run visual:review
 ```
 
-The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIEW_BASE_URL` to review another local/staging URL and `STOREFRONT_REVIEW_OUTPUT_DIR` to choose a separate output folder. Screenshots and the JSON manifest are written under ignored `.local-data/visual-review/`; they are not committed. The capture is an unauthenticated smoke review and does not replace signed-in UAT, English copy and visual sign-off, or visual sign-off.
+The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIEW_BASE_URL` to review another local/staging URL and `STOREFRONT_REVIEW_OUTPUT_DIR` to choose a separate output folder. Screenshots and the JSON manifest are written under ignored `.local-data/visual-review/`; they are not committed. CI adds a synthetic published product/collection fixture to exercise real MySQL-backed routes, rights-checked media, the two-image gallery and a populated pre-checkout bag. The seeder is hard-locked to the disposable GitHub Actions database and media directory; it is not a local or production data command. Generated images and test price are not merchant content. The capture remains unauthenticated and does not replace owner-approved product/photo review, signed-in UAT, accessibility review or staging sign-off.
 
 
 ## Presentation layer ownership
@@ -107,3 +107,8 @@ The script requires a healthy `/api/health` response. Override `STOREFRONT_REVIE
 The active public presentation is owned by `src/styles/japan-storefront.css`; neutral reset rules and base font tokens remain in `src/app/globals.css`; the separate owner workspace is styled by `src/styles/admin-theme.css`. The root `src/app/layout.tsx` is the single entry point for these global stylesheets. Do not add a second public theme or import global styles from page/component files.
 
 The superseded `theme.css`, `phase1.css`, `editorial.css` and inactive `admin.css` layers were removed after auditing the App Router and component source tree. Shared `StorefrontPageHeading` and `StorefrontSectionHeading` components standardise public heading semantics while preserving route-specific classes. Category counts in homepage discovery and shop filters are derived from the exact catalogue records supplied to those views; they are not seeded or hard-coded.
+
+
+## Local backup and recovery
+
+Create a private, checksummed MySQL and local-media backup with `npm run local:backup`, verify it later with `npm run local:backup:verify -- <backup-id>`, and restore only into an explicitly confirmed empty local database and media directory with `npm run local:restore`. Read [Local Backup and Restore](docs/LOCAL-BACKUP-RESTORE.md) before running recovery commands. The local tools refuse remote/production database targets and do not back up S3-compatible media.

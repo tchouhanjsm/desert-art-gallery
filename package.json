@@ -27,7 +27,11 @@
     "db:catalogue-preflight": "node --env-file=.env --import=tsx scripts/catalogue-preflight.ts",
     "media:stage-recovered": "node --env-file=.env --import=tsx scripts/stage-recovered-product-photos.ts",
     "visual:review": "node --import=tsx scripts/capture-storefront-review.ts",
-    "smoke:customer": "node --import=tsx scripts/smoke-customer-interactions.ts"
+    "storefront:review:seed": "node --import=tsx scripts/seed-storefront-review-fixtures.ts",
+    "smoke:customer": "node --import=tsx scripts/smoke-customer-interactions.ts",
+    "local:backup": "node --import=tsx scripts/backup-local-state.ts",
+    "local:backup:verify": "node --import=tsx scripts/verify-local-backup.ts",
+    "local:restore": "node --import=tsx scripts/restore-local-state.ts"
   },
   "dependencies": {
     "next": "^15.1.6",

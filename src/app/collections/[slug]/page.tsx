@@ -6,12 +6,12 @@ import { notFound } from "next/navigation";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 import { StorefrontPageHeading } from "@/components/StorefrontPageHeading";
 import { getStorefrontCollections, getStorefrontProducts } from "@/lib/catalogue";
-import { collections } from "@/lib/products";
 import { isPublishedCollectionImage } from "@/lib/storefront-presentation";
 
-export function generateStaticParams() {
-  return process.env.NODE_ENV === "development" ? collections.map((collection) => ({ slug: collection.slug })) : [];
-}
+// Collections are managed in MySQL and can be published after deployment.
+// Keep this segment on-demand so new collection slugs work without a rebuild.
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

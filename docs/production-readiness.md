@@ -349,3 +349,12 @@ The four superseded/unreferenced stylesheet files `src/styles/theme.css`, `phase
 **Validation status:** new source and contract tests have been added, but the exact-head CI run for this increment is still required. Existing green CI run #397 validates the earlier PR head only; it does not validate the subsequent commits. No manual visual sign-off, real catalogue UAT, authenticated customer review, staging deployment or production release is claimed by this increment.
 
 **Scope:** presentation, catalogue-derived display counts and documentation/tests only. No database, migration, merchant data, auth, inventory, cart/checkout domain, price calculation, shipping/tax, payment, APIs, media storage/rights, country, currency or legal setting changed. The approximately 3,000-photo library remains deferred.
+
+
+## Local backup and restore operations — 2026-11-06
+
+A guarded local recovery workflow is now implemented on the development branch. `npm run local:backup` writes a private backup set containing a compressed MySQL dump, a local filesystem media snapshot and a SHA-256 manifest. It verifies the completed set before publishing the backup folder. `npm run local:backup:verify -- <backup-id>` checks the dump gzip stream, manifest, media inventory and file checksums without changing the source or target.
+
+`npm run local:restore` validates the backup before mutation, and requires an empty loopback MySQL database plus an empty, explicitly confirmed local media root. It never drops tables, deletes a populated database or overwrites existing media. A failed SQL import can leave the selected empty target partially populated; use a disposable target and recreate it manually after inspection before another attempt.
+
+**Boundaries:** production/staging and remote MySQL are blocked. The local utility requires the Oracle MySQL client utilities and `MEDIA_STORAGE_DRIVER=local`; S3-compatible media needs its provider-native backup/versioning procedure. The scripts have not yet been executed against the owner's native database and real media. Manual restore acceptance on a separate local database/media directory remains open; no production backup or deployment is claimed.

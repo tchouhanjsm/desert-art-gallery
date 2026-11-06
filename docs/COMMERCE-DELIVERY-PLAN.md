@@ -619,3 +619,8 @@ The project is complete only when all of the following are true:
 9. Recurring infrastructure costs remain within the owner's approved budget.
 
 **The immediate next milestone is Phase 0 followed by Phase 1: establish the design system and build the storefront locally. The Hostinger deployment proof comes later, after the design and application are ready.**
+
+
+### Operational recovery prerequisite — grouped delivery slice
+
+Before host-specific launch, deliver and verify the recovery path as one milestone: private MySQL dump, managed-media snapshot, SHA-256/gzip integrity validation, restore to an empty target, and a documented recovery runbook. The repository local utility is loopback-only and filesystem-media-only; remote MySQL and S3-compatible media require their host/provider-native backup process. The owner must approve retention and off-site encryption/storage before production use.

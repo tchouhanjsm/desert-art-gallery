@@ -22,6 +22,7 @@ jobs:
         image: mysql:8.0.36
         env:
           MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_HOST: "%"
           MYSQL_DATABASE: desert_gallery_test
           MYSQL_USER: dag_test
           MYSQL_PASSWORD: dag_test_password
@@ -66,9 +67,37 @@ jobs:
         run: npm run typecheck
       - name: Unit and integration tests
         run: npm test
+      - name: Backup, verify and restore local MySQL and media
+        shell: bash
+        run: |
+          set -euo pipefail
+          media_fixture="$MEDIA_STORAGE_ROOT/products/ci-fixture/backup-restore-proof.txt"
+          mkdir -p "$(dirname "$media_fixture")"
+          printf '%s' 'dag-backup-restore-proof' > "$media_fixture"
+          backup_output="$(npm run --silent local:backup)"
+          printf '%s\n' "$backup_output"
+          backup_id="$(printf '%s\n' "$backup_output" | awk '/^Backup ID: / { print $3 }')"
+          test -n "$backup_id"
+          npm run local:backup:verify -- "$backup_id"
+
+          mysql --protocol=tcp -h127.0.0.1 -uroot -proot -e "CREATE DATABASE desert_gallery_restore CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci; GRANT ALL PRIVILEGES ON desert_gallery_restore.* TO 'dag_test'@'%';"
+          restore_media_root=/tmp/desert-gallery-ci-restore-media
+          test ! -e "$restore_media_root"
+          DATABASE_URL=mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_restore MEDIA_STORAGE_ROOT="$restore_media_root" npm run local:restore -- --backup="$backup_id" --confirm-empty-database=desert_gallery_restore --confirm-empty-media-root="$restore_media_root"
+          DATABASE_URL=mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_restore npm run db:status
+          test -d "$restore_media_root"
+          test "$(cat "$restore_media_root/products/ci-fixture/backup-restore-proof.txt")" = "dag-backup-restore-proof"
+          grep -F "Media files: 1" <<< "$backup_output"
+      - name: Seed isolated published storefront review fixtures
+        env:
+          MYSQL_CATALOGUE_ENABLED: "true"
+          STOREFRONT_REVIEW_FIXTURES: "true"
+        run: npm run storefront:review:seed
       - name: Lint
         run: npm run lint
       - name: Production build
+        env:
+          MYSQL_CATALOGUE_ENABLED: "true"
         run: npm run build
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
@@ -77,6 +106,8 @@ jobs:
         env:
           STOREFRONT_REVIEW_BASE_URL: http://localhost:4174
           STOREFRONT_REVIEW_OUTPUT_DIR: .local-data/visual-review/ci-${{ github.sha }}
+          MYSQL_CATALOGUE_ENABLED: "true"
+          STOREFRONT_REVIEW_FIXTURES: "true"
         run: |
           set -euo pipefail
           server_log=/tmp/desert-art-gallery-visual-review-server.log
@@ -102,11 +133,18 @@ jobs:
             exit 1
           fi
 
-          npm run visual:review
+          npm run visual:review || {
+            review_status=$?
+            echo "Production server log after storefront route review failure:" >&2
+            cat "$server_log" >&2
+            exit "$review_status"
+          }
       - name: Verify deterministic customer interactions
         env:
           STOREFRONT_INTERACTION_BASE_URL: http://localhost:4174
           STOREFRONT_INTERACTION_OUTPUT_DIR: .local-data/interaction-review
+          MYSQL_CATALOGUE_ENABLED: "true"
+          STOREFRONT_REVIEW_FIXTURES: "true"
         run: npm run smoke:customer
       - name: Upload customer interaction report
         if: always() && hashFiles('.local-data/interaction-review/interaction-manifest.json') != ''

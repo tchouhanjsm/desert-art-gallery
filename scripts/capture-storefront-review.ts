@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { chromium } from "playwright";
-import { isExpectedNavigationAbort, storefrontReviewRoutes, storefrontReviewViewports } from "../src/lib/storefront-review";
+import { getStorefrontReviewRoutes, isExpectedNavigationAbort, isGenericAccessibleImageAlt, storefrontReviewViewports } from "../src/lib/storefront-review";
 
 type CaptureRecord = {
   routeId: string;
@@ -37,6 +37,8 @@ const outputDirectory = resolve(
   process.env.STOREFRONT_REVIEW_OUTPUT_DIR ?? `.local-data/visual-review/${timestamp}`,
 );
 const manifestPath = resolve(outputDirectory, "manifest.json");
+const fixtureMode = process.env.STOREFRONT_REVIEW_FIXTURES === "true";
+const reviewRoutes = getStorefrontReviewRoutes(fixtureMode);
 const records: CaptureRecord[] = [];
 const failures: string[] = [];
 
@@ -98,7 +100,7 @@ async function main(): Promise<void> {
       owner?.failedRequests.push(`${request.method()} ${request.url()} — ${failure}`);
     });
 
-    for (const route of storefrontReviewRoutes) {
+    for (const route of reviewRoutes) {
       for (const viewport of storefrontReviewViewports) {
         const record: CaptureRecord = {
           routeId: route.id,
@@ -151,10 +153,7 @@ async function main(): Promise<void> {
               h1Count: document.querySelectorAll("h1").length,
               imagesWithoutAlt: document.querySelectorAll("img:not([alt])").length,
               brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
-              imagesWithGenericAlt: [...document.images].filter((image) => {
-                const alt = (image.getAttribute("alt") || "").trim();
-                return !alt || /^(image|photo|product image|picture|untitled)$/i.test(alt);
-              }).length,
+              imageAltAttributes: [...document.images].map((image) => image.getAttribute("alt")),
               buttonsWithoutAccessibleName: buttons.filter((button) => {
                 const label = button.getAttribute("aria-label")?.trim();
                 const title = button.getAttribute("title")?.trim();
@@ -169,7 +168,7 @@ async function main(): Promise<void> {
           record.h1Count = metrics.h1Count;
           record.imagesWithoutAlt = metrics.imagesWithoutAlt;
           record.brokenImages = metrics.brokenImages;
-          record.imagesWithGenericAlt = metrics.imagesWithGenericAlt;
+          record.imagesWithGenericAlt = metrics.imageAltAttributes.filter(isGenericAccessibleImageAlt).length;
           record.buttonsWithoutAccessibleName = metrics.buttonsWithoutAccessibleName;
 
           const screenshotName = `${route.id}--${viewport.id}.png`;
@@ -210,17 +209,21 @@ async function main(): Promise<void> {
     commit: process.env.GITHUB_SHA ?? null,
     baseUrl: baseUrl.toString(),
     health,
-    routeCount: storefrontReviewRoutes.length,
+    routeCount: reviewRoutes.length,
+    fixtureMode,
     viewportCount: storefrontReviewViewports.length,
     captureCount: records.length,
     failedCaptureCount: failures.length,
     failures,
     limitations: [
       "This is an unauthenticated route and layout smoke review; it does not exercise signed-in customer or owner workflows.",
-      "CI uses a blank test database. Dynamic product and collection routes may correctly return 404 until approved merchant records exist.",
-      "A screenshot is evidence for human review, not automatic visual sign-off or accessibility acceptance.",
-      "The default CI database is empty. Product-card, product-detail and collection merchandising must be checked with owner-approved staging data.",
-      "No product data, media, rights, prices, policies or customer records are created by this script.",
+      fixtureMode
+        ? "Fixture mode uses one explicitly labelled synthetic published product, one synthetic collection and generated CI-only artwork in the disposable GitHub Actions MySQL database and media root."
+        : "Without fixture mode, dynamic product and collection routes may correctly return 404 against an empty catalogue.",
+      "Synthetic media rights evidence applies only to artwork generated for this disposable test; it is not merchant photography or approval of any owner asset.",
+      "A screenshot is evidence for human review, not automatic visual sign-off, source-content approval or accessibility acceptance.",
+      "Real catalogue content, owner-authorised photography, authenticated workflows and staging acceptance remain separate release gates.",
+      "No customer record, order, inventory reservation, payment or merchant policy is created or changed.",
     ],
     records,
   };

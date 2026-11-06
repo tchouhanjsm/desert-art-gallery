@@ -57,7 +57,7 @@ export function getMySqlPool(): Pool {
     connectionLimit: 5,
     maxIdle: 2,
     idleTimeout: 60_000,
-    queueLimit: 10,
+    queueLimit: 100,
     enableKeepAlive: true,
     timezone: "Z",
     charset: "utf8mb4",

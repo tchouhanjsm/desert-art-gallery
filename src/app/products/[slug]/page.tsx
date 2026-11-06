@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStorefrontProduct, getStorefrontProducts } from "@/lib/catalogue";
-import { products, type ProductImage } from "@/lib/products";
+import type { ProductImage } from "@/lib/products";
 import { amountInMajorUnits, formatMoneyFromMinor } from "@/lib/money";
 import { formatProductMeasurements } from "@/lib/product-details";
 import { buildProductEnquiryHref } from "@/lib/product-enquiry";
@@ -14,9 +14,10 @@ import { WishlistToggle } from "@/components/WishlistToggle";
 import { hasPurchasableProductOption, isPublishedProductRecord } from "@/lib/storefront-presentation";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 
-export function generateStaticParams() {
-  return process.env.NODE_ENV === "development" ? products.map((product) => ({ slug: product.slug })) : [];
-}
+// Catalogue products are authored in MySQL after deployment. Resolve every slug
+// at request time instead of freezing an empty or stale product set into the build.
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

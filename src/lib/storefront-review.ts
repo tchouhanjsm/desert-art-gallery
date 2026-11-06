@@ -38,6 +38,17 @@ export const storefrontReviewRoutes = [
   { id: "owner-login", path: "/owner/login", area: "operations", allowedStatuses: [200] },
 ] as const satisfies readonly StorefrontReviewRoute[];
 
+export const storefrontFixtureReviewRoutes = [
+  { id: "ci-fixture-collection", path: "/collections/ci-review-collection", area: "customer", allowedStatuses: [200] },
+  { id: "ci-fixture-product", path: "/products/ci-review-product", area: "customer", allowedStatuses: [200] },
+] as const satisfies readonly StorefrontReviewRoute[];
+
+export function getStorefrontReviewRoutes(includeSyntheticFixtures = false): readonly StorefrontReviewRoute[] {
+  return includeSyntheticFixtures
+    ? [...storefrontReviewRoutes, ...storefrontFixtureReviewRoutes]
+    : storefrontReviewRoutes;
+}
+
 export const storefrontReviewViewports = [
   { id: "mobile-390", width: 390, height: 844 },
   { id: "mobile-430", width: 430, height: 932 },
@@ -51,4 +62,15 @@ export const storefrontReviewViewports = [
  * canceled speculative requests as ERR_ABORTED, not as broken resources. */
 export function isExpectedNavigationAbort(errorText: string | null | undefined): boolean {
   return Boolean(errorText && /net::ERR_ABORTED|net::ERR_CANCELED|ERR_BLOCKED_BY_CLIENT/i.test(errorText));
+}
+
+
+/**
+ * Empty alt text is valid for deliberately decorative images. Missing alt
+ * attributes and whitespace-only values are handled separately by the audit.
+ */
+export function isGenericAccessibleImageAlt(altText: string | null): boolean {
+  if (altText === null || altText === "") return false;
+  const normalized = altText.trim();
+  return normalized.length === 0 || /^(image|photo|product image|picture|untitled)$/i.test(normalized);
 }
