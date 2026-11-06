@@ -1,3 +1,4 @@
+import path from "node:path";
 import { resolveLocalBackupPath, verifyLocalBackupSet } from "../src/lib/local-backup";
 
 async function main(): Promise<void> {
@@ -15,8 +16,6 @@ async function main(): Promise<void> {
   process.stdout.write("Media files: " + manifest.media.files.length + "\n");
   process.stdout.write("No database or media files were changed.\n");
 }
-
-import path from "node:path";
 
 main().catch((error: unknown) => {
   process.stderr.write((error instanceof Error ? error.message : "Backup verification failed.") + "\n");
