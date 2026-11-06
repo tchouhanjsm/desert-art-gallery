@@ -217,3 +217,8 @@ This closes the empty-CI-catalogue gap for public product/collection rendering, 
 ### Accessibility audit interpretation — decorative thumbnails
 
 The visual audit reports missing alt attributes separately from generic descriptive labels. An explicit `alt=""` is accepted for a decorative thumbnail image when its containing interactive control has its own accessible name (the product-gallery thumbnail buttons are labelled with their image position). Missing `alt` attributes, whitespace-only values and generic labels such as "image" or "photo" remain audit failures. The automated tests cover this distinction.
+
+
+## Dynamic catalogue route delivery — 2026-11-06
+
+Product and collection slugs are live MySQL content and can be added or published after a deployment. Their App Router segments therefore use `dynamic = "force-dynamic"` and explicitly `dynamicParams = true`, with no build-time `generateStaticParams` list. Published detail pages resolve their slug against the public MySQL repositories at request time; unavailable or unpublished records still use the application's `notFound()` path. This avoids baking the empty CI catalogue or development-only sample slugs into the production route manifest.
