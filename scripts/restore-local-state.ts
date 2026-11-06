@@ -242,9 +242,6 @@ async function main(): Promise<void> {
   const backupDirectory = resolveLocalBackupPath(backupRoot, options.backupId);
   const manifest = await verifyLocalBackupSet(backupDirectory);
   const config = parseLocalMySqlConnectionUrl(process.env.DATABASE_URL ?? "");
-  if (manifest.database.name.toLowerCase() !== config.database.toLowerCase()) {
-    throw new Error("The selected backup database name does not match the target DATABASE_URL database.");
-  }
   if (options.confirmDatabase !== config.database) {
     throw new Error("The database confirmation must exactly match DATABASE_URL's local database name.");
   }
