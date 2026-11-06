@@ -4,6 +4,8 @@ import {
   collections, collectionProductLinks, productCategories, productCategoryLinks,
   productMedia, products, productVariants,
 } from "../src/server/db/schema";
+import { getPublishedProductBySlug } from "../src/server/catalogue/repository";
+import { getPublishedCollections } from "../src/server/editorial/repository";
 import { storeProductMedia } from "../src/server/media/product-storage";
 import { storeEditorialMedia } from "../src/server/media/storage";
 
@@ -139,7 +141,26 @@ async function main(): Promise<void> {
       });
     });
 
-    console.log("Synthetic published storefront fixture seeded (GitHub Actions disposable database only).");
+    const [publishedProduct, publishedCollections] = await Promise.all([
+      getPublishedProductBySlug(PRODUCT_SLUG),
+      getPublishedCollections(),
+    ]);
+    const publishedCollection = publishedCollections.find((collection) => collection.slug === COLLECTION_SLUG);
+    if (!publishedProduct) {
+      throw new Error("CI fixture verification failed: the published product is not readable through the public catalogue repository.");
+    }
+    if (publishedProduct.images?.length !== 2) {
+      throw new Error("CI fixture verification failed: the product repository did not return both rights-confirmed product images.");
+    }
+    if (publishedProduct.variants?.length !== 1 || publishedProduct.variants[0]?.id !== VARIANT_ID) {
+      throw new Error("CI fixture verification failed: the active product option is not readable through the public catalogue repository.");
+    }
+    if (!publishedCollection || !publishedCollection.hero_image_rights_confirmed ||
+        !publishedCollection.hero_image_rights_evidence.trim() || !publishedCollection.hero_image_alt.trim()) {
+      throw new Error("CI fixture verification failed: the published collection and its rights-confirmed cover are not readable through the editorial repository.");
+    }
+
+    console.log("Synthetic published storefront fixture seeded and repository-verified (GitHub Actions disposable database only).");
     console.log("Product: /products/" + PRODUCT_SLUG);
     console.log("Collection: /collections/" + COLLECTION_SLUG);
     console.log("Media: two synthetic product illustrations and one synthetic collection illustration.");

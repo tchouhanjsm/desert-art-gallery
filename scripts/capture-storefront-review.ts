@@ -153,9 +153,7 @@ async function main(): Promise<void> {
               h1Count: document.querySelectorAll("h1").length,
               imagesWithoutAlt: document.querySelectorAll("img:not([alt])").length,
               brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
-              imagesWithGenericAlt: [...document.images].filter((image) =>
-                isGenericAccessibleImageAlt(image.getAttribute("alt")),
-              ).length,
+              imageAltAttributes: [...document.images].map((image) => image.getAttribute("alt")),
               buttonsWithoutAccessibleName: buttons.filter((button) => {
                 const label = button.getAttribute("aria-label")?.trim();
                 const title = button.getAttribute("title")?.trim();
@@ -170,7 +168,7 @@ async function main(): Promise<void> {
           record.h1Count = metrics.h1Count;
           record.imagesWithoutAlt = metrics.imagesWithoutAlt;
           record.brokenImages = metrics.brokenImages;
-          record.imagesWithGenericAlt = metrics.imagesWithGenericAlt;
+          record.imagesWithGenericAlt = metrics.imageAltAttributes.filter(isGenericAccessibleImageAlt).length;
           record.buttonsWithoutAccessibleName = metrics.buttonsWithoutAccessibleName;
 
           const screenshotName = `${route.id}--${viewport.id}.png`;
