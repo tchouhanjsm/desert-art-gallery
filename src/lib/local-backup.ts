@@ -218,6 +218,12 @@ export async function verifyLocalBackupSet(backupDirectory: string): Promise<Loc
     throw new Error("Backup set must be a real directory, not a symlink.");
   }
 
+  const rootEntries = await readdir(root, { withFileTypes: true });
+  const allowedRootEntries = new Set(["manifest.json", "database.sql.gz", "media"]);
+  if (rootEntries.length !== allowedRootEntries.size || rootEntries.some((entry) => !allowedRootEntries.has(entry.name) || entry.isSymbolicLink())) {
+    throw new Error("Backup set contains unexpected root files or symbolic links.");
+  }
+
   const manifestPath = path.join(root, "manifest.json");
   await assertRegularFile(manifestPath, "Backup manifest");
   const manifest = validateLocalBackupManifest(JSON.parse(await readFile(manifestPath, "utf8")) as unknown);
