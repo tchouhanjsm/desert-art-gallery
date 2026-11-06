@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createReadStream } from "node:fs";
-import { chmod, copyFile, lstat, mkdir, mkdtemp, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { chmod, copyFile, lstat, mkdir, mkdtemp, readdir, rename, rm, rmdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createConnection, type RowDataPacket } from "mysql2/promise";
@@ -227,7 +227,7 @@ async function stageMediaRestore(
 async function installStagedMedia(stagingRoot: string, mediaRoot: string): Promise<void> {
   await assertEmptyOrMissingMediaRoot(mediaRoot);
   try {
-    await rm(mediaRoot, { recursive: false });
+    await rmdir(mediaRoot);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
