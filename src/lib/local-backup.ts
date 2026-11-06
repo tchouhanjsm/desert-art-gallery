@@ -1,6 +1,6 @@
-import { createHash } from "node:crypto";
-import { createReadStream, type ReadStream } from "node:fs";
-import { lstat, readFile } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { createReadStream } from "node:fs";
+import { lstat, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { createGunzip } from "node:zlib";
 import { pipeline } from "node:stream/promises";
@@ -34,7 +34,7 @@ const BACKUP_ID_PATTERN = /^\d{8}T\d{6}Z-[a-f0-9]{8}$/;
 const DATABASE_NAME_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 
-export function createLocalBackupId(now = new Date(), uniqueId = crypto.randomUUID()): string {
+export function createLocalBackupId(now = new Date(), uniqueId = randomUUID()): string {
   if (!/^[a-f0-9-]{36}$/i.test(uniqueId)) {
     throw new Error("Backup identifier entropy is invalid.");
   }
@@ -243,7 +243,7 @@ export async function verifyLocalBackupSet(backupDirectory: string): Promise<Loc
   const expected = new Set(manifest.media.files.map((file) => file.path));
   const discovered: string[] = [];
   async function walk(directory: string, prefix = ""): Promise<void> {
-    const entries = await (await import("node:fs/promises")).readdir(directory, { withFileTypes: true });
+    const entries = await readdir(directory, { withFileTypes: true });
     for (const entry of entries) {
       const relative = prefix ? prefix + "/" + entry.name : entry.name;
       if (!isSafeBackupRelativePath(relative) || entry.isSymbolicLink()) {
