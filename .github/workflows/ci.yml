@@ -71,6 +71,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          media_fixture="$MEDIA_STORAGE_ROOT/products/ci-fixture/backup-restore-proof.txt"
+          mkdir -p "$(dirname "$media_fixture")"
+          printf '%s' 'dag-backup-restore-proof' > "$media_fixture"
           backup_output="$(npm run --silent local:backup)"
           printf '%s\n' "$backup_output"
           backup_id="$(printf '%s\n' "$backup_output" | awk '/^Backup ID: / { print $3 }')"
@@ -83,6 +86,8 @@ jobs:
           DATABASE_URL=mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_restore MEDIA_STORAGE_ROOT="$restore_media_root" npm run local:restore -- --backup="$backup_id" --confirm-empty-database=desert_gallery_restore --confirm-empty-media-root="$restore_media_root"
           DATABASE_URL=mysql://dag_test:dag_test_password@127.0.0.1:3306/desert_gallery_restore npm run db:status
           test -d "$restore_media_root"
+          test "$(cat "$restore_media_root/products/ci-fixture/backup-restore-proof.txt")" = "dag-backup-restore-proof"
+          grep -F "Media files: 1" <<< "$backup_output"
       - name: Lint
         run: npm run lint
       - name: Production build
