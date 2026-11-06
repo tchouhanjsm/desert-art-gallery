@@ -47,3 +47,8 @@ The bucket must remain private. The application sends no public object URL to th
 Local development defaults to .local-data/media. S3 mode is selected only by an explicit MEDIA_STORAGE_DRIVER=s3; it does not require changing MySQL storage keys, schemas or media rows. Switching an existing deployment from filesystem to S3 requires a separate verified copy-and-hash migration of all stored objects before changing the environment variable. Do not switch drivers against a non-empty existing media table without completing that copy and reconciliation.
 
 Cloudflare R2 currently lists a monthly free allowance of 10 GB-month standard storage, one million Class A operations and ten million Class B operations, with no egress charge. Actual costs depend on usage and can exceed the allowance. The 3,116 recovered source photos are not automatically uploaded by this backend; only owner-approved media imports should write objects.
+
+
+## Database and media recovery are separate from release artifacts
+
+The CI staging archive never contains database dumps, private media or local backup sets. Take a database-and-media backup using the approved environment's recovery tooling before schema migration or release cutover. The repository's `local:backup` and `local:restore` commands are restricted to local loopback MySQL and local filesystem media; they are not remote-host deployment or S3 recovery tools. For S3-compatible media, use the provider's private-bucket versioning/export and restore process. A successful application build or staging archive does not demonstrate a recoverable database or media store.
