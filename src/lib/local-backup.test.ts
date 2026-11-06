@@ -133,7 +133,7 @@ describe("local backup contracts", () => {
     expect(dump[0]).toBe("--defaults-extra-file=/tmp/mysql-client.cnf");
     expect(dump).toContain("--single-transaction");
     expect(dump).toContain("--set-gtid-purged=OFF");
-    expect(dump.at(-1)).toBe("desert_gallery_dev");
+    expect(dump[dump.length - 1]).toBe("desert_gallery_dev");
     expect(restore[0]).toBe("--defaults-extra-file=/tmp/mysql-client.cnf");
     expect(restore).toContain("--binary-mode");
     expect(restore).not.toContain("password");
