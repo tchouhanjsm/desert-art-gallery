@@ -14,8 +14,6 @@ import { WishlistToggle } from "@/components/WishlistToggle";
 import { hasPurchasableProductOption, isPublishedProductRecord } from "@/lib/storefront-presentation";
 import { StorefrontProductCard } from "@/components/StorefrontProductCard";
 
-export const dynamic = "force-dynamic";
-
 export function generateStaticParams() {
   return process.env.NODE_ENV === "development" ? products.map((product) => ({ slug: product.slug })) : [];
 }

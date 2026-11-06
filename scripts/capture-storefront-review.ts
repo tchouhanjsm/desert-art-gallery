@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { chromium } from "playwright";
-import { getStorefrontReviewRoutes, isExpectedNavigationAbort, storefrontReviewViewports } from "../src/lib/storefront-review";
+import { getStorefrontReviewRoutes, isExpectedNavigationAbort, isGenericAccessibleImageAlt, storefrontReviewViewports } from "../src/lib/storefront-review";
 
 type CaptureRecord = {
   routeId: string;
@@ -153,10 +153,9 @@ async function main(): Promise<void> {
               h1Count: document.querySelectorAll("h1").length,
               imagesWithoutAlt: document.querySelectorAll("img:not([alt])").length,
               brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
-              imagesWithGenericAlt: [...document.images].filter((image) => {
-                const alt = (image.getAttribute("alt") || "").trim();
-                return !alt || /^(image|photo|product image|picture|untitled)$/i.test(alt);
-              }).length,
+              imagesWithGenericAlt: [...document.images].filter((image) =>
+                isGenericAccessibleImageAlt(image.getAttribute("alt")),
+              ).length,
               buttonsWithoutAccessibleName: buttons.filter((button) => {
                 const label = button.getAttribute("aria-label")?.trim();
                 const title = button.getAttribute("title")?.trim();

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   getStorefrontReviewRoutes,
+  isGenericAccessibleImageAlt,
   isExpectedNavigationAbort,
   storefrontFixtureReviewRoutes,
   storefrontReviewRoutes,
@@ -43,6 +44,15 @@ describe("storefront visual review matrix", () => {
       "/products/ci-review-product",
     ]);
     expect(fixtures.every((route) => route.allowedStatuses.length === 1 && route.allowedStatuses[0] === 200)).toBe(true);
+  });
+
+  it("distinguishes intentionally decorative empty alt from missing and generic image labels", () => {
+    expect(isGenericAccessibleImageAlt("")).toBe(false);
+    expect(isGenericAccessibleImageAlt(null)).toBe(false);
+    expect(isGenericAccessibleImageAlt("   ")).toBe(true);
+    expect(isGenericAccessibleImageAlt("Image")).toBe(true);
+    expect(isGenericAccessibleImageAlt("Product image")).toBe(true);
+    expect(isGenericAccessibleImageAlt("A synthetic textile illustration")).toBe(false);
   });
 
   it("covers the required mobile, tablet and desktop widths", () => {

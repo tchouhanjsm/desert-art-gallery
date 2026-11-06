@@ -212,3 +212,8 @@ The populated customer interaction checks verify:
 The interaction suite stops at bag preview. It does not submit checkout, create an order draft, reserve inventory or attempt payment. It does not authenticate a customer or create customer data. The throwaway fixture price and synthetic images are test inputs, not merchant content or proposed selling prices.
 
 This closes the empty-CI-catalogue gap for public product/collection rendering, media integrity, gallery selection and pre-checkout bag preview. It does not validate real product facts, owner-authorised photography, actual owner-device recovery, signed-in checkout, shipping/tax, payment, or a deployed staging host. Human visual and merchant review remain required before release.
+
+
+### Accessibility audit interpretation — decorative thumbnails
+
+The visual audit reports missing alt attributes separately from generic descriptive labels. An explicit `alt=""` is accepted for a decorative thumbnail image when its containing interactive control has its own accessible name (the product-gallery thumbnail buttons are labelled with their image position). Missing `alt` attributes, whitespace-only values and generic labels such as "image" or "photo" remain audit failures. The automated tests cover this distinction.

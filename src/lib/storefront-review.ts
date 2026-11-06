@@ -63,3 +63,14 @@ export const storefrontReviewViewports = [
 export function isExpectedNavigationAbort(errorText: string | null | undefined): boolean {
   return Boolean(errorText && /net::ERR_ABORTED|net::ERR_CANCELED|ERR_BLOCKED_BY_CLIENT/i.test(errorText));
 }
+
+
+/**
+ * Empty alt text is valid for deliberately decorative images. Missing alt
+ * attributes and whitespace-only values are handled separately by the audit.
+ */
+export function isGenericAccessibleImageAlt(altText: string | null): boolean {
+  if (altText === null || altText === "") return false;
+  const normalized = altText.trim();
+  return normalized.length === 0 || /^(image|photo|product image|picture|untitled)$/i.test(normalized);
+}
