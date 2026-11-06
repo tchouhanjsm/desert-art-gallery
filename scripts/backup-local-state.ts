@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
-import { chmod, copyFile, lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { chmod, copyFile, lstat, mkdir, mkdtemp, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createConnection, type RowDataPacket } from "mysql2/promise";
@@ -126,6 +126,10 @@ async function copyMediaTree(
     const sourceInfo = await lstat(source);
     if (!sourceInfo.isFile() || sourceInfo.isSymbolicLink()) throw new Error("Media file changed during backup.");
     await copyFile(source, destination);
+    const afterCopy = await lstat(source);
+    if (afterCopy.size !== sourceInfo.size || afterCopy.mtimeMs !== sourceInfo.mtimeMs || afterCopy.ino !== sourceInfo.ino) {
+      throw new Error("Media file changed while the backup was being copied; pause media writes and retry.");
+    }
     await chmod(destination, 0o600);
     const digest = await sha256File(destination);
     results.push({ path: relative, sizeBytes: digest.bytes, sha256: digest.sha256 });
