@@ -80,7 +80,7 @@ async function main(): Promise<void> {
         .locator("header a[href], footer a[href]")
         .evaluateAll((anchors) => [...new Set(anchors.map((anchor) => new URL((anchor as HTMLAnchorElement).href).pathname))]);
       const unexpectedPrefetches = [...new Set(navigationPrefetches.filter((path) =>
-        sharedNavigationPaths.includes(path) && path !== new URL(baseUrl).pathname,
+        sharedNavigationPaths.includes(path) && path !== new URL("/shop", baseUrl).pathname,
       ))];
       if (unexpectedPrefetches.length) {
         throw new Error("Shared navigation destinations were prefetched before activation: " + unexpectedPrefetches.join(", "));
