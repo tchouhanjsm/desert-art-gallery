@@ -133,7 +133,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
               </div>
             </div>
           ) : (
-            <Link href={item.href} key={item.href} onClick={closeMenus}>{item.label}</Link>
+            <Link href={item.href} prefetch={false} key={item.href} onClick={closeMenus}>{item.label}</Link>
           ))}
         </nav>
       </header>
