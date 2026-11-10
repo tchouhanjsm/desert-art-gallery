@@ -62,6 +62,47 @@ async function main(): Promise<void> {
 
   const browser = await chromium.launch({ headless: true });
   try {
+    const navigationPage = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const navigationPrefetches: string[] = [];
+    navigationPage.on("request", (request) => {
+      try {
+        const requestUrl = new URL(request.url());
+        if (requestUrl.searchParams.has("_rsc")) navigationPrefetches.push(requestUrl.pathname);
+      } catch {
+        // Ignore non-URL request values; Playwright normally supplies absolute URLs.
+      }
+    });
+    try {
+      await navigationPage.goto(new URL("/shop", baseUrl).toString(), { waitUntil: "domcontentloaded" });
+      await navigationPage.locator("footer").scrollIntoViewIfNeeded();
+      await navigationPage.waitForTimeout(1_000);
+      const sharedNavigationPaths = await navigationPage
+        .locator("header a[href], footer a[href]")
+        .evaluateAll((anchors) => [...new Set(anchors.map((anchor) => new URL((anchor as HTMLAnchorElement).href).pathname))]);
+      const unexpectedPrefetches = [...new Set(navigationPrefetches.filter((path) =>
+        sharedNavigationPaths.includes(path) && path !== new URL(baseUrl).pathname,
+      ))];
+      if (unexpectedPrefetches.length) {
+        throw new Error("Shared navigation destinations were prefetched before activation: " + unexpectedPrefetches.join(", "));
+      }
+      await navigationPage.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Makers", exact: true }).click();
+      await navigationPage.waitForURL("**/artisans");
+      record(
+        "shared-navigation-defers-prefetch",
+        "Header and footer destinations do not prefetch route payloads before activation; a navigation click still opens its destination",
+        "passed",
+      );
+    } catch (error) {
+      record(
+        "shared-navigation-defers-prefetch",
+        "Header and footer destinations do not prefetch route payloads before activation; a navigation click still opens its destination",
+        "failed",
+        error instanceof Error ? error.message : String(error),
+      );
+    } finally {
+      await navigationPage.close();
+    }
+
     await runCheck(
       browser,
       "shop-search-submit",

@@ -62,7 +62,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
       <div className="announcement">DESERT ART GALLERY  |  JAISALMER, RAJASTHAN, INDIA</div>
       <header className="site-header jp-site-header">
         <div className="utility-row jp-utility-row">
-          <Link href="/" className="wordmark jp-wordmark" aria-label="Desert Art Gallery home" onClick={closeMenus}>
+          <Link href="/" prefetch={false} className="wordmark jp-wordmark" aria-label="Desert Art Gallery home" onClick={closeMenus}>
             <span>DESERT ART GALLERY</span>
             <small>TEXTILES · OBJECTS · STORIES</small>
           </Link>
@@ -85,10 +85,10 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
             >
               {searchOpen ? <X size={19} /> : <Search size={19} />}
             </button>
-            <Link className="icon-button" href="/account" aria-label="My account" onClick={closeMenus}>
+            <Link className="icon-button" href="/account" prefetch={false} aria-label="My account" onClick={closeMenus}>
               <UserRound size={19} />
             </Link>
-            <Link className="icon-button wishlist-link" href="/wishlist" aria-label={"Wishlist, " + wishlistCount + " items"} onClick={closeMenus}>
+            <Link className="icon-button wishlist-link" href="/wishlist" prefetch={false} aria-label={"Wishlist, " + wishlistCount + " items"} onClick={closeMenus}>
               <Heart size={19} />
               {wishlistCount > 0 && <span className="wishlist-count">{wishlistCount}</span>}
             </Link>
@@ -113,7 +113,7 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
         <nav ref={navRef} id="primary-navigation" className={menuOpen ? "main-nav jp-main-nav open" : "main-nav jp-main-nav"} aria-label="Primary navigation">
           {primaryNavigation.map((item) => item.href === "/shop" && collections.length > 0 ? (
             <div className="jp-nav-collection" key={item.href}>
-              <Link href={item.href} onClick={closeMenus}>{item.label}</Link>
+              <Link href={item.href} prefetch={false} onClick={closeMenus}>{item.label}</Link>
               <button
                 ref={collectionsButtonRef}
                 className="jp-nav-disclosure"
@@ -126,9 +126,9 @@ export function Header({ collections = [] }: { collections?: { slug: string; nam
                 <ChevronDown size={13} aria-hidden="true" />
               </button>
               <div id="shop-category-panel" className={collectionsOpen ? "jp-nav-panel is-open" : "jp-nav-panel"}>
-                <Link href="/shop" onClick={closeMenus}>View all products</Link>
+                <Link href="/shop" prefetch={false} onClick={closeMenus}>View all products</Link>
                 {collections.map((collection) => (
-                  <Link href={"/collections/" + collection.slug} key={collection.slug} onClick={closeMenus}>{collection.name}</Link>
+                  <Link href={"/collections/" + collection.slug} prefetch={false} key={collection.slug} onClick={closeMenus}>{collection.name}</Link>
                 ))}
               </div>
             </div>
