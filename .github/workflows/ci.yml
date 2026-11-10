@@ -16,7 +16,8 @@ concurrency:
 jobs:
   validate:
     name: Typecheck, tests, lint, build and staging artifact
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 browser installation is pinned to the supported Ubuntu 24.04 image.
+    runs-on: ubuntu-24.04
     services:
       mysql:
         image: mysql:8.0.36
